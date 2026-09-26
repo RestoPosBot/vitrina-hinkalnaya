@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Хинкальная — меню и заказ</title>
+<meta name="description" content="Меню Хинкальной: хинкали, хачапури, шашлыки. Заказ навынос и доставка.">
+<meta name="theme-color" content="#fbf5ea">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="ikonki/znachok-192.png">
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+<!-- Хинкали одним рисунком, дальше повторяется через <use> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="testo" x1=".3" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fffaf1"/><stop offset=".55" stop-color="#f3e6ce"/><stop offset="1" stop-color="#dcc39a"/>
+    </linearGradient>
+    <radialGradient id="blik" cx=".35" cy=".3" r=".45">
+      <stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </radialGradient>
+    <symbol id="hinkali" viewBox="0 0 46 58">
+      <path d="M23 13c-1.6 0-3 .5-4.6 1.4C11.6 18.2 5 25.3 5 35.2 5 45.6 13 53 23 53s18-7.4 18-17.8c0-9.9-6.6-17-13.4-20.8C26 13.5 24.6 13 23 13z" fill="url(#testo)"/>
+      <path d="M8.6 39c2.4 7 7.8 11.4 14.4 11.4S34.9 46 37.4 39c-1.4 8-7 13-14.4 13S10 47 8.6 39z" fill="#cbb08a" opacity=".45"/>
+      <g stroke="#d5bc94" stroke-width="1.6" stroke-linecap="round" fill="none">
+        <path d="M23 14.5c-3.6 4.2-6.2 9-7.6 14.2"/><path d="M23 14.5c-1.6 4.8-2.5 9.8-2.6 14.8"/>
+        <path d="M23 14.5c1.6 4.8 2.5 9.8 2.6 14.8"/><path d="M23 14.5c3.6 4.2 6.2 9 7.6 14.2"/>
+      </g>
+      <path d="M23 3.5c2.1 0 3.6 1.3 3.6 3 0 1.4-.9 2.4-2 3.1 1.5.6 2.4 1.6 2.4 2.9 0 1.9-1.8 3.2-4 3.2s-4-1.3-4-3.2c0-1.3.9-2.3 2.4-2.9-1.1-.7-2-1.7-2-3.1 0-1.7 1.5-3 3.6-3z" fill="#e6d2ad"/>
+      <path d="M20.4 6.6c1.2.9 3.9.9 5.2 0M20.8 12.3c1.1.8 3.3.8 4.4 0" stroke="#c9ac7f" stroke-width="1.1" stroke-linecap="round" fill="none"/>
+      <ellipse cx="16.5" cy="26" rx="7" ry="5.5" fill="url(#blik)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="ekran"></div>
+
+<nav class="niz" id="niz" hidden>
+  <a href="#/" class="vkladka" data-vkladka="menyu">
+    <span class="znak">☰</span><span>Меню</span>
+  </a>
+  <a href="#/poisk" class="vkladka" data-vkladka="poisk">
+    <span class="znak">⌕</span><span>Поиск</span>
+  </a>
+  <a href="#/korzina" class="vkladka" data-vkladka="korzina">
+    <span class="znak">◔</span><span>Корзина</span>
+    <span class="schetchik" id="schetchik" hidden>0</span>
+  </a>
+</nav>
+
+<script src="vitrina.js"></script>
+</body>
+</html>

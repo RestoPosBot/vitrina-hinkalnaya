@@ -1,0 +1,292 @@
+/* Витрина Хинкальной. Телефон первым, тёплая гамма теста и жара,
+   мягкие переходы цвета, отклик на каждое касание. */
+
+:root {
+  --fon-verh:   #fdf9f2;
+  --fon-niz:    #f4e9d8;
+  --karta:      #ffffff;
+  --tekst:      #241c14;
+  --tusklo:     #7c6f60;
+  --kray:       #ece2d2;
+  --zhar:       #d2691e;
+  --zhar-temno: #b4540f;
+  --zelen:      #4a7c46;
+
+  --radius:     18px;
+  --niz-vysota: 64px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--tekst);
+  background: linear-gradient(180deg, var(--fon-verh) 0%, var(--fon-niz) 100%);
+  background-attachment: fixed;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; }
+
+#ekran { padding-bottom: calc(var(--niz-vysota) + env(safe-area-inset-bottom) + 12px); }
+
+/* ---------- шапка ---------- */
+
+.shapka {
+  position: sticky; top: 0; z-index: 20;
+  padding: 14px 18px 10px;
+  background: linear-gradient(180deg, rgba(253,249,242,.97) 70%, rgba(253,249,242,0));
+  backdrop-filter: blur(8px);
+}
+.shapka h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.shapka .pod { margin: 2px 0 0; font-size: 13px; color: var(--tusklo); }
+
+/* лента разделов */
+.lenta {
+  display: flex; gap: 8px; overflow-x: auto; padding: 10px 18px 12px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+  position: sticky; top: 62px; z-index: 19;
+  background: linear-gradient(180deg, rgba(253,249,242,.97) 60%, rgba(253,249,242,0));
+}
+.lenta::-webkit-scrollbar { display: none; }
+.lenta button {
+  flex: 0 0 auto; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--kray); background: var(--karta);
+  font-size: 14px; white-space: nowrap;
+  transition: transform .12s ease, background .15s ease, color .15s ease;
+}
+.lenta button:active { transform: scale(.95); }
+.lenta button[aria-current="true"] {
+  background: var(--zhar); border-color: var(--zhar); color: #fff;
+}
+
+/* переключатель показа фотографий: в базе они пока случайные */
+.perekl-foto {
+  position: absolute; top: 16px; right: 18px;
+  font-size: 12px; color: var(--tusklo);
+  border: 1px solid var(--kray); background: var(--karta);
+  border-radius: 999px; padding: 6px 12px;
+  transition: transform .12s ease;
+}
+.perekl-foto:active { transform: scale(.94); }
+
+/* ---------- список блюд ---------- */
+
+.razdel { padding: 6px 18px 26px; }
+.razdel h2 {
+  font-size: 17px; margin: 18px 0 12px; letter-spacing: -.01em;
+  scroll-margin-top: 112px;
+}
+
+.setka { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (min-width: 620px) { .setka { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .setka { grid-template-columns: repeat(4, 1fr); } }
+
+.blyudo {
+  position: relative; display: flex; flex-direction: column;
+  background: var(--karta); border: 1px solid var(--kray);
+  border-radius: var(--radius); overflow: hidden;
+  transition: transform .14s cubic-bezier(.34,1.3,.64,1), box-shadow .14s ease;
+}
+.blyudo:active { transform: scale(.975); }
+
+.blyudo .foto {
+  position: relative; aspect-ratio: 4 / 3; background: #f6efe2;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.blyudo .foto img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  opacity: 0; transition: opacity .35s ease;
+}
+.blyudo .foto img.vidno { opacity: 1; }
+.blyudo .foto svg { width: 42px; height: 52px; opacity: .55; }
+
+.blyudo .telo { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.blyudo .nazvanie { font-size: 14px; line-height: 1.3; }
+.blyudo .ves { font-size: 12px; color: var(--tusklo); }
+.blyudo .nizhe { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 8px; }
+.blyudo .cena { font-size: 15px; font-weight: 600; }
+
+.plyus {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--zhar); color: #fff; font-size: 20px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .12s cubic-bezier(.34,1.5,.64,1), background .15s ease;
+}
+.plyus:active { transform: scale(.85); background: var(--zhar-temno); }
+.plyus.polozheno { background: var(--zelen); }
+
+/* счётчик прямо на карточке, когда блюдо уже в корзине */
+.schet {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--zhar); border-radius: 999px; padding: 3px 4px; color: #fff;
+}
+.schet button { width: 28px; height: 28px; border-radius: 50%; font-size: 17px; line-height: 1; }
+.schet button:active { background: rgba(0,0,0,.18); }
+.schet .skolko { min-width: 16px; text-align: center; font-size: 14px; font-weight: 600; }
+
+/* прайс-лист: когда фотографий нет или они выключены */
+.setka.spisok { grid-template-columns: 1fr; gap: 8px; }
+.stroka-menyu {
+  flex-direction: row; align-items: center; gap: 12px;
+  padding: 13px 14px;
+}
+.stroka-menyu .zvanie { flex: 1; font-size: 15px; line-height: 1.3; }
+.stroka-menyu .zvanie small { display: block; color: var(--tusklo); font-size: 12px; margin-top: 2px; }
+.stroka-menyu .cena { font-size: 15px; font-weight: 600; white-space: nowrap; }
+
+/* ---------- карточка блюда ---------- */
+
+.podrobno .kartinka {
+  position: relative; aspect-ratio: 1 / 1; background: #f6efe2; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.podrobno .kartinka img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.podrobno .kartinka svg { width: 84px; height: 104px; opacity: .5; }
+
+.nazad {
+  position: absolute; top: 14px; left: 14px; z-index: 5;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
+  transition: transform .12s ease;
+}
+.nazad:active { transform: scale(.9); }
+
+.podrobno .telo { padding: 18px; }
+.podrobno h1 { font-size: 22px; margin: 0 0 6px; letter-spacing: -.01em; }
+.podrobno .svedeniya { color: var(--tusklo); font-size: 14px; margin: 0 0 16px; }
+.podrobno .sostav { font-size: 14px; color: var(--tusklo); margin: 0 0 18px; }
+
+.polosa-vnizu {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+  background: rgba(253,249,242,.96); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--kray);
+  display: flex; align-items: center; gap: 12px;
+}
+
+.glavnaya-knopka {
+  flex: 1; height: 50px; border-radius: 14px;
+  background: var(--zhar); color: #fff; font-size: 16px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  transition: transform .12s cubic-bezier(.34,1.4,.64,1), background .15s ease;
+}
+.glavnaya-knopka:active { transform: scale(.97); background: var(--zhar-temno); }
+.glavnaya-knopka[disabled] { background: #d9cdbb; color: #fff; }
+
+/* ---------- корзина и оформление ---------- */
+
+.stroka {
+  display: flex; gap: 12px; align-items: center;
+  padding: 12px; background: var(--karta);
+  border: 1px solid var(--kray); border-radius: var(--radius); margin-bottom: 10px;
+}
+.stroka .mini { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; background: #f6efe2; flex: 0 0 auto; }
+.stroka .zvanie { flex: 1; font-size: 14px; }
+.stroka .zvanie small { display: block; color: var(--tusklo); font-size: 12px; margin-top: 2px; }
+
+.itogo { display: flex; justify-content: space-between; padding: 14px 2px 4px; font-size: 16px; }
+.itogo b { font-size: 19px; }
+
+.pole { display: block; margin-bottom: 12px; }
+.pole span { display: block; font-size: 13px; color: var(--tusklo); margin-bottom: 6px; }
+.pole input, .pole textarea {
+  width: 100%; padding: 13px 14px; font: inherit;
+  background: var(--karta); border: 1px solid var(--kray); border-radius: 14px;
+  transition: border-color .15s ease;
+}
+.pole input:focus, .pole textarea:focus { outline: none; border-color: var(--zhar); }
+
+.vybor { display: flex; gap: 8px; margin-bottom: 16px; }
+.vybor button {
+  flex: 1; padding: 12px; border-radius: 14px; border: 1px solid var(--kray);
+  background: var(--karta); font-size: 14px;
+  transition: transform .12s ease;
+}
+.vybor button:active { transform: scale(.97); }
+.vybor button[aria-pressed="true"] { background: var(--zhar); border-color: var(--zhar); color: #fff; }
+
+.pusto { text-align: center; padding: 64px 24px; color: var(--tusklo); }
+.pusto svg { width: 64px; height: 80px; opacity: .45; margin-bottom: 14px; }
+
+/* ---------- нижняя панель ---------- */
+
+.niz {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 25;
+  height: calc(var(--niz-vysota) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex; align-items: stretch;
+  background: rgba(253,249,242,.96); backdrop-filter: blur(10px);
+  border-top: 1px solid var(--kray);
+}
+.vkladka {
+  position: relative; flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  font-size: 11px; color: var(--tusklo);
+  transition: color .15s ease, transform .12s ease;
+}
+.vkladka .znak { font-size: 19px; line-height: 1; }
+.vkladka:active { transform: scale(.94); }
+.vkladka[aria-current="page"] { color: var(--zhar); }
+
+.schetchik {
+  position: absolute; top: 8px; left: 50%; margin-left: 4px;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--zhar); color: #fff;
+  font-size: 11px; font-weight: 600; line-height: 18px; text-align: center;
+}
+
+/* ---------- загрузка: фишка 001 ---------- */
+
+.zagruzka-ekran { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; gap: 26px; }
+.zagruzka { display: flex; align-items: flex-end; gap: 12px; }
+.zagruzka .mesto { position: relative; width: 36px; height: 46px; }
+.zagruzka .hinkali { width: 36px; height: 46px; transform-origin: 50% 88%; animation: pryzhok 1.25s cubic-bezier(.36,.07,.25,1) infinite; }
+.zagruzka .ten {
+  position: absolute; left: 50%; bottom: -8px; width: 24px; height: 6px; margin-left: -12px;
+  border-radius: 50%; background: rgba(42,33,24,.18); filter: blur(2px);
+  animation: ten 1.25s cubic-bezier(.36,.07,.25,1) infinite;
+}
+.mesto:nth-child(1) .hinkali, .mesto:nth-child(1) .ten { animation-delay: 0s; }
+.mesto:nth-child(2) .hinkali, .mesto:nth-child(2) .ten { animation-delay: .09s; }
+.mesto:nth-child(3) .hinkali, .mesto:nth-child(3) .ten { animation-delay: .18s; }
+.mesto:nth-child(4) .hinkali, .mesto:nth-child(4) .ten { animation-delay: .27s; }
+.mesto:nth-child(5) .hinkali, .mesto:nth-child(5) .ten { animation-delay: .36s; }
+
+@keyframes pryzhok {
+  0%,55%,100% { transform: translateY(0) scale(1,1); }
+  12%         { transform: translateY(0) scale(1.10,.90); }
+  30%         { transform: translateY(-24px) scale(.95,1.05); }
+  44%         { transform: translateY(0) scale(1.07,.93); }
+}
+@keyframes ten {
+  0%,55%,100% { transform: scale(1); opacity: .9; }
+  30%         { transform: scale(.5); opacity: .3; }
+}
+
+/* всплывающая подсказка «положили» */
+.vspysk {
+  position: fixed; left: 50%; bottom: calc(var(--niz-vysota) + 18px);
+  transform: translateX(-50%) translateY(10px);
+  background: var(--tekst); color: #fff; font-size: 14px;
+  padding: 10px 16px; border-radius: 999px; z-index: 40;
+  opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+}
+.vspysk.vidno { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* появление экрана */
+.poyavlenie { animation: poyavit .25s ease both; }
+@keyframes poyavit { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .zagruzka .hinkali { animation: none; opacity: .6; }
+}
