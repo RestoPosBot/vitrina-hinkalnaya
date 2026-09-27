@@ -442,7 +442,7 @@ async function uznatKakieFotoEst() {
     if (!o.ok || !(o.headers.get('content-type') || '').includes('text/html')) return null;
     const t = await o.text();
     const nabor = new Set();
-    for (const m of t.matchAll(/href="([^"]+\.jpe?g)"/gi)) nabor.add(decodeURIComponent(m[1]).split('/').pop());
+    for (const m of t.matchAll(/href="([^"]+\.(?:jpe?g|webp|png))"/gi)) nabor.add(decodeURIComponent(m[1]).split('/').pop());
     return nabor;
   } catch (e) { return null; }
 }
