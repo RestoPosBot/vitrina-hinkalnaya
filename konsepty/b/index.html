@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFF7EC">
+<title>Хинкальная — концепт «Стекло и крем»</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../shrifty/shrifty.css">
+<link rel="stylesheet" href="stil.css">
+</head>
+<body>
+
+<!-- Живой фон: четыре цветных пятна дышат на маленьком canvas, растянутом на весь экран -->
+<canvas id="fon" aria-hidden="true"></canvas>
+
+<!-- На десктопе: стеклянная колонка под приложением, чтобы оно читалось как телефон на живом фоне -->
+<div class="ramka" aria-hidden="true"></div>
+
+<!-- SVG-фильтр «жидкость»: сливает шею и тело капли в навигации в одну форму -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="zhidkost" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="razmytie"/>
+      <feColorMatrix in="razmytie" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" result="sliyanie"/>
+      <feComposite in="SourceGraphic" in2="sliyanie" operator="atop"/>
+    </filter>
+  </defs>
+</svg>
+
+<main class="prilozhenie" id="prilozhenie">
+
+  <!-- Шапка: заведение, профиль, поиск, сторис -->
+  <header class="shapka" id="shapka">
+    <div class="shapka-verh">
+      <button class="mesto steklo" id="mesto" type="button" aria-label="Сменить заведение">
+        <span class="mesto-znachok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+        </span>
+        <span class="mesto-tekst">
+          <b id="mesto-nazvanie">Савёловская</b>
+          <small><i class="tochka"></i><span id="mesto-status">открыто до 22:00</span></small>
+        </span>
+        <svg class="mesto-strelka" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <button class="avatar" type="button" aria-label="Профиль"><span>Г</span></button>
+    </div>
+
+    <label class="poisk steklo" id="poisk">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span class="poisk-pole">
+        <input id="poisk-vvod" type="search" autocomplete="off" aria-label="Поиск по меню">
+        <span class="poisk-podskazka" id="poisk-podskazka" aria-hidden="true">Хинкали</span>
+      </span>
+      <kbd class="poisk-golos" aria-label="Голосом">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </kbd>
+    </label>
+
+    <div class="istorii" id="istorii" role="list"></div>
+  </header>
+
+  <!-- Липкая лента разделов -->
+  <nav class="lenta-obertka" aria-label="Разделы меню">
+    <div class="lenta steklo" id="lenta">
+      <div class="lenta-vnutri" id="lenta-vnutri">
+        <span class="lenta-tabletka" id="lenta-tabletka"></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Разделы с карточками -->
+  <section class="razdely" id="razdely"></section>
+
+  <!-- Хвост: что дальше и банкеты -->
+  <section class="hvost" id="hvost"></section>
+</main>
+
+<!-- Хинкалик — персонаж, живёт справа снизу над навигацией -->
+<div class="hinkalik" id="hinkalik">
+  <div class="hinkalik-oblachko steklo" id="hinkalik-oblachko"></div>
+  <button class="hinkalik-telo" id="hinkalik-telo" type="button" aria-label="Хинкалик"></button>
+</div>
+
+<!-- Нижняя навигация — плавающая стеклянная капсула с каплей -->
+<nav class="nav steklo" id="nav" aria-label="Основная навигация">
+  <span class="nav-kaplya" id="nav-kaplya" aria-hidden="true"></span>
+  <button type="button" class="aktiv" data-vkladka="menyu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="2.5"/><rect x="13" y="3" width="8" height="8" rx="2.5"/><rect x="3" y="13" width="8" height="8" rx="2.5"/><rect x="13" y="13" width="8" height="8" rx="2.5"/></svg>
+    <span>Меню</span>
+  </button>
+  <button type="button" data-vkladka="poisk">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    <span>Поиск</span>
+  </button>
+  <button type="button" data-vkladka="korzina" id="nav-korzina">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h2l2.2 10.5a2 2 0 0 0 2 1.5h7.4a2 2 0 0 0 2-1.5L21 8H7"/><circle cx="10" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg>
+    <span id="nav-korzina-podpis">Корзина</span>
+    <i class="nav-schet" id="nav-schet">0</i>
+  </button>
+  <button type="button" data-vkladka="profil">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+    <span>Профиль</span>
+  </button>
+</nav>
+
+<script type="module" src="skript.js"></script>
+</body>
+</html>
