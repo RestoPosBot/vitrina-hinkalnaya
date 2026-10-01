@@ -1,0 +1,308 @@
+{
+ "set": "Хинкальная",
+ "setId": "cmbsh1diy000110v3ic2a7h1v",
+ "istochnik": "id ресторанов из RPB, адреса и часы из базы hinkali",
+ "zavedeniya": [
+  {
+   "id": "cmbsh1o6n000210v3f9bo8pc8",
+   "id_hinkali": "cldt9975x0005np8lh8ftcscd",
+   "nazvanie": "Савёловская",
+   "polnoe": "Савеловская",
+   "adres": "г Москва, ул Башиловская, д 19",
+   "metro": "м. Савёловская",
+   "shirota": 55.7998008,
+   "dolgota": 37.5752189,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": true,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmss4xodt000p27fq656x400b",
+   "id_hinkali": "cldt99sts0009np8lqkceqkim",
+   "nazvanie": "Войковская",
+   "polnoe": "Войковская",
+   "adres": "г Москва, ул Новопетровская, д 14",
+   "metro": "м. Войковская",
+   "shirota": 55.8269702,
+   "dolgota": 37.5215165,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": true,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmd75ky4t0000f9b0a1rilquu",
+   "id_hinkali": "cldt9ahol000dnp8liqk2p1pp",
+   "nazvanie": "Жулебино",
+   "polnoe": "Жулебино",
+   "adres": "г Москва, ул Привольная, д 65",
+   "metro": "м. Жулебино",
+   "shirota": 55.6824265,
+   "dolgota": 37.848401,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": true,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmss50eu9000q27fqz28cr59a",
+   "id_hinkali": "cldt9b9if000hnp8lpwsjbxcd",
+   "nazvanie": "Балашиха, центр",
+   "polnoe": "Балашиха - Центр",
+   "adres": "Московская обл, г Балашиха, ш Энтузиастов, д 7В",
+   "metro": "Балашиха, ш. Энтузиастов",
+   "shirota": 55.7945933,
+   "dolgota": 37.9328951,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": true,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmss50iks000r27fqjyp55xdf",
+   "id_hinkali": "cldt9c445000lnp8l9cvqwp8q",
+   "nazvanie": "Измайловский лес",
+   "polnoe": "Балашиха - Измайловский Лес",
+   "adres": "Московская обл, г Балашиха, ул Реутовская, д 11",
+   "metro": "Балашиха, Реутовская",
+   "shirota": 55.784541,
+   "dolgota": 37.85197,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": false,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmss50wuf000s27fq03nuhhz6",
+   "id_hinkali": "clk5a8gaw00vxkq46zpta27k4",
+   "nazvanie": "Горенский бульвар",
+   "polnoe": "Горенский Бульвар",
+   "adres": "Московская обл, г Балашиха, б-р Горенский, д 3",
+   "metro": "Балашиха",
+   "shirota": 55.7918642,
+   "dolgota": 37.8861747,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": false,
+   "min_zakaz": null
+  },
+  {
+   "id": "cmss510su000t27fqvbfq7cen",
+   "id_hinkali": "cm4jryfkr016eu2yw1j81wdg6",
+   "nazvanie": "Ставрополь",
+   "polnoe": "Ставрополь, ЖК «Российский»",
+   "adres": "г Ставрополь, ул генерала Маргелова, д 3",
+   "metro": "ЖК «Российский»",
+   "shirota": 45.024845,
+   "dolgota": 41.894946,
+   "chasy": {
+    "mo": [
+     0,
+     1440
+    ],
+    "tu": [
+     0,
+     1440
+    ],
+    "we": [
+     0,
+     1440
+    ],
+    "th": [
+     0,
+     1440
+    ],
+    "fr": [
+     0,
+     1440
+    ],
+    "sa": [
+     0,
+     1440
+    ],
+    "su": [
+     0,
+     1440
+    ]
+   },
+   "prinimaet": true,
+   "svoe": false,
+   "min_zakaz": null
+  }
+ ]
+}

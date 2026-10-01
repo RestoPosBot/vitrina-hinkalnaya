@@ -326,12 +326,12 @@ function obnovitSvodku(pervyyRaz = false) {
   el.querySelector('.korzina__shtuk').textContent = `${blyud(k.pozicii.length)}, ${n} шт.`;
   el.querySelector('.korzina__summa-blyud').textContent = rub(summa);
 
-  // скидка самовывоза — та, что обещают сторис и «Акция дня»; при доставке строки нет
+  // личная скидка гостя из Resto Postbot — ровно та, что вычтет сервер; не вошёл — строки нет
   const sk = yadro.skidka(summa);
   const strokaSkidki = el.querySelector('.korzina__skidka');
   strokaSkidki.hidden = !sk.rub;
   if (sk.rub) {
-    strokaSkidki.querySelector('.korzina__skidka-podpis').textContent = `Самовывоз −${sk.procent}${TONKIY}%`;
+    strokaSkidki.querySelector('.korzina__skidka-podpis').textContent = `Ваша скидка −${sk.procent}${TONKIY}%`;
     strokaSkidki.querySelector('.korzina__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
 
@@ -353,7 +353,7 @@ function obnovitSvodku(pervyyRaz = false) {
   blokMin.hidden = !nedobor;
   if (nedobor) {
     blokMin.querySelector('.minimum__polosa > i').style.width = `${Math.max(4, Math.round((summa / min) * 100))}%`;
-    blokMin.querySelector('.minimum__tekst').innerHTML = `До доставки не хватает <b>${rub(min - summa)}</b> — или заберите сами: без минимума и −${yadro.SKIDKA_SAMOVYVOZA}${TONKIY}%`;
+    blokMin.querySelector('.minimum__tekst').innerHTML = `До доставки не хватает <b>${rub(min - summa)}</b> — или заберите сами: без минимума`;
   }
 
   // заведение закрыто — не блокируем, оформим ко времени (тупик 2); блюда не отсюда — к переносу

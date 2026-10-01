@@ -1,8 +1,9 @@
 // Витрина Хинкальной v2 — оформление заказа (маршрут #/oformlenie).
 // Способ (самовывоз / доставка — переключение ничего не теряет), заведение или адрес
 // (тап — на #/adres, выбор возвращает сюда), время («сейчас» или «ко времени» по часам
-// работы), имя, телефон с маской +7 и подсказкой, комментарий, оплата при получении
-// (демо), итог. «Заказать» запоминает заказ, чистит корзину и ведёт на #/gotovo/<номер>.
+// работы), имя, телефон с маской +7 и подсказкой, комментарий, оплата при получении,
+// итог. «Заказать» отправляет настоящий заказ в Resto Postbot (POST /api/orders),
+// запоминает его, чистит корзину и ведёт на #/gotovo/<номер заказа>.
 // Заведение закрыто — не блокируем: оформляем ко времени (тупик 2).
 // Контракт экрана — design/vitrina_v2/YADRO.md §1.
 
@@ -10,6 +11,7 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom, p
 import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo, perenestiKorzinu, rasstoyanieKm, blizhayshieZavedeniya } from '../dannye.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
+import { otpravitZakaz } from '../rpb.js';
 import { Hinkalik } from '../hinkalik.js';
 
 // Плавающий Хинкалик на экране без нижней навигации закрывал суммы и поля —
@@ -20,9 +22,9 @@ export const nastroyki = { niz: false, hinkalik: false };
 const PREDEL_DOSTAVKI_KM = 7;
 /** «Сейчас» предлагаем, только если до закрытия успеем приготовить и отдать с запасом. */
 const ZAPAS_DO_ZAKRYTIYA = 10;
-/** Пока приёма заказов нет, витрина учебная — говорим это прямо над кнопкой. */
-const TEKST_DEMO = 'Демо: заказ никуда не отправится, витрина учебная';
-const TEKST_OFLAYN = 'Нет сети: заказ сохранится только на телефоне, в заведение не уйдёт';
+/** Над кнопкой: чем платим. Заказ уходит в заведение, оплата при получении. */
+const TEKST_OPLATA = 'Оплата при получении: картой или наличными';
+const TEKST_OFLAYN = 'Нет сети: заказ не отправить — он сохранится на телефоне';
 
 /** Черновик контактов (удобство гостя: имя и телефон не набирать заново). */
 const KLYUCH_CHERNOVIKA = 'hinkalnaya.oformlenie.v2';
@@ -251,13 +253,12 @@ export function pokazat(kontejner_, yadro_, parametry) {
     </section>`;
 
   // Нижняя кнопка — в body: фиксированный элемент внутри въезжающего экрана съехал бы вместе с ним.
-  // Над кнопкой всегда видно, что витрина учебная: заказ никуда не уходит (честно, не мелким шрифтом внизу).
   niz = document.createElement('div');
   niz.className = 'oformlenie__niz';
-  // строка «Демо» над кнопкой — на плотной подложке, чтобы сквозь неё не просвечивал текст формы
+  // строка над кнопкой — на плотной подложке, чтобы сквозь неё не просвечивал текст формы
   niz.style.background = 'linear-gradient(to top, rgb(255, 247, 236) calc(100% - 14px), rgba(255, 247, 236, 0))';
   niz.innerHTML = `
-    <p class="oformlenie__set" style="font-weight:700">${TEKST_DEMO}</p>
+    <p class="oformlenie__set" style="font-weight:700">${TEKST_OPLATA}</p>
     <button class="knopka knopka--korzina oformlenie__zakazat" type="button">
       <svg width="22" height="22" aria-hidden="true"><use href="#ik-strelka"/></svg>
       <span>Заказать</span>
@@ -290,7 +291,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
     if (yadro.korzina.pusta()) { yadro.perejti('#/', { zamenit: true }); return; }
     obnovitVse();
   }));
-  const naSet = () => { const p = niz?.querySelector('.oformlenie__set'); if (p) p.textContent = navigator.onLine === false ? TEKST_OFLAYN : TEKST_DEMO; };
+  const naSet = () => { const p = niz?.querySelector('.oformlenie__set'); if (p) p.textContent = navigator.onLine === false ? TEKST_OFLAYN : TEKST_OPLATA; };
   window.addEventListener('online', naSet);
   window.addEventListener('offline', naSet);
   otpiski.push(() => { window.removeEventListener('online', naSet); window.removeEventListener('offline', naSet); });
@@ -646,12 +647,12 @@ function narisovatItog() {
       mesto.appendChild(s);
     });
   }
-  // скидка самовывоза (акция «Самовывоз» из базы — её обещают сторис); при доставке строки нет
+  // личная скидка гостя из Resto Postbot — её же вычтет сервер при создании заказа
   const sk = yadro.skidka();
   const stroka = kontejner.querySelector('.oformlenie__skidka');
   stroka.hidden = !sk.rub;
   if (sk.rub) {
-    stroka.querySelector('.oformlenie__skidka-podpis').textContent = `Самовывоз −${sk.procent}${TONKIY}%`;
+    stroka.querySelector('.oformlenie__skidka-podpis').textContent = `Ваша скидка −${sk.procent}${TONKIY}%`;
     stroka.querySelector('.oformlenie__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
   kontejner.querySelector('.itog__summa').textContent = rub(sk.itogo);
@@ -701,7 +702,7 @@ function drozh(el) {
   }
 }
 
-function zakazat_() {
+async function zakazat_() {
   // двойной тап: второй клик приходит, когда экран уже убран
   if (zakazano || !kontejner || !niz) return;
   const zav = yadro.zavedenie();
@@ -753,30 +754,103 @@ function zakazat_() {
     return;
   }
 
-  const nomer = sleduyushchiyNomer();
   const kogda = forma.kogda === 'ko_vremeni' && forma.slot
     ? { tip: 'ko_vremeni', ms: forma.slot, podpis: podpisMomenta(forma.slot, vremyaMoskvy().den).polno }
     : { tip: 'seychas', minut: vremyaGotovki() };
+
+  // Куда готовить: выбранное заведение, а при доставке без выбора — ближайшее в радиусе.
+  const kuda = zav?.id || blizhayshayaKuhnya();
+  if (!kuda) {
+    drozh(mesto);
+    yadro.tost('Не выбрано заведение — укажите, откуда готовить', { vid: 'oshibka' });
+    return;
+  }
+  if (navigator.onLine === false) {
+    vibro([30, 40, 30]);
+    otreagirovat('udivlen');
+    yadro.tost('Нет сети — заказ не отправить. Попробуйте, когда связь вернётся', { vid: 'oshibka' });
+    return;
+  }
+
+  // Отправка настоящего заказа. Пока ждём сервер, кнопка занята, а корзина не трогается:
+  // упал запрос — гость остаётся на оформлении со своими блюдами и может нажать ещё раз.
+  const knopka = niz?.querySelector('.oformlenie__zakazat');
+  const podpisKnopki = knopka?.querySelector('span:not(.summa)');
+  const bylaPodpis = podpisKnopki?.textContent || 'Заказать';
+  zakazano = true;
+  if (knopka) { knopka.disabled = true; knopka.setAttribute('aria-busy', 'true'); }
+  if (podpisKnopki) podpisKnopki.textContent = 'Отправляем…';
+
+  let otvet = null;
+  try {
+    otvet = await otpravitZakaz({
+      zavedenieId: kuda,
+      sposob,
+      pozicii: yadro.korzina.pozicii,
+      imya: forma.imya.trim(),
+      telefon: d,
+      kommentariy: forma.kommentariy.trim(),
+      adres: sposob === 'dostavka' ? yadro.gost.adres : null,
+      kogda: kogda.tip === 'ko_vremeni' ? new Date(kogda.ms).toISOString() : undefined,
+    });
+  } catch (oshibka) {
+    console.warn('Заказ не ушёл', oshibka);
+    zakazano = false;
+    if (knopka) { knopka.disabled = false; knopka.removeAttribute('aria-busy'); }
+    if (podpisKnopki) podpisKnopki.textContent = bylaPodpis;
+    vibro([30, 40, 30]);
+    otreagirovat('udivlen');
+    yadro.tost(ponyatnayaOshibka(oshibka), { vid: 'oshibka' });
+    return;
+  }
+
+  // Номер и суммы — те, что вернул сервер; свой счётчик остаётся только на крайний случай.
+  const nomer = otvet.nomer ?? sleduyushchiyNomer();
+  const summaBlyud = yadro.korzina.summa();
+  const skidkaRub = otvet.skidka > 0 ? otvet.skidka : yadro.skidka(summaBlyud).rub;
   const zapis = yadro.korzina.zapomnitZakaz({
     nomerPokaz: nomer,
+    zakazId: otvet.id,
     imya: forma.imya.trim(),
     telefon: maskaTelefona(d),
     kommentariy: forma.kommentariy.trim(),
     kogda_poluchit: kogda,
     zavedenieNazvanie: zav?.nazvanie || null,
     oplata: 'pri_poluchenii',
-    otlozhen: navigator.onLine === false,
-    skidka: yadro.skidka(),   // {procent, rub, itogo} — «готово» показывает итог к оплате
+    otlozhen: false,
+    skidka: {
+      procent: yadro.skidka(summaBlyud).procent,
+      rub: skidkaRub,
+      itogo: otvet.summa > 0 ? otvet.summa : summaBlyud - skidkaRub,
+    },
   });
   if (!zapis) { yadro.perejti('#/', { zamenit: true }); return; }
   vibro([10, 40, 20]);
   forma.kogda = null;
   forma.slot = null;
-  const knopka = niz?.querySelector('.oformlenie__zakazat');
   const rect = knopka ? knopka.getBoundingClientRect() : null;
   // сначала уходим на «готово» (ядро снимет наши подписки), потом чистим корзину — экран не мигнёт пустым
-  zakazano = true;
   const k = yadro.korzina;
-  Promise.resolve(yadro.perejti(`#/gotovo/${encodeURIComponent(zapis.nomerPokaz || nomer)}`, { zamenit: true, istochnik: rect }))
+  Promise.resolve(yadro.perejti(`#/gotovo/${encodeURIComponent(nomer)}`, { zamenit: true, istochnik: rect }))
     .finally(() => k.ochistit());
+}
+
+/** Ближайшая кухня в радиусе доставки по адресу гостя — когда заведение не выбрано вручную. */
+function blizhayshayaKuhnya() {
+  const a = yadro.gost.adres;
+  if (!a || !Number.isFinite(Number(a.shirota)) || !Number.isFinite(Number(a.dolgota))) return null;
+  const spisok = blizhayshieZavedeniya(Number(a.shirota), Number(a.dolgota), yadro.menyu)
+    .filter((x) => x.km != null && x.km <= PREDEL_DOSTAVKI_KM && x.zavedenie.prinimaet !== false);
+  return spisok.length ? spisok[0].zavedenie.id : null;
+}
+
+/** Ответ сервера — словами гостя. Техническую причину оставляем в консоли. */
+function ponyatnayaOshibka(oshibka) {
+  const s = String(oshibka?.message || '');
+  if (oshibka?.name === 'AbortError') return 'Сервер не ответил — попробуйте ещё раз';
+  if (/стоп-листе/i.test(s)) return s;                      // сервер уже называет блюда
+  if (oshibka?.kod === 404) return 'Заведение или блюдо больше не доступно — обновите страницу';
+  if (oshibka?.kod >= 500) return 'Система заказов не отвечает. Позвоните в заведение или попробуйте позже';
+  if (/Failed to fetch|NetworkError|Load failed/i.test(s)) return 'Связь прервалась — попробуйте ещё раз';
+  return s || 'Заказ не отправился — попробуйте ещё раз';
 }

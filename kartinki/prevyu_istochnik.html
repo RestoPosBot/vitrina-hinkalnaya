@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<!-- Источник картинки превью для мессенджеров (kartinki/prevyu.png, 1200×630).
+     Пересборка: py -X utf8 scripts/sobrat_prevyu_vitriny.py -->
+<link rel="stylesheet" href="../shrifty/shrifty.css">
+<style>
+  html, body { margin: 0; }
+  body { width: 1200px; height: 630px; overflow: hidden; position: relative; font-family: Onest, sans-serif; color: #231A14;
+    background:
+      radial-gradient(60% 80% at 12% 10%, rgba(255, 247, 236, .75), rgba(255, 247, 236, 0) 60%),
+      radial-gradient(55% 70% at 88% 85%, rgba(184, 33, 63, .55), rgba(184, 33, 63, 0) 70%),
+      radial-gradient(50% 60% at 70% 20%, rgba(255, 176, 58, .9), rgba(255, 176, 58, 0) 70%),
+      linear-gradient(135deg, #FFB03A 0%, #F0532D 60%, #B8213F 100%); }
+  .tekst { position: absolute; left: 80px; top: 100px; width: 700px; }
+  .metka { font: 700 22px/1 Onest, sans-serif; letter-spacing: .18em; text-transform: uppercase; opacity: .8; }
+  h1 { margin: 22px 0 0; font: 900 84px/.95 Unbounded, sans-serif; letter-spacing: -.04em;
+    background: linear-gradient(100deg, #93192F 0%, #721532 55%, #4E0F22 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 0 18px rgba(255, 244, 226, .6)); }
+  p { margin: 26px 0 0; font: 600 30px/1.3 Onest, sans-serif; max-width: 560px; }
+  .plashka { display: inline-block; margin-top: 34px; padding: 16px 28px; border-radius: 999px; background: linear-gradient(135deg, #C9332F 0%, #B8213F 48%, #6A1B3A 100%);
+    color: #FFF7EC; font: 700 26px/1 Onest, sans-serif; box-shadow: 0 16px 30px -10px rgba(184, 33, 63, .75); }
+  .geroy { position: absolute; right: 70px; bottom: 30px; width: 400px; height: 500px; filter: drop-shadow(0 30px 30px rgba(110, 30, 10, .35)); }
+  .geroy img { width: 100%; height: 100%; }
+  .svet { position: absolute; right: 40px; bottom: 60px; width: 460px; height: 460px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 244, 226, .75), rgba(255, 244, 226, 0)); }
+</style>
+</head>
+<body>
+  <div class="svet"></div>
+  <div class="tekst">
+    <div class="metka">Меню семи заведений</div>
+    <h1>Хинкальная</h1>
+    <p>Хинкали, хачапури из печи, шашлык на углях</p>
+    <div class="plashka">Самовывоз и доставка</div>
+  </div>
+  <div class="geroy"><img src="../ikonki/hinkalik.svg" alt=""></div>
+</body>
+</html>

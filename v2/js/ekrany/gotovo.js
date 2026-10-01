@@ -1,7 +1,7 @@
 // Витрина Хинкальной v2 — «Заказ принят» (маршрут #/gotovo/<номер>).
 // Хинкалик 140 px радуется и подпрыгивает, номер заказа градиентом, что дальше
 // (сколько готовим, где забрать / куда везём), список и итог, «К меню» и «Повторить
-// заказ». Заказ никуда не уходит — демонстрация; он уже записан как «прошлый заказ».
+// заказ». Заказ уже создан в Resto Postbot и записан как «прошлый заказ».
 // Контракт экрана — design/vitrina_v2/YADRO.md §1.
 
 import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom } from '../dvizhenie.js';
@@ -35,25 +35,24 @@ export function pokazat(kontejner, yadro_, parametry) {
 
   const zav = zakaz.zavedenieId ? naytiZavedenie(yadro.menyu, zakaz.zavedenieId) : null;
   const dostavka = zakaz.sposob === 'dostavka';
-  // скидка самовывоза, посчитанная на оформлении (у старых записей её нет — тогда итог = сумма блюд)
-  const skidka = !dostavka && zakaz.skidka && Number(zakaz.skidka.rub) > 0 ? zakaz.skidka : null;
+  // личная скидка гостя, вычтенная сервером (у старых записей её нет — тогда итог = сумма блюд)
+  const skidka = zakaz.skidka && Number(zakaz.skidka.rub) > 0 ? zakaz.skidka : null;
   const bezSeti = Boolean(zakaz.otlozhen);
   const kogda = zakaz.kogda_poluchit || {};
-  // Витрина учебная: заказ никуда не уходит. Шаги описывают, как было бы в настоящем заказе,
-  // а плашка сразу под номером говорит это прямо (не мелкой строкой внизу).
+  // Заказ настоящий: он создан в Resto Postbot и виден на кухне заведения.
   let chtoDalshe;
-  if (kogda.tip === 'ko_vremeni') chtoDalshe = dostavka ? `Привезли бы ${tekst(kogda.podpis)}` : `Было бы готово ${tekst(kogda.podpis)}`;
-  else chtoDalshe = dostavka ? `Готовили бы ~${kogda.minut || 20}${TONKIY}мин, потом везли` : `Готовили бы ~${kogda.minut || 20}${TONKIY}минут`;
+  if (kogda.tip === 'ko_vremeni') chtoDalshe = dostavka ? `Привезём ${tekst(kogda.podpis)}` : `Будет готово ${tekst(kogda.podpis)}`;
+  else chtoDalshe = dostavka ? `Готовим ~${kogda.minut || 20}${TONKIY}мин, потом везём` : `Готовим ~${kogda.minut || 20}${TONKIY}минут`;
   const gde = dostavka
     ? `<b>Адрес доставки</b><span>${tekst(zakaz.adres?.tekst || 'адрес из заказа')}</span>${zav ? `<small>Заведение: ${tekst(zav.nazvanie)}</small>` : ''}`
     : `<b>Самовывоз из «${tekst(zav?.nazvanie || zakaz.zavedenieNazvanie || 'заведения')}»</b>${zav ? `<span>${tekst([zav.adres, zav.metro].filter(Boolean).join(' · '))}</span>` : ''}`;
   const plashka = bezSeti
-    ? '<b>Сети не было — заказ сохранён только на этом телефоне</b><p>В заведение он не уходит: витрина учебная, это демонстрация.</p>'
-    : '<b>Демонстрация: заказ никуда не ушёл</b><p>Витрина учебная — в заведении его не ждут. Так выглядел бы настоящий заказ.</p>';
+    ? '<b>Сети не было — заказ сохранён только на этом телефоне</b><p>В заведение он не ушёл. Как появится сеть, соберите его заново кнопкой «Повторить заказ».</p>'
+    : '<b>Заказ принят</b><p>Он уже на кухне заведения. Позвоним по телефону из заказа, если что-то закончилось.</p>';
 
   kontejner.innerHTML = `
     <div class="gotovo__hinkalik"></div>
-    <h1 class="ekran__zagolovok">${bezSeti ? 'Заказ сохранён' : 'Демо-заказ оформлен'}</h1>
+    <h1 class="ekran__zagolovok">${bezSeti ? 'Заказ сохранён' : 'Заказ оформлен'}</h1>
     <div class="kartochka-belaya gotovo__kartochka">
       <div class="gotovo__podpis">Номер заказа</div>
       <div class="gotovo__nomer"><small>№</small>${tekst(nomer)}</div>
@@ -67,7 +66,7 @@ export function pokazat(kontejner, yadro_, parametry) {
     <div class="metka">Что в заказе</div>
     <div class="kartochka-belaya gotovo__spisok">
       <div class="gotovo__pozicii"></div>
-      ${skidka?.rub ? `<div class="korzina__stroka korzina__skidka" style="padding-top:10px"><span>Самовывоз −${skidka.procent}${TONKIY}%</span><span>−${rub(skidka.rub)}</span></div>` : ''}
+      ${skidka?.rub ? `<div class="korzina__stroka korzina__skidka" style="padding-top:10px"><span>Ваша скидка −${skidka.procent}${TONKIY}%</span><span>−${rub(skidka.rub)}</span></div>` : ''}
       <div class="itog"><span>Итого</span><b class="itog__summa">${rub(skidka?.rub ? skidka.itogo : zakaz.summa)}</b></div>
     </div>
     <div class="gotovo__knopki">

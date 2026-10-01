@@ -3,8 +3,10 @@
 // Соглашения для экранов — design/vitrina_v2/YADRO.md (сигнатуры не менять).
 
 import {
-  zagruzitMenyu, cenaV, prichinaNedostupnosti, semeystvoRazdela, naytiZavedenie, perenestiKorzinu, kEtomuBerut, naytiBlyudo,
+  zagruzitMenyu, podgotovitMenyu, cenaV, prichinaNedostupnosti, semeystvoRazdela, naytiZavedenie, perenestiKorzinu,
+  kEtomuBerut, naytiBlyudo,
 } from './dannye.js';
+import { sobratMenyu, lichnayaSkidka, gost as gostRPB, vyyti as vyytiRPB } from './rpb.js';
 import { korzina } from './korzina.js';
 import {
   FonGradient, pokazatTost, pokazatChislo, poletVKorzinu, vibro, nazhatie, pruzhina, shtorka, dvizhenieSnyato,
@@ -19,9 +21,10 @@ import { rub, chislo, tekst } from './kartochka.js';
 const KLYUCH_GOSTYA = 'hinkalnaya.gost.v2';
 const KLYUCH_GOLOS = 'hinkalnaya.golos.v2';
 const MIN_DOSTAVKI = 1000;
-/** Скидка на самовывоз, %: действующая акция базы «Самовывоз» (SHARED, 10 %, каждый день, logs/akcii_iz_bazy.json).
- *  Её обещают сторис и «Акция дня» — корзина, оформление и «готово» обязаны её честно дать. */
-const SKIDKA_SAMOVYVOZA = 10;
+/** Личная скидка гостя: процент из Resto Postbot для выбранного заведения.
+ *  Её же вычитает сервер при создании заказа (order.service.ts:209-224), поэтому витрина
+ *  показывает ровно то, что посчитает система. Не вошёл — 0, своих скидок витрина не придумывает. */
+let skidkaGostya = { procent: 0, est: false };
 const PAUZA_REPLIK = 20000;
 
 /** Палитры живого фона (DIZAYN §2.3). Единственное место — экраны берут через yadro.PALITRY_FONA. */
@@ -150,7 +153,6 @@ const punkty = [...niz.querySelectorAll('.niz__punkt')];
 
 const yadro = {
   menyu: null,
-  SKIDKA_SAMOVYVOZA,
   korzina,
   hinkalik: null,
   fon: null,
@@ -237,14 +239,44 @@ const yadro = {
     return Number(z?.min_zakaz) > 0 ? Number(z.min_zakaz) : MIN_DOSTAVKI;
   },
   /**
-   * Скидка самовывоза к сумме блюд. Даётся всегда, кроме доставки (способ ещё не выбран —
-   * оформление по умолчанию ставит самовывоз). Минимум доставки считается от суммы блюд без скидки.
-   * @returns {{procent:number, rub:number, itogo:number}}
+   * Личная скидка гостя к сумме блюд. Работает и на самовывоз, и на доставку —
+   * так её считает сервер. Минимум доставки считается от суммы блюд без скидки.
+   * @returns {{procent:number, rub:number, itogo:number, podpis:string}}
    */
   skidka(summa = korzina.summa()) {
-    const procent = gost.sposob === 'dostavka' ? 0 : SKIDKA_SAMOVYVOZA;
-    const rub = Math.round((summa * procent) / 100);
-    return { procent, rub, itogo: summa - rub };
+    const procent = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
+    // сервер считает так же: Math.floor(сумма * процент / 100)
+    const rub = Math.floor((summa * procent) / 100);
+    return { procent, rub, itogo: summa - rub, podpis: procent ? `Ваша скидка −${procent} %` : '' };
+  },
+
+  /** Вошедший гость Resto Postbot или null (телефон подтверждён кодом из СМС). */
+  gostRPB() { return gostRPB(); },
+
+  /** Выход гостя: забываем токен и личную скидку. */
+  vyytiGostyu() {
+    vyytiRPB();
+    skidkaGostya = { procent: 0, est: false };
+    soobshchit('skidka', { ...skidkaGostya });
+    obnovitKnopkuKorziny(false);
+  },
+
+  /**
+   * Перечитывает личную скидку гостя в выбранном заведении. Зовётся после входа и смены заведения.
+   * @returns {Promise<{procent:number, est:boolean}>}
+   */
+  async obnovitSkidku() {
+    const bylo = skidkaGostya.procent;
+    try {
+      skidkaGostya = await lichnayaSkidka(gost.zavedenieId);
+    } catch {
+      skidkaGostya = { procent: 0, est: false };
+    }
+    if (skidkaGostya.procent !== bylo) {
+      soobshchit('skidka', { ...skidkaGostya });
+      obnovitKnopkuKorziny(false);
+    }
+    return { ...skidkaGostya };
   },
   palitra(imya) {
     const cveta = PALITRY_FONA[imya];
@@ -407,6 +439,8 @@ function postavitZavedenie(id) {
   if (korzina.pusta() || korzina.zavedenieId === gost.zavedenieId) korzina.zavedenieId = gost.zavedenieId;
   sohranitGostya();
   obnovitKnopkuKorziny(false);
+  // скидка у гостя своя в каждом заведении — спрашиваем заново, не блокируя отрисовку
+  yadro.obnovitSkidku().catch(() => {});
   if (yadro.marshrut?.imya === 'glavnaya') document.title = zagolovokVkladki(yadro.marshrut);
 }
 
@@ -1017,6 +1051,25 @@ function vosstanovitPerenos() {
   return true;
 }
 
+/**
+ * Меню из живой системы Resto Postbot; если API не ответило — снимок menyu.json рядом с витриной,
+ * чтобы гость с плохой сетью всё равно увидел блюда (цены могли устареть, заказ в таком режиме
+ * не уйдёт: сервер недоступен).
+ * @returns {Promise<object>}
+ */
+async function zagruzitMenyuZhivoe() {
+  try {
+    const menyu = podgotovitMenyu(await sobratMenyu());
+    if (!menyu.razdely?.length) throw new Error('RPB отдал меню без разделов');
+    return menyu;
+  } catch (oshibka) {
+    console.warn('Меню из Resto Postbot не пришло, берём снимок menyu.json', oshibka);
+    const snimok = await zagruzitMenyu();
+    snimok.snimok = true;
+    return snimok;
+  }
+}
+
 async function zapustit() {
   const volna = document.getElementById('zagruzka-volna');
   let ostanovitVolnu = null;
@@ -1032,12 +1085,14 @@ async function zapustit() {
     // сторис грузим параллельно с меню: к показу главной баннер «Акция дня» и кружки
     // уже в кеше и встают на место сразу, а не сдвигают разделы на глазах у гостя
     const istorii = import('./istorii.js').then((m) => m.zagruzitIstorii()).catch(() => []);
-    const menyu = await zagruzitMenyu();
+    const menyu = await zagruzitMenyuZhivoe();
     // 200 OK, но не меню (чужой JSON с CDN) — это та же «не загрузилось», с повтором
     if (!menyu || !Array.isArray(menyu.zavedeniya) || !Array.isArray(menyu.razdely) || !menyu.razdely.length) {
       throw new Error('menyu.json без заведений или разделов');
     }
     yadro.menyu = menyu;
+    // гость мог войти в прошлый раз — личную скидку спрашиваем сразу, но экран ею не держим
+    yadro.obnovitSkidku().catch(() => {});
     // долго ждать сторис не будем: не пришли за 0,8 с после меню — главная нарисует их позже
     await Promise.race([istorii, new Promise((r) => { setTimeout(r, 800); })]);
   } catch (oshibka) {

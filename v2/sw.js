@@ -30,8 +30,8 @@
    - фото не в кеше и нет сети: отдаём превью этого блюда из кеша, если оно есть; иначе 204
      без тела. Плитка показывает знак раздела, ошибок загрузки в консоли нет. */
 
-const VERSIYA = 'k-6ae2142fe8';
-const VERSIYA_FOTO = 'f-1e08883204';
+const VERSIYA = 'k-41b7de9cee';
+const VERSIYA_FOTO = 'f-728d054919';
 const KESH = `hinkalnaya-v2-${VERSIYA}`;
 const KESH_FOTO = `hinkalnaya-foto-v2-${VERSIYA_FOTO}`;
 const PREDEL_FOTO = 400;
@@ -47,11 +47,14 @@ const OBOLOCHKA = [
   './stil.css',
   './manifest.webmanifest',
   './menyu.json',
+  './zavedeniya.json',
+  './dopolnenie.json',
   './istorii.json',
   // js/**
   './js/prilozhenie.js',
   './js/kartochka.js',
   './js/dannye.js',
+  './js/rpb.js',
   './js/korzina.js',
   './js/dvizhenie.js',
   './js/hinkalik.js',
@@ -375,7 +378,7 @@ self.addEventListener('fetch', (s) => {
   }
   if (otn.startsWith('foto/')) {
     s.respondWith(foto(s));
-  } else if (otn === 'menyu.json' || otn === 'istorii.json') {
+  } else if (otn === 'menyu.json' || otn === 'istorii.json' || otn === 'zavedeniya.json' || otn === 'dopolnenie.json') {
     s.respondWith(dannye(s));
   } else if (/^(js|shrifty|ikonki|kartinki)\//.test(otn) || otn === 'stil.css' || otn === 'manifest.webmanifest') {
     s.respondWith(izSnimka(s));
