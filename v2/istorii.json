@@ -1,0 +1,57 @@
+[
+  {
+    "id": "samovyvoz",
+    "zagolovok": "−10 % на самовывоз",
+    "tekst": "Заберите заказ сами — скидка 10 % каждый день. Хинкали от 90 ₽, хачапури, шашлык на углях",
+    "podpis": "−10 % самовывоз",
+    "znak": "−10%",
+    "kartinka": "kartinki/istorii/pervyy-zakaz.jpg",
+    "cvet": "zhar",
+    "knopka": "К хинкали",
+    "deystvie": { "tip": "razdel", "id": "cldrgyffz004ao98l4gdnxrgo" }
+  },
+  {
+    "id": "obed-v-zale",
+    "zagolovok": "Обед в зале −20 %",
+    "tekst": "По будням до 13:00 в наших залах скидка 20 % на всё меню. Приходите на обед",
+    "podpis": "Обед −20 %",
+    "znak": "−20%",
+    "kartinka": "kartinki/istorii/desyat-plyus-dva.jpg",
+    "cvet": "testo",
+    "knopka": "Где мы",
+    "deystvie": { "tip": "ssylka", "id": "#/adres" }
+  },
+  {
+    "id": "hachapuri-po-megrelski",
+    "zagolovok": "Хачапури по-мегрельски",
+    "tekst": "Сулугуни внутри и сверху, румяная корочка. Целый хачапури — 580 ₽",
+    "podpis": "Хачапури",
+    "znak": "580₽",
+    "kartinka": "kartinki/istorii/hachapuri-dnya.jpg",
+    "cvet": "kombo",
+    "knopka": "Хочу хачапури",
+    "deystvie": { "tip": "blyudo", "id": "cldrgyf8x002oo98l0bpdb73b" }
+  },
+  {
+    "id": "bankety",
+    "zagolovok": "Банкеты — соберём стол",
+    "tekst": "Юбилей, свадьба, день рождения — залы для банкетов в Москве и Балашихе. Дома — комбо на пятерых",
+    "podpis": "Банкеты",
+    "znak": "Пир",
+    "kartinka": "kartinki/istorii/bankety.jpg",
+    "cvet": "zhar",
+    "knopka": "Комбо на пятерых",
+    "deystvie": { "tip": "blyudo", "id": "cmm4trs550e1gn4nd8dpffd4p" }
+  },
+  {
+    "id": "hinkalik-uchitsya",
+    "zagolovok": "Хинкалик учится говорить",
+    "tekst": "Скоро закажете голосом — Хинкалик учится. Пока — лимонады Натахтари к заказу",
+    "podpis": "Голосом скоро",
+    "znak": "Алло?",
+    "kartinka": "kartinki/istorii/hinkalik-uchitsya.jpg",
+    "cvet": "sladkoe",
+    "knopka": "Лимонады Натахтари",
+    "deystvie": { "tip": "razdel", "id": "cldrgyezn0007o98l7vd24ptk" }
+  }
+]

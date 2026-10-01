@@ -1,0 +1,1430 @@
+/* Витрина Хинкальной v2 — «Жар и мёд».
+   Токены, база, все компоненты и экраны. Контракт: design/vitrina_v2/DIZAYN.md,
+   соглашения ядра: design/vitrina_v2/YADRO.md. Телефон 390×844 — главный размер,
+   на десктопе колонка 520 по центру на живом фоне. */
+
+/* =========================================================================
+   1. Токены (DIZAYN §2.1 — одним движением)
+   ========================================================================= */
+
+@property --ugol-kolca { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+:root {
+  /* ---- цвета ---- */
+  --krem: #FFF7EC;
+  --pesok: #F6E7D2;
+  --testo: #E9D3AE;
+  --med: #F4C77A;
+  --shafran: #FFB03A;
+  --paprika: #F0532D;
+  --granat: #B8213F;
+  --vino: #6A1B3A;
+  --ugol: #231A14;
+  --ugol-72: rgba(35, 26, 20, .72);
+  --ugol-62: rgba(35, 26, 20, .62);
+  --ugol-45: rgba(35, 26, 20, .45);
+  --estragon: #3E9C5C;
+  --biryuza: #2AA8A0;
+  --belyy-92: rgba(255, 253, 248, .92);
+  --steklo: rgba(255, 250, 242, .80);
+  --steklo-kayma: rgba(255, 255, 255, .9);
+
+  /* ---- градиенты семейств ---- */
+  --gr-testo:   linear-gradient(145deg, #FFF3DF 0%, #F4C77A 100%);
+  --gr-zhar:    linear-gradient(145deg, #FFB03A 0%, #F0532D 100%);
+  --gr-zelen:   linear-gradient(145deg, #E4F2B8 0%, #6FBF73 100%);
+  --gr-sladkoe: linear-gradient(145deg, #FFD2B0 0%, #F26B8A 100%);
+  --gr-napitki: linear-gradient(145deg, #D9F7E6 0%, #2AA8A0 100%);
+  --gr-kombo:   linear-gradient(145deg, #FFB03A 0%, #B8213F 100%);
+
+  /* ---- плитки блюд ---- */
+  --pl-testo:   linear-gradient(150deg, #FFEBC6 0%, #F7C874 52%, #E9A448 100%);
+  --pl-zhar:    linear-gradient(150deg, #FFB94A 0%, #F0532D 58%, #C8283A 100%);
+  --pl-zelen:   linear-gradient(150deg, #E6F3BC 0%, #8FD08A 55%, #4FA85E 100%);
+  --pl-sladkoe: linear-gradient(150deg, #FFD9B8 0%, #F9917E 55%, #E8567D 100%);
+  --pl-napitki: linear-gradient(150deg, #D9F7E6 0%, #6FD8C2 55%, #2AA8A0 100%);
+  --pl-kombo:   linear-gradient(150deg, #FFB94A 0%, #E0432F 55%, #A81C3D 100%);
+
+  /* ---- цветные тени ---- */
+  --ten-testo:   rgba(233, 164, 72, .75);
+  --ten-zhar:    rgba(240, 83, 45, .65);
+  --ten-zelen:   rgba(79, 168, 94, .60);
+  --ten-sladkoe: rgba(232, 86, 125, .55);
+  --ten-napitki: rgba(42, 168, 160, .60);
+  --ten-kombo:   rgba(168, 28, 61, .60);
+
+  /* ---- акценты ---- */
+  --gr-knopka:  linear-gradient(135deg, #FFB03A 0%, #F0532D 100%);
+  --gr-korzina: linear-gradient(135deg, #C9332F 0%, #B8213F 48%, #6A1B3A 100%);
+  --gr-zagolovok: linear-gradient(100deg, #DC3F2A 0%, #B8213F 58%, #8F1838 100%);
+  --gr-kolco: conic-gradient(from var(--ugol-kolca), #FFB03A, #F0532D 30%, #B8213F 55%, #FF7A2F 80%, #FFB03A);
+  --svet-pechi: radial-gradient(closest-side, rgba(255, 176, 58, .85), rgba(255, 176, 58, 0));
+
+  /* ---- радиусы ---- */
+  --r-kartochka: 22px;
+  --r-plitka: 20px;
+  --r-knopka: 16px;
+  --r-shtorka: 28px;
+  --r-krug: 999px;
+
+  /* ---- тени ---- */
+  --ten: 0 16px 36px -14px rgba(120, 60, 20, .32);
+  --ten-myagkaya: 0 10px 26px -14px rgba(120, 60, 20, .28);
+  --ten-glubokaya: 0 24px 44px -18px rgba(120, 60, 20, .50);
+  --ten-knopki: 0 12px 22px -9px rgba(240, 83, 45, .80), inset 0 1px 0 rgba(255, 255, 255, .55);
+  --ten-korziny: 0 16px 30px -10px rgba(184, 33, 63, .75), inset 0 1px 0 rgba(255, 255, 255, .35);
+  --ten-vstavka: inset 0 1px 0 rgba(255, 255, 255, .9);
+
+  /* ---- типографика ---- */
+  --sh-zag: Unbounded, Onest, system-ui, sans-serif;
+  --sh-tekst: Onest, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --t-ekran: 800 2.125rem/1.02 var(--sh-zag);
+  --t-razdel: 800 3.75rem/.98 var(--sh-zag);
+  --t-shtorka: 800 1.625rem/1.08 var(--sh-zag);
+  --t-cena: 700 1.125rem/1 var(--sh-zag);
+  --t-cena-krupno: 800 1.75rem/1 var(--sh-zag);
+  --t-metka: 700 0.8125rem/1.2 var(--sh-tekst);
+  --t-nazvanie: 650 0.9062rem/1.25 var(--sh-tekst);
+  --t-tekst: 500 0.9375rem/1.4 var(--sh-tekst);
+  --t-vtoroy: 500 0.8125rem/1.35 var(--sh-tekst);
+  --t-knopka: 700 0.9375rem/1 var(--sh-tekst);
+  --t-tabletka: 700 0.875rem/1 var(--sh-tekst);
+  --t-podpis: 600 0.8125rem/1.15 var(--sh-tekst);
+
+  /* ---- отступы ---- */
+  --polya: 16px;
+  --shag: 8px;
+  --setka-x: 14px;
+  --setka-y: 24px;
+  --mezhdu-razdelami: 44px;
+  --shirina: 520px;
+  --niz-vysota: 68px;
+  --nad-nizom: calc(var(--niz-vysota) + 24px + env(safe-area-inset-bottom));
+
+  /* ---- движение (запасные кривые) ---- */
+  --pr-myagkaya: cubic-bezier(.22, 1, .36, 1);
+  --pr-obychnaya: cubic-bezier(.3, 1.25, .5, 1);
+  --pr-zhivaya: cubic-bezier(.34, 1.56, .64, 1);
+  --pr-rezkaya: cubic-bezier(.3, 1.4, .5, 1);
+  --ms-nazhatie: 110ms;
+  --ms-otpusk: 460ms;
+  --ms-shtorka: 550ms;
+  --ms-flip: 540ms;
+  --ms-polet: 640ms;
+  --ms-tost: 500ms;
+
+  /* ---- для модулей: тост и Хинкалик над навигацией ---- */
+  --tost-otstup: 96px;
+  --hinkalik-otstup: 92px;
+}
+
+/* Пружины строкой (DIZAYN §4.1) */
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    --pr-myagkaya: linear(0.0001, 0.0062, 0.0183, 0.0381, 0.0602, 0.0892, 0.1178, 0.1523, 0.1888, 0.2222, 0.2605, 0.2947, 0.3332, 0.3712, 0.4045, 0.441, 0.4727, 0.5071, 0.5366, 0.5685, 0.599, 0.6248, 0.6525, 0.6759, 0.7008, 0.7217, 0.7438, 0.7646, 0.782, 0.8002, 0.8154, 0.8314, 0.8462, 0.8585, 0.8713, 0.8819, 0.8929, 0.902, 0.9114, 0.9201, 0.9272, 0.9345, 0.9405, 0.9467, 0.9517, 0.9569, 0.9616, 0.9654, 0.9693, 0.9724, 0.9757, 0.9783, 0.9809, 0.9833, 0.9852, 0.9871, 0.9887, 0.9902, 0.9916, 0.9927, 0.9938, 0.9947, 0.9956, 0.9963, 1);
+    --pr-obychnaya: linear(0.0002, 0.0085, 0.0301, 0.0582, 0.0976, 0.1379, 0.1818, 0.2342, 0.2824, 0.3312, 0.386, 0.4341, 0.4868, 0.532, 0.5754, 0.6217, 0.6606, 0.6971, 0.7354, 0.7669, 0.7995, 0.826, 0.8502, 0.8749, 0.8946, 0.9124, 0.9301, 0.9441, 0.9578, 0.9685, 0.9778, 0.9868, 0.9935, 0.9993, 1.0046, 1.0085, 1.012, 1.0144, 1.0163, 1.0178, 1.0187, 1.0192, 1.0194, 1.0193, 1.0189, 1.0184, 1.0178, 1.017, 1.0161, 1.0152, 1.0142, 1.0133, 1.0122, 1.0113, 1.0103, 1.0093, 1.0085, 1.0077, 1.0068, 1.0061, 1.0053, 1.0047, 1.0041, 1.0035, 1);
+    --pr-zhivaya: linear(0.0003, 0.0156, 0.046, 0.0958, 0.1584, 0.2222, 0.3003, 0.3824, 0.4568, 0.54, 0.6211, 0.6902, 0.7633, 0.8308, 0.8854, 0.9405, 0.9886, 1.0255, 1.0605, 1.0889, 1.1088, 1.1257, 1.1372, 1.1433, 1.1461, 1.1453, 1.1418, 1.1355, 1.127, 1.1182, 1.1071, 1.0953, 1.0831, 1.0722, 1.0602, 1.0486, 1.0389, 1.0287, 1.0194, 1.0119, 1.0044, 0.998, 0.9931, 0.9886, 0.985, 0.9825, 0.9805, 0.9793, 0.9787, 0.9786, 0.9791, 0.9798, 0.9809, 0.9823, 0.9837, 0.9854, 0.9871, 0.9887, 0.9905, 0.9922, 0.9937, 0.9952, 0.9966, 0.9978, 1);
+    --pr-rezkaya: linear(0.0006, 0.0158, 0.0485, 0.0952, 0.1527, 0.2183, 0.2893, 0.3635, 0.4514, 0.526, 0.5984, 0.6676, 0.7326, 0.7928, 0.8478, 0.8972, 0.9409, 0.9789, 1.0115, 1.0387, 1.0608, 1.0783, 1.0914, 1.1007, 1.1071, 1.1094, 1.1091, 1.1067, 1.1025, 1.0969, 1.0902, 1.0828, 1.0748, 1.0666, 1.0584, 1.0502, 1.0424, 1.0349, 1.0279, 1.0214, 1.0146, 1.0094, 1.0048, 1.0009, 0.9976, 0.9948, 0.9926, 0.9908, 0.9896, 0.9887, 0.9882, 0.988, 0.9881, 0.9884, 0.9889, 0.9895, 0.9904, 0.9913, 0.9921, 0.993, 0.9939, 0.9948, 0.9957, 0.9965, 1);
+  }
+}
+
+/* Семейство на любом элементе: плитка, тень, лёгкий градиент (DIZAYN §2.2) */
+.sem-testo   { --gr: var(--pl-testo);   --gr-legkiy: var(--gr-testo);   --ten-cvet: var(--ten-testo); }
+.sem-zhar    { --gr: var(--pl-zhar);    --gr-legkiy: var(--gr-zhar);    --ten-cvet: var(--ten-zhar); }
+.sem-zelen   { --gr: var(--pl-zelen);   --gr-legkiy: var(--gr-zelen);   --ten-cvet: var(--ten-zelen); }
+.sem-sladkoe { --gr: var(--pl-sladkoe); --gr-legkiy: var(--gr-sladkoe); --ten-cvet: var(--ten-sladkoe); }
+.sem-napitki { --gr: var(--pl-napitki); --gr-legkiy: var(--gr-napitki); --ten-cvet: var(--ten-napitki); }
+.sem-kombo   { --gr: var(--pl-kombo);   --gr-legkiy: var(--gr-kombo);   --ten-cvet: var(--ten-kombo); }
+
+/* =========================================================================
+   2. База
+   ========================================================================= */
+
+* { box-sizing: border-box; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* подложка живого фона: между пятнами не бледнеет */
+  background: linear-gradient(180deg, #FFEFD6 0%, #FFD9B0 100%) fixed;
+  min-height: 100%;
+  overflow-x: clip;   /* ничто фиксированное не расширяет страницу на телефоне */
+}
+body {
+  margin: 0;
+  font: var(--t-tekst);
+  color: var(--ugol);
+  background: transparent;           /* фон держит html + холст, иначе живой градиент пропадёт */
+  min-height: 100dvh;
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+a { color: inherit; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { font-family: var(--sh-zag); margin: 0; }
+p { margin: 0; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--ugol); outline-offset: 2px; }
+/* кружок сторис: модуль istorii.js красит обводку паприкой — на оранжевом её не видно */
+.istorii .istoriya-krug:focus-visible { outline: 3px solid var(--ugol); outline-offset: 3px; }
+.skryto-vizualno { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.bez-skriptov { padding: 40px 16px; text-align: center; font: var(--t-tekst); }
+
+/* =========================================================================
+   3. Живой фон, колонка, экраны, загрузка
+   ========================================================================= */
+
+.fon {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  display: block;
+  filter: blur(34px) saturate(1.35);
+  transform: scale(1.3) translateZ(0);   /* поля размытия уходят за край, не расширяя страницу */
+  pointer-events: none;
+}
+
+.stolb {
+  position: relative;
+  z-index: 1;
+  max-width: var(--shirina);
+  margin: 0 auto;
+  min-height: 100dvh;
+}
+
+.ekran {
+  position: relative;
+  min-height: 100dvh;
+  padding: calc(16px + env(safe-area-inset-top)) var(--polya) 150px;
+}
+.ekran--glavnaya { padding: 0 0 150px; }
+.ekran--bez-niza { padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+.ekran.skryt { display: none; }
+.ekran.uhodit { position: absolute; inset: 0 0 auto 0; pointer-events: none; }
+
+.ekran__shapka { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.ekran__shapka > :first-child { min-width: 0; }
+.ekran__nazad {
+  width: 44px; height: 44px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--r-krug);
+  background: var(--steklo);
+  box-shadow: inset 0 0 0 1px var(--steklo-kayma), var(--ten-myagkaya);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: var(--ugol);
+}
+.ekran__nazad svg { width: 22px; height: 22px; }
+.ekran__zagolovok { font: var(--t-ekran); font-weight: 900; letter-spacing: -.03em; margin: 0; font-size: clamp(1.6875rem, 8.8vw, 2.125rem); overflow-wrap: anywhere; hyphens: auto; }
+.ekran__pod { font: var(--t-tekst); color: var(--ugol-72); margin-top: 6px; }
+
+/* метка капсом с линией до края (из В) */
+.metka {
+  display: flex; align-items: center; gap: 10px;
+  font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ugol-72);
+  margin: 22px 0 10px;
+}
+.metka::after { content: ''; height: 1.5px; flex: 1; background: currentColor; opacity: .35; border-radius: 2px; }
+
+.zagruzka {
+  min-height: 100dvh;
+  display: grid; place-content: center; justify-items: center; gap: 18px;
+  text-align: center;
+}
+.zagruzka__volna { min-height: 90px; min-width: 260px; display: grid; place-items: center; }
+.zagruzka__tekst { font: 700 0.9375rem/1.2 var(--sh-zag); letter-spacing: -.01em; color: var(--ugol-72); }
+.zagruzka--oshibka .zagruzka__tekst { max-width: 280px; font: var(--t-tekst); }
+
+.zaglushka-ekrana {
+  min-height: 60dvh;
+  display: grid; place-content: center; justify-items: center; gap: 10px;
+  text-align: center; padding: 40px 24px;
+}
+.zaglushka-ekrana b { font: 800 1.375rem/1.1 var(--sh-zag); letter-spacing: -.02em; }
+.zaglushka-ekrana p { font: var(--t-tekst); color: var(--ugol-72); margin-bottom: 8px; }
+.sloy-ekrana .zaglushka-ekrana { min-height: 0; padding: 20px 8px 30px; }
+
+/* =========================================================================
+   4. Шапка главной
+   ========================================================================= */
+
+.shapka {
+  padding: calc(16px + env(safe-area-inset-top)) var(--polya) 6px;
+  display: grid;
+  gap: 14px;
+}
+/* контейнер: размер названия заведения считается от ширины строки шапки (cqi) */
+.shapka__verh { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; container-type: inline-size; }
+.mesto {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 3px; justify-items: start;
+  flex: 0 1 auto; /* длинное «Выберите заведение» не выталкивает чип способа за экран */
+  text-align: left; border: 0; background: none; padding: 0;
+  min-width: 0; max-width: 100%;
+}
+.mesto__set { font: var(--t-metka); letter-spacing: .16em; text-transform: uppercase; opacity: .72; }
+/* Название заведения — одно-два слова Unbounded, перенос внутри слова некрасив, обрезка ещё хуже.
+   Размер подгоняется под ширину: самое длинное слово (--slovo-em, в em; по умолчанию 10 —
+   «Измайловский» = 9,8em) должно влезть в строку шапки за вычетом чипа (162px: чип 130 + зазор + стрелка).
+   Ядро может задать точное --slovo-em у span названия — тогда короткие названия остаются 24px. */
+.mesto__nazvanie {
+  --zapas-shapki: calc(32px + 8.125rem);   /* чип 130 px при 16 px растёт с крупным шрифтом */
+  font: 800 1.5rem/1.1 var(--sh-zag);
+  font-size: clamp(1.0625rem, calc((100cqi - var(--zapas-shapki)) / var(--slovo-em, 10)), 1.5rem);
+  letter-spacing: -.02em;
+  display: flex; align-items: center; gap: 4px;
+  max-width: 100%;
+}
+/* длинное название переносится на вторую строку; страховка — перенос внутри слова, но не обрезка */
+.mesto__nazvanie span { overflow: hidden; min-width: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; hyphens: auto; padding: .1em 0; margin: -.1em 0; }
+/* узкий телефон (< 375): чип способа — круглая иконка 44px, название получает ширину */
+@container (max-width: 21.375rem) {   /* 342 px при 16 px; с крупным шрифтом чип сворачивается раньше */
+  .mesto__nazvanie { --zapas-shapki: calc(32px + 2.75rem); }
+  .shapka__verh .chip { width: 44px; padding: 0; gap: 0; justify-content: center; font-size: 0; }
+}
+.mesto__nazvanie svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.mesto__status { font-weight: 600; font-size: 0.8438rem; display: flex; align-items: center; gap: 7px; }
+.mesto__adres { font: var(--t-vtoroy); color: var(--ugol-62); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Пульс точки — кольцо ::after на transform/opacity (композитор), а не box-shadow (перерисовка каждый кадр) */
+.tochka {
+  position: relative;
+  width: 9px; height: 9px; flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--estragon);
+  color: rgba(62, 156, 92, .55);
+}
+.tochka::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: currentColor;
+  animation: puls 2.2s ease-out infinite;
+}
+.tochka.zakryto { background: var(--paprika); color: rgba(240, 83, 45, .5); }
+.tochka.net { background: var(--shafran); }
+.tochka.net::after { display: none; }
+@keyframes puls { 0% { transform: scale(1); opacity: 1; } 70%, 100% { transform: scale(3); opacity: 0; } }
+
+.chip {
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 14px 0 12px;
+  border: 0;
+  border-radius: var(--r-krug);
+  display: inline-flex; align-items: center; gap: 7px;
+  font: var(--t-tabletka);
+  background: rgba(255, 255, 255, .62);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .85), var(--ten-myagkaya);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  margin-top: 8px;
+}
+.chip svg { width: 18px; height: 18px; flex: 0 0 auto; }
+
+/* =========================================================================
+   5. Поиск
+   ========================================================================= */
+
+.poisk {
+  position: relative;
+  display: flex; align-items: center; gap: 10px;
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-knopka);
+  background: rgba(255, 255, 255, .70);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  color: var(--ugol);
+  width: 100%;
+  text-align: left;
+  transition: box-shadow .25s;
+}
+.poisk > svg { width: 20px; height: 20px; opacity: .6; flex: 0 0 auto; }
+.poisk__pole { position: relative; flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; }
+.poisk input {
+  flex: 1; min-width: 0; width: 100%;
+  border: 0; background: transparent;
+  font: var(--t-tekst); color: var(--ugol);
+  outline: 0;
+}
+.poisk input::placeholder { color: var(--ugol-72); }
+.poisk input::-webkit-search-cancel-button { -webkit-appearance: none; }
+.poisk__podskazka { position: absolute; left: 0; top: 50%; transform: translateY(-50%); font: var(--t-tekst); color: var(--ugol-72); pointer-events: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.poisk__podskazka::before { content: 'Найти: '; color: var(--ugol-72); font-weight: 400; }
+.poisk__podskazka.smena { animation: podskazka-smena .45s var(--pr-myagkaya); }
+@keyframes podskazka-smena { from { opacity: 0; transform: translateY(calc(-50% + 8px)); } to { opacity: 1; transform: translateY(-50%); } }
+.poisk:focus-within { box-shadow: inset 0 0 0 2px var(--granat), var(--ten-myagkaya); }
+.poisk--verh {
+  position: sticky;
+  top: calc(8px + env(safe-area-inset-top));
+  z-index: 6;
+}
+.poisk__ochistit { width: 44px; height: 44px; margin: -4px -12px -4px -4px; border: 0; background: none; display: grid; place-items: center; color: var(--ugol-62); border-radius: var(--r-krug); }
+.poisk__ochistit svg { width: 18px; height: 18px; }
+.ispravlenie { font: var(--t-tekst); color: var(--ugol-72); margin: 14px 0 0; }
+.ispravlenie button { border: 0; background: none; padding: 0; font: inherit; font-weight: 700; color: var(--granat); text-decoration: underline; text-underline-offset: 3px; }
+
+/* =========================================================================
+   6. Сторис, баннер «Акция дня», бегущая строка
+   ========================================================================= */
+
+.istorii {
+  display: flex;
+  gap: 12px;
+  padding: 12px var(--polya) 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--polya);
+  min-height: 118px;
+}
+.istorii::-webkit-scrollbar { display: none; }
+.istorii > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+.banner {
+  position: relative;
+  display: block;
+  margin: 6px var(--polya) 0;
+  min-height: 132px;
+  padding: 16px 120px 16px 18px;
+  border-radius: var(--r-kartochka);
+  background: var(--gr, var(--gr-zhar));
+  color: var(--ugol);
+  box-shadow: var(--ten), 0 22px 40px -22px var(--ten-cvet, rgba(240, 83, 45, .6));
+  overflow: hidden;
+  text-align: left;
+  border: 0;
+  width: calc(100% - 2 * var(--polya));
+  isolation: isolate;
+}
+.banner::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(90% 80% at 12% 0%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 60%),
+              radial-gradient(60% 70% at 100% 100%, rgba(255, 176, 58, .5), rgba(255, 176, 58, 0) 70%);
+}
+.banner--svetlyy { color: #fff; text-shadow: 0 1px 2px rgba(110, 20, 50, .32); }
+.banner__metka { font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase; opacity: .85; display: flex; align-items: center; gap: 6px; }
+.banner__metka svg { width: 14px; height: 14px; }
+.banner__zagolovok { margin-top: 8px; font: 800 1.3125rem/1.08 var(--sh-zag); letter-spacing: -.02em; max-width: 210px; }
+.banner__tekst { margin-top: 6px; font: var(--t-vtoroy); opacity: .9; max-width: 210px; }
+.banner__knopka { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; font: 700 0.875rem/1 var(--sh-tekst); min-height: 44px; padding: 0 16px; border-radius: var(--r-krug); background: rgba(255, 255, 255, .92); color: var(--granat); text-shadow: none; box-shadow: var(--ten-myagkaya); }
+.banner__knopka svg { width: 16px; height: 16px; }
+.banner__personazh { position: absolute; right: -4px; bottom: -10px; width: 110px; height: 110px; filter: drop-shadow(0 8px 10px rgba(80, 30, 10, .25)); animation: banner-kachanie 4.5s ease-in-out infinite; pointer-events: none; }
+.banner__personazh svg { width: 100%; height: 100%; overflow: visible; }
+@keyframes banner-kachanie { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
+
+.begushchaya {
+  margin: 14px 0 0;
+  height: 28px;
+  overflow: hidden;
+  background: var(--gr-korzina);
+  color: var(--krem);
+  display: flex; align-items: center;
+  white-space: nowrap;
+  box-shadow: 0 8px 20px -10px rgba(184, 33, 63, .7);
+}
+.begushchaya__tekst { display: inline-block; flex: 0 0 auto; padding-right: 32px; font: 600 0.6875rem/1 var(--sh-zag); letter-spacing: .12em; text-transform: uppercase; animation: begushchaya-bezhit 26s linear infinite; }
+.begushchaya__tekst em { font-style: normal; font-weight: 800; color: #FFEAB8; }
+@keyframes begushchaya-bezhit { to { transform: translateX(-100%); } }
+
+/* =========================================================================
+   7. Липкая лента разделов с бегущей таблеткой
+   ========================================================================= */
+
+.lenta {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  margin-top: 8px;
+  padding: 8px var(--polya);
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: linear-gradient(to bottom, rgba(255, 247, 236, .94), rgba(255, 247, 236, .78));
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  transition: box-shadow .3s;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 14px, #000 calc(100% - 14px), transparent);
+}
+.lenta::-webkit-scrollbar { display: none; }
+.lenta.prilipla { box-shadow: 0 12px 30px -20px rgba(120, 60, 20, .45); }
+.lenta__vnutri { position: relative; display: flex; gap: 6px; width: max-content; }
+.lenta__tabletka {
+  position: absolute; top: 0; left: 0;
+  height: 44px; width: 80px;
+  border-radius: var(--r-krug);
+  background: var(--gr-knopka);
+  box-shadow: var(--ten-knopki);
+  z-index: 0;
+  transform-origin: left center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lenta__tabletka::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .6) 48%, rgba(255, 255, 255, 0) 62%); transform: translateX(-130%); animation: blik 3s ease-in-out infinite; }
+@keyframes blik { 0% { transform: translateX(-130%); } 45%, 100% { transform: translateX(130%); } }
+.tabletka {
+  position: relative; z-index: 1;
+  flex: 0 0 auto;
+  height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: var(--r-krug);
+  font: var(--t-tabletka);
+  color: var(--ugol-72);
+  background: transparent;
+  white-space: nowrap;
+  transition: color .3s;
+}
+.tabletka.aktivna { color: var(--ugol); }
+
+/* =========================================================================
+   8. Разделы, заголовки, сетка
+   ========================================================================= */
+
+.razdely { position: relative; }
+.razdel { padding: var(--mezhdu-razdelami) var(--polya) 8px; position: relative; scroll-margin-top: 58px; }
+.razdel:first-child { padding-top: 22px; }
+.zagolovok { position: relative; z-index: 0; margin: 0 0 10px; padding-top: 4px; }
+/* Свет печи за заголовком: кремовая дымка под всей надписью (метка + заголовок).
+   Живой фон в разделах жара и наборов уходит в гранат, и без подложки красные буквы
+   растворялись (контраст 1,2–2,9). Дымка поднимает фон до светлого, буквы — тёмное вино. */
+.zagolovok::before {
+  content: '';
+  position: absolute;
+  inset: -16px -12px -14px -30px;
+  border-radius: 40px;
+  background:
+    radial-gradient(60% 90% at 18% 40%, rgba(255, 214, 150, .55), rgba(255, 214, 150, 0) 70%),
+    linear-gradient(90deg, rgba(255, 244, 226, .66) 0%, rgba(255, 244, 226, .56) 62%, rgba(255, 244, 226, .3) 100%);
+  filter: blur(14px);
+  z-index: -1;
+  pointer-events: none;
+}
+.zagolovok__pod { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase; color: var(--ugol); }
+.zagolovok__pod::after { content: ''; height: 1.5px; flex: 1; background: currentColor; opacity: .3; }
+.zagolovok h2 {
+  --gr-zagolovok-temnyy: linear-gradient(100deg, #93192F 0%, #721532 55%, #4E0F22 100%);
+  margin: 0;
+  font: var(--t-razdel);
+  letter-spacing: -.035em;
+  background: var(--gr-zagolovok-temnyy);
+  filter: drop-shadow(0 0 10px rgba(255, 244, 226, .5));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  overflow-wrap: anywhere;
+  padding-bottom: .04em;
+}
+/* короткое слово 60px («Шашлыки» ≈ 6,6em) на 390 шире колонки и рвалось «Шашлык / и» — ужимаем по ширине */
+.zagolovok h2:not(.sredniy):not(.dlinnyy) { font-size: min(3.75rem, calc((min(100vw, var(--shirina)) - 32px) / 6.8)); }
+.zagolovok h2.sredniy { font-size: 2.75rem; }
+.zagolovok h2.dlinnyy { font-size: 2.125rem; line-height: 1.02; }
+
+.setka {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--setka-y) var(--setka-x);
+  position: relative;
+  z-index: 1;
+  padding-top: 22px;
+}
+/* Производительность главной: сетки разделов вне экрана не раскладываются и не рисуются
+   (133 карточки, ~4000 узлов). Заголовки остаются живыми — по ним работают лента и якоря.
+   content-visibility включает сдерживание отрисовки: поля 12/44 px дают место выступу плитки,
+   её наклону и тёплым теням, отрицательные поля возвращают прежнюю раскладку.
+   Оценка высоты до первой отрисовки: ряды × (0,82 × колонка + 184) − зазор; колонка = (ширина − 46)/2 (замер 320/390/430).
+   После первой отрисовки браузер помнит настоящую высоту (auto). Ряды — через :has по числу карточек. */
+.razdely .setka {
+  --ryady: 1;
+  padding: 30px 12px 44px;
+  margin: -8px -12px -44px;
+  content-visibility: auto;
+  contain-intrinsic-size: auto calc(var(--ryady) * ((min(100vw, var(--shirina)) - 46px) * .41 + 184px) - 24px);
+}
+.razdely .setka:has(> :nth-child(3)) { --ryady: 2; }
+.razdely .setka:has(> :nth-child(5)) { --ryady: 3; }
+.razdely .setka:has(> :nth-child(7)) { --ryady: 4; }
+.razdely .setka:has(> :nth-child(9)) { --ryady: 5; }
+.razdely .setka:has(> :nth-child(11)) { --ryady: 6; }
+.razdely .setka:has(> :nth-child(13)) { --ryady: 7; }
+.razdely .setka:has(> :nth-child(15)) { --ryady: 8; }
+.razdely .setka:has(> :nth-child(17)) { --ryady: 9; }
+.razdely .setka:has(> :nth-child(19)) { --ryady: 10; }
+.razdely .setka:has(> :nth-child(21)) { --ryady: 11; }
+.razdely .setka:has(> :nth-child(23)) { --ryady: 12; }
+.razdely .setka:has(> :nth-child(25)) { --ryady: 14; }
+.razdely .setka:has(> :nth-child(29)) { --ryady: 16; }
+
+/* =========================================================================
+   9. Карточка блюда и плитка
+   ========================================================================= */
+
+.kartochka {
+  position: relative;
+  border-radius: var(--r-kartochka);
+  background: var(--belyy-92);
+  box-shadow: var(--ten-vstavka), var(--ten);
+  padding: 0 12px 12px;
+  /* колонка: низ с ценой прижат к дну — у соседей в ряду цена и «+» на одной высоте */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(28px) scale(.96);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  transition: opacity .3s ease;
+}
+.kartochka.pokazana { animation: vsplytie .75s cubic-bezier(.22, 1.1, .3, 1.08) forwards; animation-delay: calc(var(--i, 0) * 70ms); }
+.kartochka.byla { opacity: 1; transform: none; animation: none; }
+@keyframes vsplytie { to { opacity: 1; transform: none; } }
+
+.plitka {
+  aspect-ratio: 1;
+  border-radius: var(--r-plitka);
+  position: relative;
+  overflow: visible;
+  background: var(--gr, var(--pl-testo));
+  margin: -18px -8px 0;
+  /* светлый кант: плитка отделяется от фона того же тона (красное на красном в «Шашлыках») */
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .42), 0 24px 34px -14px var(--ten-cvet, rgba(240, 83, 45, .55)), 0 6px 14px -8px rgba(120, 60, 20, .35);
+  transform: translateY(-4px) rotate(var(--naklon, 0deg));
+  transition: transform .35s var(--pr-obychnaya), box-shadow .35s;
+}
+.plitka::before {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; z-index: 1; pointer-events: none;
+  background: radial-gradient(80% 60% at 20% 8%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%);
+}
+.plitka__foto {
+  position: absolute; inset: 4%;
+  width: 92%; height: 92%;
+  object-fit: contain;
+  z-index: 2;
+  display: block;
+  transform: scale(1.06) rotate(var(--povorot-foto, 0deg));
+  filter: drop-shadow(0 14px 12px var(--ten-obekta, rgba(120, 60, 20, .4)));
+  opacity: 0;
+  transition: opacity .5s ease;
+}
+.plitka__foto.zagruzheno { opacity: 1; }
+.plitka__znak { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255, 255, 255, .84); z-index: 1; transition: opacity .4s ease; }
+.plitka__znak svg { width: 58%; height: 58%; transform: rotate(var(--povorot, 0deg)) translate(var(--sdvig-x, 0), var(--sdvig-y, 0)); filter: drop-shadow(0 10px 12px rgba(120, 40, 10, .22)); }
+.plitka.s-foto .plitka__znak { opacity: .28; }
+.plitka.s-foto.gotovo .plitka__znak { opacity: 0; }
+.plitka__stop { position: absolute; left: 10px; top: 10px; z-index: 3; padding: 5px 9px; border-radius: var(--r-krug); background: rgba(35, 26, 20, .82); color: #fff; font: 700 0.6875rem/1 var(--sh-tekst); letter-spacing: .06em; text-transform: uppercase; }
+.kartochka.nazhata .plitka { transform: translateY(2px) rotate(0deg); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .42), 0 8px 16px -10px var(--ten-cvet); }
+.kartochka.nedostupna { opacity: .55; }
+.kartochka.nedostupna.pokazana { animation-name: vsplytie-tusklo; }
+@keyframes vsplytie-tusklo { to { opacity: .55; transform: none; } }
+.kartochka.nedostupna.byla { opacity: .55; }
+.kartochka.nedostupna .plyus, .kartochka.nedostupna .stepper { display: none !important; }
+
+.kartochka__nazvanie { font: var(--t-nazvanie); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; margin-top: 4px; }
+.kartochka__opisanie { font: 500 0.8125rem/1.3 var(--sh-tekst); color: var(--ugol-72); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: -4px; }
+.kartochka__meta { font: var(--t-vtoroy); color: var(--ugol-72); margin-top: -4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kartochka__niz { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; margin-top: auto; }
+.kartochka__net { font: 600 0.8125rem/1.2 var(--sh-tekst); color: var(--ugol-72); text-align: right; }
+.cena { font: var(--t-cena); letter-spacing: -.03em; white-space: nowrap; }
+.cena .rub { font-weight: 500; font-size: 0.9375rem; opacity: .8; margin-left: 2px; }
+.cena__utochnit { display: block; font: 500 0.6875rem/1 var(--sh-tekst); color: var(--ugol-62); margin-top: 4px; letter-spacing: 0; }
+
+/* Комбо-набор: на две колонки, плитка 2:1, знак слева, надпись справа */
+.kartochka--shirokaya { grid-column: 1 / -1; }
+.kartochka--shirokaya .plitka { aspect-ratio: 2 / 1; margin: -18px -8px 0; }
+.kartochka--shirokaya .plitka__znak { justify-items: start; padding-left: 8%; }
+.kartochka--shirokaya .plitka__znak svg { width: 34%; height: 68%; }
+/* Своего вырезанного фото у набора нет (в базе — рекламный баннер с надписями), поэтому слева
+   собрана композиция из того, что в него входит: шашлык, хачапури, хинкали спереди.
+   Те же превью foto/m/, что у плиток разделов, — без генерации. Знак набора уходит. */
+.kartochka--shirokaya .plitka__znak { opacity: 0; }
+.kartochka--shirokaya .plitka::after {
+  content: ''; position: absolute; z-index: 2; pointer-events: none;
+  left: 1%; top: 3%; width: 55%; height: 94%;
+  background:
+    url(foto/m/cldrgyfgo004ho98l8o4xr1d4.webp) 46% 100% / auto 66% no-repeat,
+    url(foto/m/cldrgyf3t001co98ljv13qjj9.webp) 0% 12% / auto 70% no-repeat,
+    url(foto/m/cldrgyf94002po98luagr18zk.webp) 100% 0% / auto 68% no-repeat;
+  filter: drop-shadow(0 12px 10px var(--ten-kombo));
+}
+.plitka__nadpis { position: absolute; right: 7%; top: 50%; transform: translateY(-50%); z-index: 3; color: #fff; font: 800 1.375rem/1.05 var(--sh-zag); letter-spacing: -.02em; text-align: right; text-shadow: 0 1px 2px rgba(110, 20, 50, .32); max-width: 55%; }
+.plitka__nadpis small { display: block; margin-top: 6px; font: 700 0.8125rem/1.2 var(--sh-tekst); letter-spacing: .06em; text-transform: uppercase; opacity: .92; }
+
+/* =========================================================================
+   10. «+» и степпер
+   ========================================================================= */
+
+.plyus {
+  width: 44px; height: 44px;
+  flex: 0 0 auto;
+  border-radius: var(--r-krug);
+  border: 0;
+  display: grid; place-items: center;
+  color: var(--ugol);
+  background: var(--gr-knopka);
+  box-shadow: var(--ten-knopki);
+  position: relative;
+  overflow: hidden;
+  padding: 0;
+}
+.plyus::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 60%); }
+.plyus svg { position: relative; width: 20px; height: 20px; }
+
+.stepper {
+  display: none;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  border-radius: var(--r-krug);
+  background: var(--gr-knopka);
+  box-shadow: var(--ten-knopki);
+  padding: 0 4px;
+  transform-origin: right center;
+  position: relative;
+}
+/* Кнопки «−/+» прозрачные: зона касания 44px, а место в ряду прежнее (отрицательные поля) */
+.stepper button { width: 44px; height: 44px; margin: -4px; border: 0; border-radius: var(--r-krug); background: transparent; color: var(--ugol); display: grid; place-items: center; padding: 0; position: relative; z-index: 1; }
+.stepper button svg { width: 18px; height: 18px; }
+.stepper b { font: 700 0.9375rem/1 var(--sh-zag); min-width: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.kartochka.v-korzine .plyus { display: none; }
+.kartochka.v-korzine .stepper { display: inline-flex; flex: 1; justify-content: space-between; }
+/* в корзине степпер занимает весь низ карточки: колонка узкая, цена уже в корзине и в шторке */
+.kartochka.v-korzine .kartochka__cena { display: none; }
+.stepper.poyavilsya { animation: stepper-vyrost .556s var(--pr-zhivaya) both; }
+@keyframes stepper-vyrost { from { transform: scale(0); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+.stepper--vsegda { display: inline-flex; height: 56px; padding: 0 6px; border-radius: var(--r-knopka); }
+.stepper--vsegda button { width: 44px; height: 44px; margin: 0 -1px; }
+.stepper--vsegda b { font-size: 1.0625rem; min-width: 24px; }
+.stepper--malyy { display: inline-flex; height: 40px; }
+.stepper--malyy button { width: 44px; height: 44px; margin: -6px; }
+.stepper--steklo { background: rgba(255, 255, 255, .78); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); }
+
+/* =========================================================================
+   11. Банкеты, подвал главной
+   ========================================================================= */
+
+.banket {
+  position: relative;
+  display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px;
+  margin: var(--mezhdu-razdelami) var(--polya) 0;
+  padding: 20px 18px;
+  border: 0; width: calc(100% - 2 * var(--polya));
+  text-align: left;
+  border-radius: var(--r-kartochka);
+  background: var(--gr-korzina);
+  color: #fff;
+  box-shadow: var(--ten-korziny);
+  overflow: hidden;
+  isolation: isolate;
+}
+.banket::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 90% at 0% 0%, rgba(255, 176, 58, .55), rgba(255, 176, 58, 0) 60%); }
+.banket__metka { font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase; opacity: .85; }
+.banket__zagolovok { margin-top: 6px; font: 800 1.375rem/1.08 var(--sh-zag); letter-spacing: -.02em; }
+.banket__tekst { margin-top: 6px; font: var(--t-vtoroy); opacity: .9; }
+.banket__znak { width: 64px; height: 64px; color: rgba(255, 255, 255, .9); filter: drop-shadow(0 8px 10px rgba(60, 10, 20, .35)); }
+
+.podval { padding: 34px var(--polya) 0; text-align: center; font: var(--t-vtoroy); color: var(--ugol-62); }
+.podval b { font-weight: 700; color: var(--ugol-72); }
+
+/* =========================================================================
+   12. Нижняя навигация и кнопка корзины
+   ========================================================================= */
+
+.niz {
+  position: fixed;
+  left: 50%;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: min(100% - 24px, calc(var(--shirina) - 24px));
+  height: var(--niz-vysota);
+  z-index: 20;
+  display: flex; align-items: center; gap: 2px;
+  padding: 8px;
+  border-radius: 30px;
+  background: var(--steklo);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px var(--steklo-kayma), var(--ten-glubokaya);
+  transition: transform .45s var(--pr-myagkaya), opacity .3s;
+}
+.niz.uehal { transform: translate(-50%, calc(100% + 24px)); opacity: 0; pointer-events: none; }
+.niz__punkty { position: relative; flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; min-width: 0; }
+.niz__indikator { position: absolute; top: 0; left: 0; height: 100%; width: calc(100% / 3); border-radius: var(--r-krug); background: linear-gradient(135deg, rgba(255, 176, 58, .35), rgba(240, 83, 45, .28)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7); z-index: 0; will-change: transform; pointer-events: none; }
+.niz__punkt {
+  position: relative; z-index: 1;
+  display: grid; justify-items: center; align-content: center; gap: 2px;
+  border: 0; background: none;
+  font: var(--t-podpis);
+  text-decoration: none;
+  border-radius: 22px;
+  color: #5C4A3E;
+  min-width: 0;
+  transition: opacity .25s, color .25s;
+}
+.niz__punkt svg { width: 22px; height: 22px; }
+/* капсула навигации фиксированной высоты: с крупным шрифтом подписи растут до 16 px, не налезая друг на друга */
+.niz__punkt { font-size: min(0.8125rem, 16px); }
+.niz__korzina { font-size: min(0.9375rem, 18px); }
+.niz__punkt.aktiven { color: #8F1838; }
+.niz__korzina {
+  flex: 0 0 auto;
+  height: 52px;
+  padding: 0 18px 0 12px;
+  border: 0;
+  border-radius: var(--r-krug);
+  display: flex; align-items: center; gap: 10px;
+  font: var(--t-knopka);
+  color: #fff;
+  background: var(--gr-korzina);
+  box-shadow: var(--ten-korziny);
+  position: relative;
+  overflow: hidden;
+  margin-left: 4px;
+}
+.niz__korzina::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 80% at 25% 0%, rgba(255, 176, 58, .55), rgba(255, 176, 58, 0) 55%); pointer-events: none; }
+.niz__korzina::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, .35) 48%, rgba(255, 255, 255, 0) 62%); transform: translateX(-130%); animation: blik 4s ease-in-out infinite 1s; pointer-events: none; }
+.niz__korzina > * { position: relative; z-index: 1; }
+.niz__korzina-ikonka { position: relative; display: grid; place-items: center; width: 28px; height: 28px; }
+.niz__korzina-ikonka svg { width: 22px; height: 22px; }
+.niz__schet {
+  position: absolute; top: -6px; right: -8px;
+  min-width: 20px; height: 20px;
+  padding: 0 5px;
+  border-radius: var(--r-krug);
+  background: var(--shafran);
+  color: var(--ugol);
+  font: 800 0.75rem/1.25rem var(--sh-zag);
+  text-align: center;
+  box-shadow: 0 4px 10px -3px rgba(60, 10, 20, .45);
+}
+.niz__tekst { display: flex; align-items: baseline; gap: 8px; white-space: nowrap; }
+.niz__summa { font: 700 0.9375rem/1 var(--sh-zag); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.niz__summa:empty { display: none; }
+.niz__minimum { position: absolute !important; left: 14px; right: 14px; bottom: 6px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .3); overflow: hidden; }
+.niz__minimum i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--shafran); border-radius: inherit; transition: width .42s var(--pr-myagkaya); }
+
+/* =========================================================================
+   13. Полёт в корзину (клон)
+   ========================================================================= */
+
+.polet { position: fixed; z-index: 1300; pointer-events: none; border-radius: 18px; }
+.polet img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+/* =========================================================================
+   14. Шторки (блюдо, корзина, служебные)
+   ========================================================================= */
+
+.sloy-shtorok { position: relative; z-index: 40; }
+.shtorka-fon { position: fixed; inset: 0; z-index: 40; background: rgba(60, 25, 10, .28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; }
+.shtorka {
+  position: fixed; left: 50%; bottom: 0;
+  translate: -50% 0;
+  width: min(100%, var(--shirina));
+  max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+  z-index: 41;
+  display: flex; flex-direction: column;
+  border-radius: var(--r-shtorka) var(--r-shtorka) 0 0;
+  background: var(--krem);
+  box-shadow: var(--ten-glubokaya), var(--ten-vstavka);
+  overscroll-behavior: contain;
+  outline: 0;
+}
+.shtorka__ruchka {
+  flex: 0 0 auto;
+  height: 24px;
+  display: grid; place-items: center;
+  touch-action: none;
+}
+.shtorka__ruchka::before { content: ''; width: 44px; height: 5px; border-radius: var(--r-krug); background: rgba(35, 26, 20, .18); }
+.shtorka__ruchka--na-foto { position: absolute; left: 0; right: 0; top: 0; z-index: 5; height: 34px; }
+.shtorka__ruchka--na-foto::before { background: rgba(255, 255, 255, .78); box-shadow: 0 1px 4px rgba(110, 30, 10, .25); }
+.shtorka__zakryt {
+  position: absolute; right: 10px; top: 10px; z-index: 6;
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border: 0; border-radius: var(--r-krug);
+  background: rgba(255, 250, 242, .72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .8), var(--ten-myagkaya);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  color: var(--ugol);
+}
+.shtorka__zakryt svg { width: 18px; height: 18px; }
+.shtorka__telo { overflow-y: auto; padding: 0 var(--polya) calc(104px + env(safe-area-inset-bottom)); -webkit-overflow-scrolling: touch; overscroll-behavior: contain; flex: 1 1 auto; min-height: 0; }
+.shtorka__niz { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 10px; align-items: center; padding: 12px var(--polya) calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to top, var(--krem) 70%, rgba(255, 247, 236, 0)); z-index: 4; }
+.shtorka__niz .knopka { flex: 1; }
+
+/* шапка шторки блюда: фото растёт из плитки (FLIP), сидит на градиенте семейства */
+.shtorka--blyudo { overflow: hidden; }
+.shtorka--blyudo .shtorka__telo { padding-top: 0; }
+.shtorka__foto {
+  position: relative;
+  margin: 0 calc(-1 * var(--polya));
+  height: min(64vw, 320px);
+  background: var(--gr, var(--pl-testo));
+  display: grid; place-items: center;
+  grid-template: 100% / 100%;   /* иначе ряд сетки растёт по квадрату фото (высота = ширине) и блюдо обрезается снизу */
+  overflow: hidden;
+  isolation: isolate;
+}
+.shtorka__foto::before { content: ''; position: absolute; inset: 0; z-index: 0; background: radial-gradient(70% 60% at 22% 10%, rgba(255, 255, 255, .55), rgba(255, 255, 255, 0) 60%), radial-gradient(60% 45% at 50% 100%, rgba(255, 255, 255, .25), rgba(255, 255, 255, 0) 70%); }
+.shtorka__foto-vnutri { position: relative; z-index: 1; width: 100%; height: 100%; display: grid; grid-template: 100% / 100%; place-items: center; will-change: transform; }
+.shtorka__foto img { width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 22px 18px var(--ten-obekta, rgba(120, 60, 20, .45))); opacity: 0; transition: opacity .4s ease; grid-area: 1 / 1; }
+.shtorka__foto img.zagruzheno { opacity: 1; }
+.shtorka__foto .plitka__znak { position: static; grid-area: 1 / 1; width: 100%; height: 100%; }
+.shtorka__foto .plitka__znak svg { width: 46%; height: 46%; }
+.shtorka__foto.s-foto .plitka__znak { opacity: 0; }
+.shtorka__zagolovok { font: var(--t-shtorka); letter-spacing: -.025em; margin: 18px 0 6px; }
+.shtorka__opisanie { font: var(--t-vtoroy); color: var(--ugol); margin-bottom: 8px; }
+.shtorka__meta { font: var(--t-vtoroy); color: var(--ugol-62); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.shtorka__meta span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border-radius: var(--r-krug); background: rgba(255, 255, 255, .7); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9); }
+.shtorka__meta svg { width: 14px; height: 14px; opacity: .8; }
+.shtorka__cena { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 16px; }
+.shtorka__cena .cena { font: var(--t-cena-krupno); letter-spacing: -.03em; }
+.shtorka__nedostupno { margin-top: 14px; padding: 12px 14px; border-radius: var(--r-knopka); background: var(--pesok); color: #A8331C; font: 600 0.875rem/1.35 var(--sh-tekst); }
+.shtorka__sostav { font: var(--t-tekst); margin-top: 16px; }
+.shtorka__sostav b { display: block; font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase; opacity: .72; margin-bottom: 6px; }
+/* телефон боком (844×390): фото не съедает всю высоту — название, цена и описание видны сразу */
+@media (max-height: 500px) and (orientation: landscape) {
+  .shtorka__foto { height: 40dvh; }
+  .shtorka__zagolovok { margin-top: 12px; }
+}
+.shtorka__razdel { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font: var(--t-metka); letter-spacing: .12em; text-transform: uppercase; color: var(--ugol-72); }
+
+/* шторка корзины: кнопка корзины «растёт» в шапку */
+.shtorka--korzina { overflow: hidden; }
+.shtorka__shapka-korziny {
+  position: relative; flex: 0 0 auto;
+  padding: 0 var(--polya) 18px;
+  background: var(--gr-korzina);
+  color: #fff;
+  border-radius: var(--r-shtorka) var(--r-shtorka) 0 0;
+  isolation: isolate;
+}
+.shtorka__shapka-korziny::before { content: ''; position: absolute; inset: 0; z-index: -1; background: radial-gradient(90% 90% at 10% 0%, rgba(255, 176, 58, .5), rgba(255, 176, 58, 0) 60%); border-radius: inherit; }
+.shtorka__shapka-korziny .shtorka__ruchka::before { background: rgba(255, 255, 255, .55); }
+.shtorka__shapka-korziny h2 { font: var(--t-shtorka); letter-spacing: -.025em; }
+.shtorka__shapka-korziny p { font: var(--t-vtoroy); opacity: .88; margin-top: 4px; }
+
+/* служебная шторка ядра («Скоро закажете голосом», выбор способа) */
+.shtorka--malaya .shtorka__telo { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.shtorka--malaya h2 { font: var(--t-shtorka); letter-spacing: -.025em; margin: 6px 0 8px; }
+.shtorka--malaya p { font: var(--t-tekst); color: var(--ugol-72); margin-bottom: 18px; }
+.shtorka--malaya .knopki { display: grid; gap: 10px; }
+.shtorka__geroy { display: grid; place-items: center; height: 120px; margin-top: 4px; }
+
+/* =========================================================================
+   15. Чипы добавок, варианты
+   ========================================================================= */
+
+.chipy { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.chip-dobavka { height: 44px; padding: 0 14px; border-radius: var(--r-krug); border: 0; font: var(--t-tabletka); color: var(--ugol); background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); transition: background .25s, box-shadow .25s; }
+.chip-dobavka.vybran { background: var(--gr-knopka); box-shadow: var(--ten-knopki); }
+.chip-dobavka .plus-cena { opacity: .62; margin-left: 4px; font-weight: 500; }
+.vybor { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* =========================================================================
+   16. Кнопки
+   ========================================================================= */
+
+.knopka { height: 56px; padding: 0 22px; border: 0; border-radius: var(--r-knopka); display: inline-flex; align-items: center; justify-content: center; gap: 10px; font: var(--t-knopka); white-space: nowrap; position: relative; overflow: hidden; text-decoration: none; color: var(--ugol); background: none; }
+.knopka--glavnaya { background: var(--gr-knopka); color: var(--ugol); box-shadow: var(--ten-knopki); width: 100%; }
+.knopka--glavnaya::before { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 70% at 30% 0%, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 60%); pointer-events: none; }
+.knopka--korzina { background: var(--gr-korzina); color: #fff; box-shadow: var(--ten-korziny); width: 100%; }
+.knopka--steklo { background: var(--steklo); color: var(--ugol); box-shadow: inset 0 0 0 1px var(--steklo-kayma), var(--ten-myagkaya); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+.knopka--tihaya { background: none; color: var(--ugol); height: 44px; text-decoration: underline; text-underline-offset: 3px; }
+.knopka--60 { height: 60px; width: 100%; justify-content: flex-start; padding: 0 20px; font-size: 1rem; }
+.knopka--60 > svg { width: 24px; height: 24px; flex: 0 0 auto; }
+.knopka--40 { height: 44px; padding: 0 14px; border-radius: 12px; font-size: 0.875rem; }
+.knopka .summa { font: 700 1rem/1 var(--sh-zag); letter-spacing: -.02em; margin-left: auto; font-variant-numeric: tabular-nums; }
+.knopka .summa-v { font: 700 1rem/1 var(--sh-zag); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.knopka:disabled { opacity: .5; }
+.knopka > * { position: relative; }
+.knopki { display: grid; gap: 12px; }
+
+/* =========================================================================
+   17. Тосты (модуль pokazatTost ставит базу инлайн; здесь — варианты)
+   ========================================================================= */
+
+.tost { font: 600 0.875rem/1.3 var(--sh-tekst) !important; }
+.tost--uspeh::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: #6FD08A; flex: 0 0 auto; box-shadow: 0 0 0 4px rgba(62, 156, 92, .25); }
+.tost--oshibka { background: var(--granat) !important; }
+
+/* =========================================================================
+   18. Поля ввода и подсказки
+   ========================================================================= */
+
+.pole { display: grid; gap: 6px; }
+.pole__metka { font: var(--t-metka); letter-spacing: .12em; text-transform: uppercase; opacity: .72; }
+.pole__vvod { height: 54px; padding: 0 16px; border-radius: var(--r-knopka); border: 0; background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); font: var(--t-tekst); color: var(--ugol); outline: 0; width: 100%; transition: box-shadow .25s; }
+.pole__vvod::placeholder { color: var(--ugol-72); }
+.pole__vvod:focus { box-shadow: inset 0 0 0 2px var(--granat), var(--ten-myagkaya); }
+.pole.oshibka .pole__vvod { box-shadow: inset 0 0 0 2px var(--granat), var(--ten-myagkaya); animation: drozh .4s; }
+.pole__podskazka { font: var(--t-vtoroy); color: var(--ugol-62); }
+.pole.oshibka .pole__podskazka { color: var(--granat); }
+@keyframes drozh { 20%, 60% { transform: translateX(-4px); } 40%, 80% { transform: translateX(4px); } }
+.pole--tekst .pole__vvod { height: auto; min-height: 88px; padding: 14px 16px; resize: none; }
+.podskazki { display: grid; gap: 4px; margin-top: 6px; }
+.podskazki__punkt { text-align: left; padding: 12px 14px; border-radius: var(--r-knopka); background: rgba(255, 255, 255, .6); border: 0; font: var(--t-tekst); }
+.podskazki__punkt small { display: block; font: var(--t-vtoroy); color: var(--ugol-62); }
+.forma { display: grid; gap: 16px; }
+
+/* =========================================================================
+   19. Заведения, предупреждение, переключатель способа
+   ========================================================================= */
+
+.spisok { display: grid; gap: 10px; }
+.zavedenie { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px; border-radius: var(--r-kartochka); background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten); border: 0; text-align: left; width: 100%; color: var(--ugol); }
+.zavedenie__nazvanie { font: 700 1.0625rem/1.15 var(--sh-zag); letter-spacing: -.02em; }
+.zavedenie__adres { font: var(--t-vtoroy); color: var(--ugol-62); grid-column: 1; }
+.zavedenie__status { font: var(--t-vtoroy); display: flex; align-items: center; gap: 6px; grid-column: 1; color: var(--estragon); font-weight: 600; }
+.zavedenie__km { grid-row: 1 / span 3; grid-column: 2; align-self: center; font: 800 1.125rem/1 var(--sh-zag); letter-spacing: -.02em; white-space: nowrap; text-align: right; }
+.zavedenie__km small { display: block; font: var(--t-vtoroy); color: var(--ugol-62); text-align: right; margin-top: 4px; letter-spacing: 0; }
+.zavedenie.vybrano { box-shadow: inset 0 0 0 2px var(--shafran), var(--ten); }
+.zavedenie.zakryto .zavedenie__status { color: var(--paprika); }
+.zavedenie--partner .zavedenie__nazvanie::after { content: 'партнёр'; margin-left: 8px; font: 600 0.6875rem/1 var(--sh-tekst); letter-spacing: .06em; text-transform: uppercase; color: var(--ugol-62); vertical-align: middle; }
+
+.preduprezhdenie { padding: 16px; border-radius: var(--r-kartochka); background: var(--pesok); color: #A8331C; box-shadow: var(--ten-myagkaya); }
+.preduprezhdenie b { display: block; font: 700 1rem/1.25 var(--sh-zag); letter-spacing: -.01em; margin-bottom: 6px; }
+.preduprezhdenie p { font: var(--t-tekst); color: var(--ugol-72); }
+.preduprezhdenie__knopki { display: grid; gap: 8px; margin-top: 14px; }
+
+.pereklyuchatel { position: relative; display: grid; grid-template-columns: 1fr 1fr; padding: 4px; height: 52px; border-radius: var(--r-knopka); background: rgba(255, 255, 255, .6); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); }
+.pereklyuchatel__begunok { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 12px; background: var(--gr-knopka); box-shadow: var(--ten-knopki); transition: transform .537s var(--pr-obychnaya); }
+.pereklyuchatel.vtoroy .pereklyuchatel__begunok { transform: translateX(100%); }
+.pereklyuchatel button { position: relative; z-index: 1; border: 0; background: none; font: var(--t-knopka); color: var(--ugol-72); display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; transition: color .3s; }
+.pereklyuchatel button svg { width: 20px; height: 20px; }
+.pereklyuchatel button.aktiven { color: var(--ugol); }
+
+/* =========================================================================
+   20. Строки позиций, мини-плитки, ряды, перенос
+   ========================================================================= */
+
+.kartochka-belaya { padding: 16px; border-radius: var(--r-kartochka); background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten); }
+.mini-plitka { --razmer: 56px; position: relative; width: var(--razmer); height: var(--razmer); flex: 0 0 auto; border-radius: 14px; background: var(--gr, var(--pl-testo)); box-shadow: 0 10px 16px -10px var(--ten-cvet, rgba(240, 83, 45, .55)); display: grid; place-items: center; overflow: visible; }
+.mini-plitka::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(80% 60% at 20% 8%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 60%); pointer-events: none; }
+.mini-plitka svg { width: 58%; height: 58%; color: rgba(255, 255, 255, .84); position: relative; }
+.mini-plitka img { position: absolute; inset: 2%; width: 96%; height: 96%; object-fit: contain; transform: scale(1.08); filter: drop-shadow(0 6px 6px var(--ten-obekta, rgba(120, 60, 20, .4))); opacity: 0; transition: opacity .4s; }
+.mini-plitka img.zagruzheno { opacity: 1; }
+.mini-plitka.s-foto.gotovo svg { opacity: 0; }
+
+.poziciya { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+.poziciya + .poziciya { border-top: 1px solid rgba(120, 60, 20, .1); }
+.poziciya__tekst { flex: 1; min-width: 0; }
+.poziciya__nazvanie { font: var(--t-nazvanie); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.poziciya__meta { font: var(--t-vtoroy); color: var(--ugol-62); margin-top: 2px; }
+.poziciya__cena { font: 700 0.9375rem/1 var(--sh-zag); letter-spacing: -.02em; white-space: nowrap; }
+.poziciya.nedostupna .mini-plitka { opacity: .55; }
+
+.ryad { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 14px var(--polya) 18px; margin: 0 calc(-1 * var(--polya)); scroll-snap-type: x proximity; scroll-padding-inline: var(--polya); }
+.ryad::-webkit-scrollbar { display: none; }
+.ryad > * { scroll-snap-align: start; flex: 0 0 auto; }
+.mini-kartochka { width: 132px; display: grid; gap: 6px; align-content: start; padding: 0 10px 10px; border-radius: 18px; background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten-myagkaya); border: 0; text-align: left; color: var(--ugol); cursor: pointer; }
+.mini-kartochka .mini-plitka { --razmer: 84px; width: calc(100% + 8px); height: 84px; margin: -10px -4px 0; border-radius: 16px; }
+.mini-kartochka .mini-plitka svg { width: 48%; height: 70%; }
+.mini-kartochka__nazvanie { font: 650 0.8125rem/1.25 var(--sh-tekst); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 2.5em; }
+.mini-kartochka__niz { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.mini-kartochka .cena { font-size: 0.9375rem; }
+.mini-kartochka .cena .rub { font-size: 0.8125rem; }
+/* видимый кружок 36px, зона касания 44px: градиент и блик рисуются по content-box */
+.mini-kartochka .plyus { width: 44px; height: 44px; margin: -4px; padding: 4px; background-clip: content-box; box-shadow: none; overflow: visible; }
+.mini-kartochka .plyus::before { inset: 4px; border-radius: inherit; }
+.mini-kartochka .plyus::after { content: ''; position: absolute; inset: 4px; border-radius: inherit; box-shadow: var(--ten-knopki); z-index: -1; }
+.mini-kartochka .plyus { isolation: isolate; }
+.mini-kartochka .plyus svg { width: 16px; height: 16px; }
+.mini-kartochka .knopka--40 { width: 100%; }
+
+.bylo-stalo { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: var(--pesok); font: var(--t-vtoroy); }
+.bylo-stalo s { color: var(--ugol-45); }
+.bylo-stalo b { font: 700 0.875rem/1 var(--sh-zag); color: #C4531B; letter-spacing: -.02em; }
+.bejdzh { display: inline-block; padding: 5px 9px; border-radius: var(--r-krug); background: rgba(35, 26, 20, .82); color: #fff; font: 700 0.6875rem/1 var(--sh-tekst); letter-spacing: .06em; text-transform: uppercase; }
+.propalo { padding: 14px; border-radius: var(--r-kartochka); background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten); }
+.propalo + .propalo { margin-top: 12px; }
+.propalo .poziciya { padding-top: 0; }
+.zameny { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 16px 14px 6px; margin: 0 -14px; }
+.zameny::-webkit-scrollbar { display: none; }
+.zameny > * { flex: 0 0 auto; }
+.gruppa + .gruppa { margin-top: 8px; }
+
+.itog { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 14px 0 4px; font: var(--t-tekst); }
+.itog__summa { font: var(--t-cena-krupno); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.minimum { margin-top: 12px; }
+.minimum__polosa { position: relative; height: 8px; border-radius: 8px; background: var(--pesok); overflow: hidden; }
+.minimum__polosa > i { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: inherit; background: var(--gr-knopka); transition: width .5s var(--pr-myagkaya); }
+.minimum__tekst { margin-top: 8px; font: var(--t-vtoroy); color: var(--ugol-72); }
+.minimum__tekst b { color: var(--ugol); }
+
+/* =========================================================================
+   21. Пустые состояния, «готово», адрес
+   ========================================================================= */
+
+.pusto { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 24px 0 8px; }
+.pusto__hinkalik { width: 96px; height: 110px; display: grid; place-items: end center; }
+.pusto__zagolovok { font: 700 1.25rem/1.2 var(--sh-zag); letter-spacing: -.02em; }
+.pusto__tekst { font: var(--t-tekst); color: var(--ugol-72); max-width: 300px; }
+
+.ekran--adres, .ekran--gotovo { display: grid; align-content: start; }
+.adres__geroy, .gotovo__hinkalik { display: grid; place-items: end center; min-height: 190px; padding-top: 20px; }
+.adres__knopki { display: grid; gap: 12px; margin-top: 22px; }
+.adres__nizhe { margin-top: 18px; }
+.adres__nayti { margin-top: 10px; }   /* кнопка «Найти» под полем адреса: поиск только по нажатию */
+.ekran--adres .ekran__zagolovok, .ekran--gotovo .ekran__zagolovok { text-align: center; }
+.ekran--adres .ekran__pod, .ekran--gotovo .ekran__pod { text-align: center; }
+.ekran--adres .ekran__pod { color: var(--ugol); }
+
+.gotovo__nomer {
+  font: 800 3rem/1 var(--sh-zag);
+  letter-spacing: -.03em;
+  background: var(--gr-knopka);
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent;
+  text-align: center;
+  margin-top: 10px;
+}
+.demo-stroka { font: var(--t-vtoroy); color: var(--ugol-62); text-align: center; margin-top: 18px; }
+
+/* =========================================================================
+   22. Десктоп и «меньше движения»
+   ========================================================================= */
+
+@media (min-width: 700px) {
+  .stolb {
+    background: rgba(255, 247, 236, .30);
+    backdrop-filter: blur(24px) saturate(1.2);
+    -webkit-backdrop-filter: blur(24px) saturate(1.2);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .55), 0 40px 90px -30px rgba(120, 60, 20, .5);
+  }
+  body .hinkalik--plavayushchiy { right: calc(50% - var(--shirina) / 2 + 14px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+  .kartochka { opacity: 1; transform: none; }
+  .kartochka.nedostupna { opacity: .55; }
+  .nazhata { filter: brightness(.94); }
+  .begushchaya__tekst { animation: none; }
+}
+
+/* Главная под шторкой-маршрутом чуть уменьшается (DIZAYN §4.5) */
+.stolb { transition: transform .55s var(--pr-myagkaya), filter .4s ease; }
+.stolb.pod-shtorkoy { transform: scale(.97); transform-origin: 50% var(--pod-shtorkoy-y, 40vh); filter: saturate(.9); }
+
+/* Квадрат фото в шторке блюда: цель FLIP из плитки (квадрат в квадрат — без искажений) */
+.shtorka__kvadrat { position: relative; height: 92%; aspect-ratio: 1; display: grid; grid-template: 100% / 100%; place-items: center; }
+.shtorka__kvadrat > * { grid-area: 1 / 1; }
+.shtorka__foto .shtorka__kvadrat img { width: 100%; height: 100%; }
+.shtorka__foto .shtorka__kvadrat .plitka__znak svg { width: 62%; height: 62%; }
+
+/* Слой персонажа на баннере (параллакс) и обёртка заголовка раздела (параллакс) */
+.banner__sloy { position: absolute; inset: 0; pointer-events: none; z-index: 0; }
+.banner > :not(.banner__sloy) { position: relative; z-index: 1; }
+.zagolovok__dvizh { will-change: transform, opacity; }
+
+/* Пока открыта шторка, Хинкалик уходит под затемнение, а не висит поверх неё */
+body.est-shtorka .hinkalik--plavayushchiy { z-index: 30; }
+
+/* Узкий телефон: при сумме в корзине слово «Корзина» уступает место цифрам */
+@media (max-width: 400px) { .niz__korzina.est-summa .niz__slovo { display: none; } .niz__korzina.est-summa { padding: 0 16px 0 12px; } }
+
+/* =========================================================================
+   adres — первый экран «Где вы?» (DIZAYN §3.16, §3.17). Сборщик adres_perenos.
+   ========================================================================= */
+.ekran--adres { display: flex; flex-direction: column; }
+.adres { display: flex; flex-direction: column; flex: 1; justify-content: center; padding-bottom: 24px; }
+.adres--otkryt { justify-content: flex-start; padding-bottom: 0; }
+.adres__nazad { position: absolute; top: calc(16px + env(safe-area-inset-top)); left: var(--polya); z-index: 2; }
+.adres__geroy { display: grid; place-items: center; padding-top: 88px; transition: padding .45s var(--pr-myagkaya); }
+.adres__hinkalik { width: 120px; height: 120px; position: relative; }
+.adres__zagolovok { text-align: center; margin-top: 14px; font-size: 2.5rem; }
+.adres__pod { text-align: center; max-width: 30ch; margin: 8px auto 0; text-wrap: balance; }
+.adres__knopki { display: grid; gap: 12px; margin-top: 28px; }
+.adres__knopki .knopka--60 span { flex: 1; text-align: left; }
+.adres__knopki .knopka--glavnaya > svg { color: var(--granat); }
+.adres__knopki .knopka--steklo > svg { color: var(--paprika); }
+.adres__potom { align-self: center; margin-top: 14px; }
+.adres--otkryt .adres__geroy { padding-top: 64px; }
+.adres--otkryt .adres__hinkalik { margin-bottom: -24px; }
+.adres--otkryt .adres__hinkalik > .hinkalik { transform: scale(.8); transform-origin: 50% 0; }
+.adres--otkryt .adres__pod { display: none; }
+.adres--otkryt .adres__zagolovok { display: none; }
+.adres__blok { margin-top: 20px; }
+.adres__blok-shapka { display: flex; align-items: center; gap: 12px; }
+.adres__blok-zagolovok { display: inline-flex; align-items: center; gap: 10px; font: 800 1.25rem/1.1 var(--sh-zag); white-space: nowrap; letter-spacing: -.02em; min-width: 0; }
+.adres__blok-zagolovok svg { width: 24px; height: 24px; flex: 0 0 auto; color: var(--paprika); }
+.adres__metka { margin-top: 18px; }
+.adres__soderzhimoe .spisok { margin-bottom: 6px; }
+.adres__pole { margin-top: 18px; }
+.adres__soderzhimoe .podskazki__punkt { width: 100%; color: var(--ugol); box-shadow: var(--ten-myagkaya); cursor: pointer; }
+.adres__soderzhimoe .podskazki__punkt small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adres__itog { display: grid; gap: 12px; }
+.adres__itog:empty { display: none; }
+.adres__itog .adres__metka { margin-bottom: -2px; }
+.adres__primechanie { font: var(--t-vtoroy); color: var(--ugol-62); margin: -2px 4px 0; }
+.adres__daleko { margin-top: 16px; }
+.adres__daleko .knopka { width: 100%; }
+.adres__nomer { display: grid; gap: 10px; margin-top: 14px; }
+.adres__nomer .pole__metka { color: var(--ugol); }
+.zavedenie { cursor: pointer; }
+.zavedenie__tochka { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px rgba(62, 156, 92, .18); }
+.zavedenie.zakryto .zavedenie__tochka { box-shadow: 0 0 0 3px rgba(240, 83, 45, .18); }
+.zavedenie.chasy-neizvestny .zavedenie__status { color: var(--ugol-72); }
+.zavedenie.chasy-neizvestny .zavedenie__tochka { background: var(--shafran); box-shadow: 0 0 0 3px rgba(255, 176, 58, .22); }
+.zavedenie__blizhe { grid-column: 1; justify-self: start; margin-bottom: 2px; padding: 5px 9px; border-radius: var(--r-krug); background: var(--gr-knopka); color: var(--ugol); font: 700 0.6875rem/1 var(--sh-tekst); letter-spacing: .06em; text-transform: uppercase; }
+.zavedenie__blizhe + .zavedenie__nazvanie ~ .zavedenie__km { grid-row: 1 / span 4; }
+.zavedenie__chislo { display: inline-block; }
+/* перелёт названия в шапку главной и «призрак» кнопки при раскрытии */
+.adres__klon { position: fixed; z-index: 1400; margin: 0; pointer-events: none; transform-origin: 0 0; white-space: nowrap; color: var(--ugol); }
+.adres__prizrak { position: fixed; z-index: 1400; margin: 0; pointer-events: none; transform-origin: 0 0; }
+
+/* =========================================================================
+   perenos — «Переносим заказ» (DIZAYN §3.18). Сборщик adres_perenos.
+   ========================================================================= */
+.perenos { display: flex; flex-direction: column; min-height: calc(100dvh - 56px - env(safe-area-inset-top)); }
+.perenos__verh { display: flex; align-items: center; min-height: 76px; margin-bottom: 6px; }
+.perenos__hinkalik { position: relative; width: 72px; height: 72px; margin-left: auto; flex: 0 0 auto; }
+/* облачко — слева от персонажа, а не над ним: сверху экрана места нет */
+.ekran--perenos .perenos__hinkalik .hinkalik .hinkalik__oblachko { bottom: auto; top: 50%; left: auto; right: calc(100% + 8px); transform: translateY(-50%); max-width: min(230px, calc(100vw - 172px)); }
+.ekran--perenos .perenos__hinkalik .hinkalik .hinkalik__oblachko-telo { transform-origin: 100% 50%; font-size: 0.875rem; }
+.ekran--perenos .perenos__hinkalik .hinkalik .hinkalik__oblachko-telo::after { left: auto; right: -5px; bottom: auto; top: 50%; margin: -7px 0 0; }
+.perenos__put { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.perenos__put b { font-weight: 700; color: var(--ugol); }
+.perenos__gruppy { display: grid; gap: 4px; padding-bottom: 18px; }
+.perenos__karta { padding: 6px 14px; }
+.perenos__ostaetsya .mini-plitka { --razmer: 44px; border-radius: 12px; }
+.perenos__cena .bylo-stalo { margin-top: 6px; flex-wrap: wrap; }
+.perenos__cena .bylo-stalo small { font: 600 0.6875rem/1 var(--sh-tekst); letter-spacing: .04em; text-transform: uppercase; color: var(--ugol-62); }
+.perenos__cena .bylo-stalo.deshevle b { color: var(--estragon); }
+.perenos__propalo .propalo { padding-bottom: 6px; transition: box-shadow .3s ease; }
+.propalo .poziciya.nedostupna .poziciya__nazvanie { color: var(--ugol-72); }
+.propalo .bejdzh { flex: 0 0 auto; }
+.perenos__prichina, .perenos__vmesto { display: block; }
+.perenos__prichina { color: var(--paprika); font-weight: 600; }
+.perenos__vmesto { color: var(--estragon); font-weight: 600; }
+.perenos__pohozhee { font: var(--t-metka); letter-spacing: .08em; text-transform: uppercase; color: var(--ugol-62); margin: 10px 0 -4px; }
+.perenos__propalo .zameny { padding-top: 22px; padding-bottom: 8px; }
+.perenos__propalo .zameny .mini-kartochka { flex: 0 0 132px; }
+.propalo__deystvie { display: block; margin: 0 auto; }
+.propalo--zamena { box-shadow: inset 0 0 0 2px var(--shafran), var(--ten); }
+.propalo--ubrano .poziciya__nazvanie { text-decoration: line-through; text-decoration-color: rgba(240, 83, 45, .6); }
+.propalo--ubrano .mini-plitka { filter: grayscale(.6); }
+.perenos__niz { position: sticky; bottom: 0; margin: auto calc(-1 * var(--polya)) 0; padding: 18px var(--polya) calc(10px + env(safe-area-inset-bottom)); display: grid; gap: 2px; background: linear-gradient(180deg, rgba(255, 239, 214, 0), rgba(255, 239, 214, .86) 34%); z-index: 5; }
+.perenos__dalshe { gap: 12px; }
+.perenos__tekst-knopki { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.perenos__drugoe { justify-self: center; }
+
+/* =========================================================================
+   korzina — шторка корзины (js/ekrany/korzina.js)
+   ========================================================================= */
+
+.shtorka--korzina { max-height: calc(100dvh - 40px - env(safe-area-inset-top)); }
+.shtorka--korzina .shtorka__shapka-korziny { padding-top: 0; padding-right: 64px; }
+.shtorka--korzina .shtorka__shapka-korziny h2 { margin-top: 2px; }
+.korzina__pod { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.korzina__zakryt { top: 16px; background: rgba(255, 255, 255, .18); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); color: #fff; }
+.korzina__telo { padding-top: 16px; }
+.korzina__spisok { padding: 4px 14px; }
+.korzina__poziciya { cursor: pointer; }
+.korzina__poziciya .mini-plitka { --razmer: 60px; }
+.korzina__poziciya .poziciya__meta .bejdzh { margin-right: 4px; vertical-align: 1px; }
+.korzina__prava { display: grid; justify-items: end; gap: 6px; flex: 0 0 auto; }
+.korzina__summa { font: 700 0.9375rem/1 var(--sh-zag); letter-spacing: -.02em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.korzina__prava .stepper { height: 38px; padding: 0 3px; gap: 0; }
+.korzina__prava .stepper button { width: 44px; height: 44px; margin: -5px; }
+.korzina__prava .stepper b { min-width: 22px; display: inline-block; }
+.korzina__minimum { padding: 14px 16px 12px; border-radius: var(--r-kartochka); background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten-myagkaya); }
+.korzina__minimum[hidden] { display: none; }
+.korzina__sam { margin-top: 10px; }
+.korzina__k-etomu[hidden] { display: none; }
+.korzina__k-etomu .ryad { padding-top: 16px; }
+.korzina__itog { padding: 12px 16px 14px; margin-top: 4px; }
+.korzina__stroka { display: flex; justify-content: space-between; font: var(--t-vtoroy); color: var(--ugol-62); }
+.korzina__itog .itog { padding-top: 8px; }
+/* скидка самовывоза (акция «Самовывоз» из базы) — строка над «Итого» в корзине, оформлении и «готово» */
+.korzina__skidka, .oformlenie__skidka { color: var(--ugol); font-weight: 700; }
+.korzina__oformit > svg { flex: 0 0 auto; }
+.korzina__oformit .summa { font-size: 1.0625rem; }
+.korzina__pred { margin-bottom: 12px; }
+.korzina__zakryto { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding: 12px 14px; border-radius: var(--r-knopka); background: var(--pesok); color: #A8331C; font: 600 0.875rem/1.35 var(--sh-tekst); }
+.korzina__zakryto svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.korzina__pusto { padding-top: 64px; }
+.korzina__pusto .pusto__hinkalik { width: auto; }
+.korzina__povtorit { width: 100%; margin-top: 4px; }
+.korzina__proshlyy { font: var(--t-vtoroy); color: var(--ugol-62); text-align: center; margin-top: 8px; }
+.korzina--pusta .shtorka__telo { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+
+/* =========================================================================
+   oformlenie — экран оформления (js/ekrany/oformlenie.js)
+   ========================================================================= */
+
+.ekran--oformlenie { padding-bottom: calc(140px + env(safe-area-inset-bottom)); }
+.oformlenie__shapka { justify-content: flex-start; align-items: center; gap: 14px; margin-bottom: 6px; }
+.oformlenie__zag { min-width: 0; }
+.oformlenie__zag .ekran__zagolovok { font-size: clamp(1.375rem, 7.4vw, 1.875rem); }
+.oformlenie__pod { margin-top: 4px; font: var(--t-vtoroy); color: var(--ugol-72); }
+.oformlenie__blok .metka { margin-top: 24px; }
+.oformlenie__mesto { margin-top: 12px; }
+.oformlenie__mesto.oshibka > * { box-shadow: inset 0 0 0 2px var(--granat), var(--ten); animation: drozh .4s; }
+.oformlenie__vybor { cursor: pointer; }
+.oformlenie__vybor .zavedenie__nazvanie { overflow-wrap: anywhere; }
+.oformlenie__smenit { font: 700 0.875rem/1 var(--sh-tekst); color: var(--granat); letter-spacing: 0; text-decoration: underline; text-underline-offset: 3px; }
+.oformlenie__tochka { width: 8px; height: 8px; border-radius: 50%; background: var(--paprika); flex: 0 0 auto; }
+.oformlenie__tochka.otkryto { background: var(--estragon); box-shadow: 0 0 0 4px rgba(62, 156, 92, .18); }
+.oformlenie__pusto-mesto { width: 100%; }
+.oformlenie__minimum:empty { display: none; }
+.oformlenie__minimum .minimum { padding: 14px 16px 12px; border-radius: var(--r-kartochka); background: var(--belyy-92); box-shadow: var(--ten-vstavka), var(--ten-myagkaya); }
+.oformlenie__min-knopki { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+.oformlenie__zakryto:empty { display: none; }
+.oformlenie__zakryto-pred { margin-bottom: 12px; }
+.oformlenie__kogda .chip-dobavka { height: 44px; display: inline-flex; align-items: center; gap: 6px; }
+.oformlenie__chasy { width: 16px; height: 16px; }
+.oformlenie__sloty { gap: 8px; padding-top: 12px; padding-bottom: 10px; }
+.oformlenie__sloty[hidden] { display: none; }
+.oformlenie__slot { height: 46px; padding: 0 14px; border: 0; border-radius: 14px; font: 700 0.875rem/1 var(--sh-zag); letter-spacing: -.01em; color: var(--ugol); background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); white-space: nowrap; transition: background .25s, box-shadow .25s; }
+.oformlenie__slot.vybran { background: var(--gr-knopka); box-shadow: var(--ten-knopki); }
+.oformlenie__net-slotov { font: var(--t-vtoroy); color: var(--ugol-72); padding: 0 var(--polya); }
+.oformlenie__polya { display: grid; gap: 16px; }
+.oformlenie__polya .pole__podskazka[hidden] { display: none; }
+.oformlenie__oplata { display: flex; align-items: center; gap: 14px; }
+.oformlenie__oplata b { display: block; font: 700 1rem/1.2 var(--sh-zag); letter-spacing: -.01em; }
+.oformlenie__oplata small { display: block; font: var(--t-vtoroy); color: var(--ugol-62); margin-top: 3px; }
+.oformlenie__znak { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 14px; display: grid; place-items: center; background: var(--gr-knopka); box-shadow: var(--ten-knopki); }
+.oformlenie__znak svg { width: 22px; height: 22px; }
+.oformlenie__itog { padding: 6px 16px 14px; }
+.oformlenie__itog .poziciya .mini-plitka { --razmer: 44px; border-radius: 12px; }
+.oformlenie__demo { font: var(--t-vtoroy); color: var(--ugol-62); text-align: center; margin-top: 14px; }
+.oformlenie__niz {
+  position: fixed; left: 50%; bottom: 0; translate: -50% 0; z-index: 22;
+  width: min(100%, var(--shirina));
+  padding: 18px var(--polya) calc(14px + env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(255, 247, 236, .96) 62%, rgba(255, 247, 236, 0));
+}
+.oformlenie__set { font: var(--t-vtoroy); color: #A8331C; text-align: center; margin-bottom: 8px; }
+.oformlenie__set[hidden] { display: none; }
+.oformlenie__zakazat { height: 60px; }
+.oformlenie__zakazat .summa { font-size: 1.0625rem; }
+
+/* =========================================================================
+   poisk — экран поиска (js/ekrany/poisk.js)
+   ========================================================================= */
+
+.poisk-ekran__verh { position: sticky; top: calc(8px + env(safe-area-inset-top)); z-index: 6; display: flex; align-items: center; gap: 10px; }
+.poisk-ekran__verh .ekran__nazad { width: 52px; height: 52px; border-radius: var(--r-knopka); }
+.poisk-ekran__pole { flex: 1; min-width: 0; cursor: text; background: rgba(255, 255, 255, .86); }
+.poisk-ekran__pole input { height: 100%; }
+.poisk-ekran__pole .poisk__ochistit[hidden] { display: none; }
+.poisk-ekran__rezultat { padding-top: 4px; }
+.poisk-ekran__chipy { display: flex; flex-wrap: wrap; gap: 8px; }
+.poisk-ekran__chip { height: 44px; padding: 0 14px 0 8px; border: 0; border-radius: var(--r-krug); display: inline-flex; align-items: center; gap: 8px; font: var(--t-tabletka); color: var(--ugol); background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); }
+.poisk-ekran__chip--zapros { padding-left: 12px; }
+.poisk-ekran__chip--zapros > svg { width: 16px; height: 16px; opacity: .55; }
+.poisk-ekran__znak { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--gr, var(--gr-knopka)); box-shadow: 0 6px 10px -6px var(--ten-cvet, rgba(240, 83, 45, .6)); }
+.poisk-ekran__znak svg { width: 18px; height: 18px; color: rgba(255, 255, 255, .92); }
+.poisk-ekran__skolko { font: var(--t-metka); letter-spacing: .12em; text-transform: uppercase; color: var(--ugol-72); margin: 20px 0 14px; }
+.poisk-ekran__raskladka { margin-top: 16px; }
+.poisk-ekran__raskladka + .poisk-ekran__skolko { margin-top: 10px; }
+.poisk-ekran__setka { padding-top: 6px; }
+.kartochka__nazvanie mark, .poisk-ekran mark { background: linear-gradient(transparent 55%, rgba(255, 176, 58, .55) 55%); color: inherit; border-radius: 2px; padding: 0 1px; }
+.poisk-ekran__pusto { padding-top: 56px; }
+.poisk-ekran__pusto .pusto__hinkalik { width: auto; }
+/* ссылка в строке текста: зона касания 44px за счёт полей, строка не раздвигается */
+.poisk-ekran__dogadka { display: inline-block; min-width: 44px; padding: 11px 6px; margin: -11px -6px; border: 0; background: none; font: inherit; font-weight: 700; color: var(--granat); text-decoration: underline; text-underline-offset: 3px; }
+
+/* =========================================================================
+   gotovo — «Заказ принят» (js/ekrany/gotovo.js)
+   ========================================================================= */
+
+.ekran--gotovo .gotovo__hinkalik { min-height: 200px; padding-top: 44px; }
+.ekran--gotovo > .ekran__zagolovok { margin-top: 6px; }
+.gotovo__kartochka { margin-top: 18px; text-align: center; padding: 18px 16px 16px; }
+.gotovo__podpis { font: var(--t-metka); letter-spacing: .14em; text-transform: uppercase; color: var(--ugol-72); }
+.gotovo__kartochka .gotovo__nomer { margin-top: 6px; background: linear-gradient(100deg, #FFB03A 0%, #F0532D 55%, #B8213F 100%); -webkit-background-clip: text; background-clip: text; }
+.gotovo__shagi { display: grid; gap: 12px; margin-top: 18px; text-align: left; }
+.gotovo__shag { display: flex; gap: 12px; align-items: flex-start; }
+.gotovo__shag b { display: block; font: 700 0.9375rem/1.3 var(--sh-tekst); }
+.gotovo__shag span, .gotovo__shag small { display: block; font: var(--t-vtoroy); color: var(--ugol-62); margin-top: 2px; }
+.gotovo__znak { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(145deg, #E4F2B8 0%, #6FBF73 100%); box-shadow: 0 8px 14px -8px rgba(62, 156, 92, .7); }
+.gotovo__shag:first-child .gotovo__znak { background: var(--gr-knopka); box-shadow: var(--ten-knopki); }
+.gotovo__znak svg { width: 20px; height: 20px; color: var(--ugol); }
+.gotovo__set { font: var(--t-vtoroy); color: #A8331C; margin-top: 12px; }
+.gotovo__spisok { padding: 6px 16px 14px; }
+.gotovo__spisok .poziciya .mini-plitka { --razmer: 44px; border-radius: 12px; }
+.gotovo__knopki { display: grid; gap: 8px; margin-top: 22px; }
+.gotovo__knopki .knopka--tihaya { width: 100%; white-space: normal; }
+.adres__soderzhimoe .podskazki { grid-template-columns: minmax(0, 1fr); }
+.adres__soderzhimoe .podskazki__punkt { min-width: 0; overflow: hidden; }
+/* ряд замен шире колонки — не даём ему распирать экран */
+.perenos, .perenos > *, .perenos__gruppa, .perenos .propalo { min-width: 0; }
+.perenos__gruppy { grid-template-columns: minmax(0, 1fr); }
+/* gotovo — поправки после снимка: номер в одну строку, значки шагов по центру */
+.gotovo__kartochka .gotovo__nomer { font-size: clamp(2rem, 11vw, 2.875rem); white-space: nowrap; }
+.gotovo__nomer small { font-size: .55em; margin-right: .12em; vertical-align: .35em; }
+.gotovo__shag > .gotovo__znak { display: grid; margin-top: 0; }
+.poisk-ekran__skolko { margin-bottom: 26px; }
+/* ленты экранов корзины/поиска/оформления: прилипание прокрутки учитывает поля, первая карточка не прижата к краю */
+.korzina__telo .ryad, .poisk-ekran .ryad, .oformlenie__sloty { scroll-padding-inline: var(--polya); }
+
+/* =========================================================================
+   Покой и дешёвое движение (фиксер «stil», круг 1)
+   ========================================================================= */
+
+/* Кольцо сторис: вращаем слой с конусом через transform (композитор), а не угол через @property —
+   тот перерисовывал кольцо каждый кадр на главном потоке. Правило сильнее вставленного istorii.js. */
+html .istoriya-krug__kolco { animation: none; background: none; isolation: isolate; }
+html .istoriya-krug__kolco::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--istoriya-kolco);
+  animation: kolco-krutitsya 5s linear infinite;
+}
+html .istoriya-krug--prosmotrena .istoriya-krug__kolco { background: #D9CDBB; }
+html .istoriya-krug--prosmotrena .istoriya-krug__kolco::before { display: none; }
+@keyframes kolco-krutitsya { to { transform: rotate(1turn); } }
+/* подпись под кружком при крупном системном шрифте переносится, а не уходит за край */
+html .istoriya-krug__podpis { overflow-wrap: anywhere; }
+
+/* Через 9 с без касаний (класс html.pokoy ставит index.html) декоративные циклы замирают:
+   батарея и нагрев. Любое касание, прокрутка или клавиша — оживают. */
+html.pokoy .tochka::after,
+html.pokoy .banner__personazh,
+html.pokoy .begushchaya__tekst,
+html.pokoy .lenta__tabletka::after,
+html.pokoy .niz__korzina::after,
+html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .tochka::after, html .istoriya-krug__kolco::before { animation: none; }
+}
+
+/* Раздел «Хинкали» и «Пироги»: тон плитки гуляет от светлого теста к тёмному мёду —
+   сетка из одинаковых фото на одном жёлтом не сливается в полосу. */
+.sem-testo .setka > .kartochka:nth-child(4n+2) { --gr: linear-gradient(150deg, #FFE3B8 0%, #F4AE62 52%, #DB7F3C 100%); --ten-cvet: rgba(219, 127, 60, .7); }
+.sem-testo .setka > .kartochka:nth-child(4n+3) { --gr: linear-gradient(150deg, #FFF4D2 0%, #F8D682 50%, #E6B23E 100%); --ten-cvet: rgba(230, 178, 62, .75); }
+.sem-testo .setka > .kartochka:nth-child(4n) { --gr: linear-gradient(150deg, #FFD9A0 0%, #E9A04A 50%, #B8692A 100%); --ten-cvet: rgba(184, 105, 42, .7); }
+
+/* Крупный системный шрифт: нижний отступ шторки растёт вместе с липкой кнопкой (em, а не px) */
+.shtorka__telo { padding-bottom: calc(max(104px, 7em) + env(safe-area-inset-bottom)); }
+.shtorka--malaya .shtorka__telo { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.korzina--pusta .shtorka__telo { padding-bottom: calc(max(96px, 6.4em) + env(safe-area-inset-bottom)); }
+
+/* Подвал главной: не прячется под навигацией и плавающим Хинкаликом, строки не рвутся посреди фразы */
+.podval { padding: 34px calc(var(--polya) + 8px) 24px; text-wrap: balance; }
+.podval p + p { margin-top: 4px; }
+
+/* Широкий экран: слева от колонки — подсказка «витрина для телефона» с кодом для камеры */
+.stol-podskazka { display: none; }
+@media (min-width: 1000px) {
+  .stol-podskazka {
+    display: grid; justify-items: start; gap: 12px;
+    position: fixed; z-index: 1; top: 50%; transform: translateY(-50%);
+    left: max(24px, calc(50% - var(--shirina) / 2 - 300px)); width: 240px;
+    padding: 22px; border-radius: var(--r-kartochka);
+    background: var(--steklo); box-shadow: inset 0 0 0 1px var(--steklo-kayma), var(--ten);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    color: var(--ugol);
+  }
+  .stol-podskazka__kod { width: 148px; height: 148px; padding: 8px; border-radius: 16px; background: var(--krem); box-sizing: content-box; }
+  .stol-podskazka__zag { font: 800 1.1875rem/1.15 var(--sh-zag); letter-spacing: -.02em; }
+  .stol-podskazka__tekst { font: var(--t-vtoroy); color: var(--ugol-72); margin: 0; }
+}
+
+/* подпись источника подсказок адреса (интегратор, круг 1) */
+.adres__istochnik { display: block; margin: 14px 4px 0; font: var(--t-vtoroy); font-size: 0.75rem; color: var(--ugol-72); }

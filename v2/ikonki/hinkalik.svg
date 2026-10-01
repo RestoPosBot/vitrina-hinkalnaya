@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Хинкалик, персонаж витрины Хинкальной. Радостный. Генерируется scripts/sohranit_hinkalik_svg.mjs -->
+<svg class="hinkalik__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="240" height="300" preserveAspectRatio="xMidYMax meet" role="img" aria-label="Хинкалик">
+  <defs>
+    <linearGradient id="hinkalik-testo" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0" stop-color="#FFF9EA"/>
+      <stop offset="0.55" stop-color="#F7E1B6"/>
+      <stop offset="1" stop-color="#E6C287"/>
+    </linearGradient>
+    <linearGradient id="hinkalik-hvost" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#E7C58C"/>
+      <stop offset="0.5" stop-color="#FFF3D8"/>
+      <stop offset="1" stop-color="#DBB475"/>
+    </linearGradient>
+    <linearGradient id="hinkalik-ten" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.5" stop-color="#A56E2E" stop-opacity="0"/>
+      <stop offset="1" stop-color="#A56E2E" stop-opacity="0.26"/>
+    </linearGradient>
+    <radialGradient id="hinkalik-blik" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="hinkalik-razmytie" x="-30%" y="-200%" width="160%" height="500%">
+      <feGaussianBlur stdDeviation="2.4"/>
+    </filter>
+    <clipPath id="hinkalik-rot-klip"><path class="hinkalik__rot-klip" d="M48 121 C52 136, 68 136, 72 121 C68 124, 52 124, 48 121 Z"/></clipPath>
+  </defs>
+  <ellipse class="hinkalik__pol" cx="60" cy="145.5" rx="34" ry="4" fill="#8A5A2B" opacity=".22" filter="url(#hinkalik-razmytie)"/>
+  <g class="hinkalik__figura" style="transform-origin:60px 142px" transform="translate(60 142) rotate(-3) scale(1) translate(-60 -142)">
+    <path d="M47 66 C46 56, 49 46, 51 38 C52 30, 51 22, 61 21 C71 20, 72 30, 71 38 C72 46, 74 56, 73 66 Z" fill="url(#hinkalik-hvost)" stroke="#CDA46C" stroke-width="1.5" stroke-linejoin="round"/>
+    <g fill="none" stroke="#C69C62" stroke-width="1.15" stroke-linecap="round" opacity=".75">
+      <path d="M52 64 C55 54, 52 44, 56 34 C58 29, 56 25, 57 23"/><path d="M58 64 C61 54, 58 44, 61 34 C63 29, 61 25, 62 22"/><path d="M64 64 C67 54, 64 44, 66 34 C68 29, 66 25, 66 23"/><path d="M69 63 C71 55, 69 47, 70 40"/>
+    </g>
+    <path d="M47 65 C40 66, 30 70, 22 82 C12 96, 8 116, 16 130 C24 140, 42 143, 60 143 C78 143, 96 140, 104 130 C112 116, 108 96, 98 82 C90 70, 80 66, 73 65 Z" fill="url(#hinkalik-testo)" stroke="#CDA46C" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M47 65 C40 66, 30 70, 22 82 C12 96, 8 116, 16 130 C24 140, 42 143, 60 143 C78 143, 96 140, 104 130 C112 116, 108 96, 98 82 C90 70, 80 66, 73 65 Z" fill="url(#hinkalik-ten)"/>
+    <ellipse cx="31" cy="93" rx="11" ry="6" fill="url(#hinkalik-blik)" transform="rotate(-32 31 93)"/>
+    <ellipse cx="60" cy="67" rx="15" ry="3.5" fill="#A56E2E" opacity=".14" filter="url(#hinkalik-razmytie)"/>
+    <path d="M46 66 q3.5 -5 7 0 q3.5 -5 7 0 q3.5 -5 7 0 q3.5 -5 7 0" fill="none" stroke="#C69C62" stroke-width="1.4" stroke-linecap="round"/>
+    <g fill="none" stroke="#C69C62" stroke-width="1.3" stroke-linecap="round" opacity=".6">
+      <path d="M49 68 C43 72, 34 78, 27 88"/><path d="M53 68 C50 74, 44 80, 40 87"/><path d="M57 68 C56 74, 53 79, 51 84"/><path d="M61 68 C62 74, 62 79, 63 84"/><path d="M65 68 C69 74, 71 79, 74 85"/><path d="M69 68 C75 74, 80 79, 85 87"/><path d="M72 68 C80 72, 87 78, 93 88"/>
+    </g>
+    <g class="hinkalik__shcheki" fill="#F0532D" opacity="0.42">
+      <circle cx="27" cy="118" r="5.5"/><circle cx="93" cy="118" r="5.5"/>
+    </g>
+    
+      <g class="hinkalik__glaz hinkalik__glaz--l" style="transform-origin:43px 105px" opacity="1" transform="translate(0 16.8) scale(1 0.84)">
+        <ellipse cx="43" cy="105" rx="10.5" ry="11.5" fill="#FFFFFF" stroke="#CFA872" stroke-width="1"/>
+        <g class="hinkalik__zrachok" transform="translate(0 0)">
+          <circle class="hinkalik__zenica" cx="43" cy="105.6" r="5.3" fill="#2B1A10" style="transform-origin:43px 105.6px"/>
+          <circle cx="45.1" cy="102.6" r="2.2" fill="#FFFFFF"/>
+          <circle cx="41.2" cy="107.6" r="1" fill="#FFFFFF" opacity=".85"/>
+        </g>
+      </g>
+    
+      <g class="hinkalik__glaz hinkalik__glaz--r" style="transform-origin:77px 105px" opacity="1" transform="translate(0 16.8) scale(1 0.84)">
+        <ellipse cx="77" cy="105" rx="10.5" ry="11.5" fill="#FFFFFF" stroke="#CFA872" stroke-width="1"/>
+        <g class="hinkalik__zrachok" transform="translate(0 0)">
+          <circle class="hinkalik__zenica" cx="77" cy="105.6" r="5.3" fill="#2B1A10" style="transform-origin:77px 105.6px"/>
+          <circle cx="79.1" cy="102.6" r="2.2" fill="#FFFFFF"/>
+          <circle cx="75.2" cy="107.6" r="1" fill="#FFFFFF" opacity=".85"/>
+        </g>
+      </g>
+    <g class="hinkalik__veki" fill="none" stroke="#6B4A2A" stroke-width="2.4" stroke-linecap="round" opacity="0">
+      <path d="M35 105 C39 111, 47 111, 51 105"/>
+      <path d="M69 105 C73 111, 81 111, 85 105"/>
+    </g>
+    <g fill="none" stroke="#6B4A2A" stroke-width="2.6" stroke-linecap="round">
+      <path class="hinkalik__brov hinkalik__brov--l" d="M34 87 C38 82, 47 82, 52 86"/>
+      <path class="hinkalik__brov hinkalik__brov--r" d="M68 86 C73 82, 82 82, 86 87"/>
+    </g>
+    <path class="hinkalik__rot" d="M48 121 C52 136, 68 136, 72 121 C68 124, 52 124, 48 121 Z" fill="#7B2D3B" fill-opacity="1" stroke="#6B4A2A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse class="hinkalik__yazyk" cx="60" cy="134" rx="6.5" ry="4" fill="#E8607C" opacity="1" clip-path="url(#hinkalik-rot-klip)"/>
+    <g class="hinkalik__zzz" fill="#8A6A44" font-family="Unbounded, system-ui, sans-serif" font-weight="700" opacity="0">
+      <text class="hinkalik__z" x="80" y="44" font-size="11">z</text>
+      <text class="hinkalik__z" x="90" y="30" font-size="8">z</text>
+      <text class="hinkalik__z" x="99" y="19" font-size="6">z</text>
+    </g>
+  </g>
+</svg>

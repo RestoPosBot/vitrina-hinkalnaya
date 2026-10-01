@@ -1,0 +1,52 @@
+{
+  "name": "Хинкальная",
+  "short_name": "Хинкальная",
+  "description": "Меню семи заведений Хинкальной: хинкали, хачапури, шашлык на углях. Самовывоз и доставка.",
+  "id": "/vitrina-hinkalnaya/v2/",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF7EC",
+  "theme_color": "#FFB03A",
+  "lang": "ru",
+  "dir": "ltr",
+  "categories": ["food", "shopping"],
+  "icons": [
+    { "src": "ikonki/znachok-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "ikonki/znachok-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "ikonki/znachok-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "ikonki/znachok-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Корзина",
+      "short_name": "Корзина",
+      "description": "Открыть собранный заказ",
+      "url": "./#/korzina",
+      "icons": [{ "src": "ikonki/znachok-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Найти блюдо",
+      "short_name": "Поиск",
+      "description": "Поиск по меню",
+      "url": "./#/poisk",
+      "icons": [{ "src": "ikonki/znachok-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "ikonki/ekran-glavnaya.webp",
+      "sizes": "780x1688",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Меню заведения: сторис, акция дня, разделы"
+    },
+    {
+      "src": "ikonki/ekran-blyudo.webp",
+      "sizes": "780x1688",
+      "type": "image/webp",
+      "form_factor": "narrow",
+      "label": "Карточка блюда: состав, вес, время, что взять к нему"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+foto_yandex/
+konsepty/
+opisaniya.json
+
+# служебный исходник картинки превью ссылки (kartinki/prevyu.jpg), гостю не нужен
+kartinki/prevyu_istochnik.html
+# фото, на которые не ссылается menyu.json (scripts/najti_lishnie_foto.py --perenesti)
+foto_lishnie/
