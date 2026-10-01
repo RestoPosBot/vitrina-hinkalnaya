@@ -30,7 +30,7 @@
    - фото не в кеше и нет сети: отдаём превью этого блюда из кеша, если оно есть; иначе 204
      без тела. Плитка показывает знак раздела, ошибок загрузки в консоли нет. */
 
-const VERSIYA = 'k-41b7de9cee';
+const VERSIYA = 'k-1034934db5';
 const VERSIYA_FOTO = 'f-728d054919';
 const KESH = `hinkalnaya-v2-${VERSIYA}`;
 const KESH_FOTO = `hinkalnaya-foto-v2-${VERSIYA_FOTO}`;
@@ -67,6 +67,7 @@ const OBOLOCHKA = [
   './js/ekrany/perenos.js',
   './js/ekrany/poisk.js',
   './js/ekrany/gotovo.js',
+  './js/ekrany/vhod.js',
   // shrifty/**
   './shrifty/shrifty.css',
   './shrifty/unbounded-cyrillic.woff2',

@@ -215,6 +215,10 @@ export function pokazat(kontejner_, yadro_, parametry) {
       <div class="ryad oformlenie__sloty" hidden></div>
     </section>
 
+    <section class="oformlenie__blok" data-blok="vhod">
+      <div class="oformlenie__vhod"></div>
+    </section>
+
     <section class="oformlenie__blok" data-blok="kontakty">
       <div class="metka">Контакты</div>
       <div class="oformlenie__polya">
@@ -676,8 +680,42 @@ function obnovitVse() {
   narisovatMesto();
   narisovatMinimum();
   narisovatVremya();
+  narisovatVhod();
   narisovatItog();
   obnovitPodzagolovok();
+}
+
+/**
+ * Полоска входа над контактами: не вошёл — зовём войти (личная скидка живёт у телефона
+ * гостя в системе); вошёл — показываем, что скидка учтена, или что её пока нет.
+ */
+function narisovatVhod() {
+  const mesto = kontejner?.querySelector('.oformlenie__vhod');
+  if (!mesto) return;
+  const g = yadro.gostRPB();
+  const sk = yadro.skidka();
+  if (!g) {
+    mesto.innerHTML = `
+      <button class="kartochka-belaya oformlenie__vhod-knopka" type="button">
+        <b>Войти по номеру телефона</b>
+        <span>Если в заведении вам дали личную скидку, она появится в заказе</span>
+      </button>`;
+  } else if (sk.procent > 0) {
+    mesto.innerHTML = `
+      <button class="kartochka-belaya oformlenie__vhod-knopka oformlenie__vhod-knopka--est" type="button">
+        <b>Ваша скидка −${sk.procent} %</b>
+        <span>Вошли по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · вычтем из заказа</span>
+      </button>`;
+  } else {
+    mesto.innerHTML = `
+      <button class="kartochka-belaya oformlenie__vhod-knopka" type="button">
+        <b>Вы вошли</b>
+        <span>${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · личной скидки в этом заведении пока нет</span>
+      </button>`;
+  }
+  const knopka = mesto.querySelector('button');
+  nazhatie(knopka, { masshtab: 0.98 });
+  knopka.addEventListener('click', () => yadro.perejti('#/vhod'));
 }
 
 // ---------------------------------------------------------------------------

@@ -51,6 +51,7 @@ const ZAGRUZCHIKI = {
   perenos: () => import('./ekrany/perenos.js'),
   poisk: () => import('./ekrany/poisk.js'),
   gotovo: () => import('./ekrany/gotovo.js'),
+  vhod: () => import('./ekrany/vhod.js'),
 };
 
 /** Таблица маршрутов (YADRO.md §3). punkt — индекс пункта нижней навигации. */
@@ -63,6 +64,7 @@ const MARSHRUTY = {
   perenos:    { vid: 'ekran',   niz: false, hinkalik: false, palitra: null,     punkt: null },
   poisk:      { vid: 'ekran',   niz: true,  hinkalik: true,  palitra: null,     punkt: 1 },
   gotovo:     { vid: 'ekran',   niz: false, hinkalik: false, palitra: 'gotovo', punkt: null },
+  vhod:       { vid: 'shtorka', niz: true,  hinkalik: true,  palitra: null,     punkt: null },
 };
 
 // ---------------------------------------------------------------------------
@@ -944,7 +946,7 @@ async function pokazatEkran(imya, modul, parametry, bezAnimacii = false) {
 }
 
 const NAZVANIYA_EKRANOV = {
-  adres: 'Выбор заведения', korzina: 'Корзина', oformlenie: 'Оформление', perenos: 'Переносим заказ', poisk: 'Поиск', gotovo: 'Заказ принят', blyudo: 'Блюдо',
+  adres: 'Выбор заведения', korzina: 'Корзина', oformlenie: 'Оформление', perenos: 'Переносим заказ', poisk: 'Поиск', gotovo: 'Заказ принят', blyudo: 'Блюдо', vhod: 'Вход',
 };
 
 const TEKST_OSHIBKI = 'Не загрузилось — похоже, пропала сеть. Меню работает, а это откроется, как только она появится.';

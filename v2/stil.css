@@ -1428,3 +1428,22 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 
 /* подпись источника подсказок адреса (интегратор, круг 1) */
 .adres__istochnik { display: block; margin: 14px 4px 0; font: var(--t-vtoroy); font-size: 0.75rem; color: var(--ugol-72); }
+
+/* ---------------------------------------------------------------------------
+   Вход гостя по номеру (#/vhod) и полоска входа в оформлении
+   --------------------------------------------------------------------------- */
+.shtorka--vhod { max-height: calc(100dvh - 40px - env(safe-area-inset-top)); overflow: hidden; }
+.shtorka--vhod .shtorka__shapka-korziny { padding-top: 0; padding-right: 64px; }
+.vhod__telo { padding: 4px 16px 24px; }
+.vhod__karta { display: grid; gap: 12px; }
+.vhod__podskazka { margin: 0; font: var(--t-vtoroy); color: var(--ugol-72); }
+.vhod__oshibka { margin: 0; font: var(--t-vtoroy); font-weight: 700; color: var(--krasnyy, #C0392B); }
+.vhod__skidka { display: grid; gap: 4px; }
+.vhod__skidka b { font: var(--t-zagolovok-malyy, var(--t-glavnyy)); }
+.vhod__skidka span { font: var(--t-vtoroy); color: var(--ugol-72); }
+.vhod__skidka--net b { color: var(--ugol-72); }
+
+.oformlenie__vhod-knopka { display: grid; gap: 4px; width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; }
+.oformlenie__vhod-knopka b { font-weight: 800; }
+.oformlenie__vhod-knopka span { font: var(--t-vtoroy); color: var(--ugol-72); }
+.oformlenie__vhod-knopka--est b { color: var(--zelenyy, #2F8F4E); }
