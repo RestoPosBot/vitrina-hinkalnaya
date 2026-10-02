@@ -6,7 +6,7 @@ import {
   zagruzitMenyu, podgotovitMenyu, cenaV, prichinaNedostupnosti, semeystvoRazdela, naytiZavedenie, perenestiKorzinu,
   kEtomuBerut, naytiBlyudo,
 } from './dannye.js';
-import { sobratMenyu, lichnayaSkidka, gost as gostRPB, vyyti as vyytiRPB } from './rpb.js';
+import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB } from './rpb.js';
 import { korzina } from './korzina.js';
 import {
   FonGradient, pokazatTost, pokazatChislo, poletVKorzinu, vibro, nazhatie, pruzhina, shtorka, dvizhenieSnyato,
@@ -25,6 +25,8 @@ const MIN_DOSTAVKI = 1000;
  *  Её же вычитает сервер при создании заказа (order.service.ts:209-224), поэтому витрина
  *  показывает ровно то, что посчитает система. Не вошёл — 0, своих скидок витрина не придумывает. */
 let skidkaGostya = { procent: 0, est: false };
+/** Действующая акция заведения для выбранного способа (её же применит сервер при заказе). */
+let akciyaSeychas = null;
 const PAUZA_REPLIK = 20000;
 
 /** Палитры живого фона (DIZAYN §2.3). Единственное место — экраны берут через yadro.PALITRY_FONA. */
@@ -149,6 +151,15 @@ const summaKnopki = document.getElementById('korzina-summa');
 const minimumKnopki = document.getElementById('korzina-minimum');
 const punkty = [...niz.querySelectorAll('.niz__punkt')];
 
+/** Личная скидка гостя; ошибка сети не должна мешать акциям. */
+async function lichnaya_(zavedenieId) {
+  try {
+    return await lichnayaSkidka(zavedenieId);
+  } catch {
+    return { procent: 0, est: false };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Объект ядра (YADRO.md §2)
 // ---------------------------------------------------------------------------
@@ -182,6 +193,8 @@ const yadro = {
     if ('smotritMenyu' in chast) gost.smotritMenyu = Boolean(chast.smotritMenyu);
     sohranitGostya();
     obnovitKnopkuKorziny(false);
+    // акции у самовывоза и доставки разные — перечитываем, не задерживая отрисовку
+    if ('sposob' in chast) yadro.obnovitSkidku().catch(() => {});
   },
 
   vybratZavedenie(id, opcii = {}) {
@@ -246,10 +259,29 @@ const yadro = {
    * @returns {{procent:number, rub:number, itogo:number, podpis:string}}
    */
   skidka(summa = korzina.summa()) {
-    const procent = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
-    // сервер считает так же: Math.floor(сумма * процент / 100)
-    const rub = Math.floor((summa * procent) / 100);
-    return { procent, rub, itogo: summa - rub, podpis: procent ? `Ваша скидка −${procent} %` : '' };
+    // сервер считает так же: Math.floor(сумма * процент / 100) и выбирает,
+    // что выгоднее гостю — личную скидку или акцию. Две сразу не складываются.
+    const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
+    const rubGostya = Math.floor((summa * procentGostya) / 100);
+    const rubAkcii = summaAkcii(akciyaSeychas, summa);
+
+    if (rubAkcii > rubGostya) {
+      const procent = akciyaSeychas.tip === 'PERCENTAGE' ? Number(akciyaSeychas.razmer) : 0;
+      return {
+        procent,
+        rub: rubAkcii,
+        itogo: summa - rubAkcii,
+        podpis: akciyaSeychas.nazvanie || (procent ? `Скидка −${procent} %` : 'Скидка'),
+        akciya: true,
+      };
+    }
+    return {
+      procent: procentGostya,
+      rub: rubGostya,
+      itogo: summa - rubGostya,
+      podpis: procentGostya ? `Ваша скидка −${procentGostya} %` : '',
+      akciya: false,
+    };
   },
 
   /** Вошедший гость Resto Postbot или null (телефон подтверждён кодом из СМС). */
@@ -259,7 +291,7 @@ const yadro = {
   vyytiGostyu() {
     vyytiRPB();
     skidkaGostya = { procent: 0, est: false };
-    soobshchit('skidka', { ...skidkaGostya });
+    soobshchit('skidka', { ...skidkaGostya, akciya: akciyaSeychas });
     obnovitKnopkuKorziny(false);
   },
 
@@ -268,14 +300,20 @@ const yadro = {
    * @returns {Promise<{procent:number, est:boolean}>}
    */
   async obnovitSkidku() {
-    const bylo = skidkaGostya.procent;
-    try {
-      skidkaGostya = await lichnayaSkidka(gost.zavedenieId);
-    } catch {
-      skidkaGostya = { procent: 0, est: false };
-    }
-    if (skidkaGostya.procent !== bylo) {
-      soobshchit('skidka', { ...skidkaGostya });
+    const byloGostya = skidkaGostya.procent;
+    const bylaAkciya = akciyaSeychas?.id || null;
+    const [lichnaya, spisokAkciy] = await Promise.all([
+      lichnaya_(gost.zavedenieId),
+      akcii(gost.sposob === 'dostavka' ? 'dostavka' : 'samovyvoz'),
+    ]);
+    skidkaGostya = lichnaya;
+    // из нескольких акций берём ту, что даст больше на нынешнюю корзину
+    const summa = korzina.summa() || 1000;
+    akciyaSeychas = spisokAkciy
+      .slice()
+      .sort((a, b) => summaAkcii(b, summa) - summaAkcii(a, summa))[0] || null;
+    if (skidkaGostya.procent !== byloGostya || (akciyaSeychas?.id || null) !== bylaAkciya) {
+      soobshchit('skidka', { ...skidkaGostya, akciya: akciyaSeychas });
       obnovitKnopkuKorziny(false);
     }
     return { ...skidkaGostya };

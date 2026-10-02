@@ -279,6 +279,48 @@ export async function lichnayaSkidka(zavedenieId) {
 }
 
 // ---------------------------------------------------------------------------
+// Акции заведения
+// ---------------------------------------------------------------------------
+
+/**
+ * Действующие акции сети для такого способа получения. Отдаёт то же, что сервер
+ * сам применит к заказу (GET /discounts/vitrina/:setId), поэтому витрина обещает
+ * ровно ту сумму, которую посчитает система.
+ * @param {'samovyvoz'|'dostavka'} sposob
+ * @returns {Promise<{id:string, nazvanie:string, tip:'PERCENTAGE'|'FIXED', razmer:number, minSumma:number|null}[]>}
+ */
+let akciiNeOtvechayut = false;
+
+export async function akcii(sposob) {
+  if (akciiNeOtvechayut) return [];
+  const tip = sposob === 'dostavka' ? 'DELIVERY' : 'TAKEAWAY';
+  try {
+    const spisok = await zapros(`${BAZA}/discounts/vitrina/${SET_ID}?orderType=${tip}`);
+    return Array.isArray(spisok) ? spisok : [];
+  } catch (oshibka) {
+    // 404 — на сервере ещё нет этого адреса (старая сборка бэкенда): молчим и живём без акций,
+    // чтобы не сыпать ошибками в консоль на каждый пересчёт корзины.
+    if (oshibka.kod === 404) akciiNeOtvechayut = true;
+    else console.warn('Акции не пришли', oshibka);
+    return [];
+  }
+}
+
+/**
+ * Сколько рублей даст акция на такую сумму. Повторяет расчёт сервера:
+ * проценты округляются вниз, скидка не больше суммы заказа.
+ * @returns {number}
+ */
+export function summaAkcii(akciya, summa) {
+  if (!akciya || !(summa > 0)) return 0;
+  if (akciya.minSumma && summa < akciya.minSumma) return 0;
+  const rub = akciya.tip === 'PERCENTAGE'
+    ? Math.floor((summa * Number(akciya.razmer || 0)) / 100)
+    : Math.floor(Number(akciya.razmer || 0));
+  return Math.max(0, Math.min(rub, summa));
+}
+
+// ---------------------------------------------------------------------------
 // Заказ
 // ---------------------------------------------------------------------------
 

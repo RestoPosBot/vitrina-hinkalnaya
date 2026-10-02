@@ -656,7 +656,7 @@ function narisovatItog() {
   const stroka = kontejner.querySelector('.oformlenie__skidka');
   stroka.hidden = !sk.rub;
   if (sk.rub) {
-    stroka.querySelector('.oformlenie__skidka-podpis').textContent = `Ваша скидка −${sk.procent}${TONKIY}%`;
+    stroka.querySelector('.oformlenie__skidka-podpis').textContent = sk.podpis || `Скидка −${sk.procent}${TONKIY}%`;
     stroka.querySelector('.oformlenie__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
   kontejner.querySelector('.itog__summa').textContent = rub(sk.itogo);
@@ -858,6 +858,7 @@ async function zakazat_() {
     otlozhen: false,
     skidka: {
       procent: yadro.skidka(summaBlyud).procent,
+      podpis: yadro.skidka(summaBlyud).podpis,
       rub: skidkaRub,
       itogo: otvet.summa > 0 ? otvet.summa : summaBlyud - skidkaRub,
     },

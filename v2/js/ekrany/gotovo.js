@@ -66,7 +66,7 @@ export function pokazat(kontejner, yadro_, parametry) {
     <div class="metka">Что в заказе</div>
     <div class="kartochka-belaya gotovo__spisok">
       <div class="gotovo__pozicii"></div>
-      ${skidka?.rub ? `<div class="korzina__stroka korzina__skidka" style="padding-top:10px"><span>Ваша скидка −${skidka.procent}${TONKIY}%</span><span>−${rub(skidka.rub)}</span></div>` : ''}
+      ${skidka?.rub ? `<div class="korzina__stroka korzina__skidka" style="padding-top:10px"><span>${tekst(skidka.podpis || `Скидка −${skidka.procent} %`)}</span><span>−${rub(skidka.rub)}</span></div>` : ''}
       <div class="itog"><span>Итого</span><b class="itog__summa">${rub(skidka?.rub ? skidka.itogo : zakaz.summa)}</b></div>
     </div>
     <div class="gotovo__knopki">

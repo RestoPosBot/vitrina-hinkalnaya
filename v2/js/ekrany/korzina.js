@@ -331,7 +331,7 @@ function obnovitSvodku(pervyyRaz = false) {
   const strokaSkidki = el.querySelector('.korzina__skidka');
   strokaSkidki.hidden = !sk.rub;
   if (sk.rub) {
-    strokaSkidki.querySelector('.korzina__skidka-podpis').textContent = `Ваша скидка −${sk.procent}${TONKIY}%`;
+    strokaSkidki.querySelector('.korzina__skidka-podpis').textContent = sk.podpis || `Скидка −${sk.procent}${TONKIY}%`;
     strokaSkidki.querySelector('.korzina__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
 
