@@ -58,7 +58,7 @@ export function pokazat(kontejner, yadro_, parametry) {
       <div class="gotovo__nomer"><small>№</small>${tekst(nomer)}</div>
       <div class="preduprezhdenie gotovo__demo" style="margin-top:14px;text-align:left">${plashka}</div>
       <div class="gotovo__shagi">
-        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-chasy"/></svg></span><div><b>${chtoDalshe}</b><span>${zakaz.imya ? `${tekst(zakaz.imya)}, ` : ''}${zakaz.telefon ? `позвонили бы на ${tekst(zakaz.telefon)}, если что-то закончится` : 'позвонили бы, если что-то закончится'}</span></div></div>
+        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-chasy"/></svg></span><div><b>${chtoDalshe}</b><span>${zakaz.imya ? `${tekst(zakaz.imya)}, ` : ''}${zakaz.telefon ? `позвоним на ${tekst(zakaz.telefon)}, если что-то закончится` : 'позвоним, если что-то закончится'}</span></div></div>
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-${dostavka ? 'dostavka' : 'bulavka'}"/></svg></span><div>${gde}</div></div>
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span><div><b>Оплата при получении</b><span>Картой или наличными</span></div></div>
       </div>
