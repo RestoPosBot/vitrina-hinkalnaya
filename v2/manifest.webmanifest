@@ -2,7 +2,6 @@
   "name": "Хинкальная",
   "short_name": "Хинкальная",
   "description": "Меню семи заведений Хинкальной: хинкали, хачапури, шашлык на углях. Самовывоз и доставка.",
-  "id": "/vitrina-hinkalnaya/v2/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
