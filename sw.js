@@ -2,7 +2,10 @@
    Нужно и само по себе, и для упаковки в приложение: проверяющий в Apple
    включает авиарежим, и белый экран означает отказ. */
 
-const KESH = 'hinkalnaya-v1';
+const KESH = 'hinkalnaya-v1-pereezd';
+// 19.10.2026: the storefront moved to client.restoposbot.ru on 02.10; this address only redirects there
+const NOVYY_ADRES = 'https://client.restoposbot.ru/';
+
 const OBOLOCHKA = [
   './',
   './index.html',
@@ -39,7 +42,8 @@ self.addEventListener('fetch', (s) => {
           caches.open(KESH).then((k) => k.put(zapros, kopiya));
           return otvet;
         })
-        .catch(() => caches.match(zapros).then((v) => v || caches.match('./index.html')))
+        // nothing in the cache — not null (Safari shows «Returned response is null»), but a redirect to the new address
+        .catch(() => caches.match(zapros).then((v) => v || caches.match('./index.html')).then((v) => v || Response.redirect(NOVYY_ADRES, 302)))
     );
     return;
   }
