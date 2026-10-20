@@ -1430,7 +1430,7 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 .adres__istochnik { display: block; margin: 14px 4px 0; font: var(--t-vtoroy); font-size: 0.75rem; color: var(--ugol-72); }
 
 /* ---------------------------------------------------------------------------
-   Вход гостя по номеру (#/vhod) и полоска входа в оформлении
+   «Скидка» (#/skidka): вход гостя по номеру, код для кассира; полоска входа в оформлении
    --------------------------------------------------------------------------- */
 .shtorka--vhod { max-height: calc(100dvh - 40px - env(safe-area-inset-top)); overflow: hidden; }
 .shtorka--vhod .shtorka__shapka-korziny { padding-top: 0; padding-right: 64px; }

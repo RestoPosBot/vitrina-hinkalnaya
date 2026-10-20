@@ -114,13 +114,15 @@ function narisovat() {
     pod.textContent = maska(telefon);
     telo.innerHTML = `
       <div class="kartochka-belaya vhod__karta">
-        ${skidka.procent > 0
-          ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>${zav ? `в заведении «${tekst(zav.nazvanie)}»` : 'в выбранном заведении'}. Вычитается из заказа сама.</span></div>`
-          : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>${zav ? `в заведении «${tekst(zav.nazvanie)}»` : 'в выбранном заведении'}. Она появится, когда её назначат в заведении.</span></div>`}
-        <div class="vhod__kod" aria-live="polite">
+        ${!zav
+          ? `<div class="vhod__skidka vhod__skidka--net"><b>Выберите заведение</b><span>Скидка у каждого заведения своя — покажем её после выбора.</span></div>`
+          : skidka.procent > 0
+            ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>в заведении «${tekst(zav.nazvanie)}». Вычитается из заказа сама.</span></div>`
+            : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>в заведении «${tekst(zav.nazvanie)}». Она появится, когда её назначат в заведении.</span></div>`}
+        <div class="vhod__kod">
           <span class="vhod__kod-metka">Код для кассира</span>
-          <b class="vhod__kod-cifry vhod__kod-cifry--zhdem">Получаем…</b>
-          <span class="vhod__kod-srok">Назовите код у кассы — скидка применится к чеку</span>
+          <b class="vhod__kod-cifry vhod__kod-cifry--zhdem" aria-live="polite">Получаем…</b>
+          <span class="vhod__kod-srok" role="timer" aria-live="off">Назовите код у кассы — скидка применится к чеку</span>
         </div>
         <button class="knopka knopka--glavnaya vhod__novyy-kod" type="button">Новый код</button>
         <p class="vhod__oshibka" hidden></p>
@@ -133,6 +135,7 @@ function narisovat() {
     nazhatie(vyyti, { masshtab: 0.96 });
     vyyti.addEventListener('click', () => {
       yadro.vyytiGostyu();
+      if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
       kod = null;
       shag = 'telefon';
       telefon = '';
@@ -240,6 +243,7 @@ function pokazatKod() {
   if (!cifry || !srok || !kod) return;
   const sek = ostalosKoda();
   cifry.textContent = kod.kod;
+  cifry.setAttribute('aria-label', `Код для кассира: ${kod.kod.split('').join(' ')}`); // иначе читалка скажет «четыре тысячи…»
   cifry.classList.remove('vhod__kod-cifry--zhdem');
   if (sek > 0) {
     srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · назовите его у кассы`;
@@ -267,15 +271,18 @@ async function poluchitKod() {
     if (oshibka?.kod === 401) {
       // токен и refresh не годятся — rpb.js уже разлогинил
       yadro.vyytiGostyu();
+      if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
       kod = null;
       shag = 'telefon';
       narisovat();
       yadro.tost('Войдите заново — срок входа вышел');
       return;
     }
+    // живой старый код не стираем — он ещё действует; стираем только «Получаем…»
     const cifry = el?.querySelector('.vhod__kod-cifry');
-    if (cifry) { cifry.textContent = '— — — —'; cifry.classList.add('vhod__kod-cifry--zhdem'); }
-    pokazatOshibku(oshibka?.kod >= 500 ? 'Сервер не отвечает — попробуйте позже' : (oshibka?.message || 'Не получилось получить код'));
+    if (cifry && !(kod && ostalosKoda() > 0)) { cifry.textContent = '— — — —'; cifry.classList.add('vhod__kod-cifry--zhdem'); }
+    pokazatOshibku(oshibka?.kod == null ? 'Нет сети — попробуйте ещё раз'
+      : oshibka?.kod >= 500 ? 'Сервер не отвечает — попробуйте позже' : (oshibka?.message || 'Не получилось получить код'));
   } finally {
     kodZanyat = false;
     if (knopka) knopka.disabled = false;

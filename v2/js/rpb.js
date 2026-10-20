@@ -294,7 +294,11 @@ export async function sTokenom(fn) {
     let novye;
     try {
       novye = await zapros(`${BAZA}/customers/refresh-token`, { method: 'POST', telo: { refreshToken: g.obnovit } });
-    } catch (o2) { vyyti(); throw o2; }
+    } catch (o2) {
+      // разлогиниваем только если refresh отвергнут; обрыв сети или 500 вход не стирают
+      if (o2?.kod === 401 || o2?.kod === 403) vyyti();
+      throw o2;
+    }
     const token = novye?.accessToken;
     if (!token) { vyyti(); throw oshibka; }
     zapisat({ ...g, token, obnovit: novye?.refreshToken || g.obnovit });
@@ -312,7 +316,8 @@ export async function korotkiyKod() {
   if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
   const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/short-code`, { method: 'POST', token }));
   if (!otvet?.shortCode) throw new Error('Сервер не выдал код');
-  return { kod: String(otvet.shortCode), do: new Date(otvet.shortCodeExpires || Date.now() + 2 * 60 * 1000) };
+  // срок считаем от момента получения по часам устройства: часы телефона могут расходиться с сервером
+  return { kod: String(otvet.shortCode), do: new Date(Date.now() + 2 * 60 * 1000) };
 }
 
 // ---------------------------------------------------------------------------
