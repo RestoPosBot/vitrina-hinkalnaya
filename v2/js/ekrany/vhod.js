@@ -1,6 +1,7 @@
-// Витрина Хинкальной v2 — вход гостя по номеру телефона (маршрут #/vhod).
-// Шторка снизу: номер → код из СМС → вошли. После входа показывает телефон,
-// личную скидку в выбранном заведении и кнопку «Выйти».
+// Витрина Хинкальной v2 — «Скидка» (маршрут #/skidka, пункт нижнего меню): вход гостя
+// по номеру телефона. Шторка снизу: номер → код из СМС → вошли. После входа показывает
+// личную скидку в выбранном заведении, код для кассира (4 цифры на 2 минуты, владелец 20.10:
+// гость называет код у кассы, и его скидка применяется) и кнопку «Выйти».
 // Зачем вход: личная скидка живёт в Resto Postbot у телефона гостя; без входа
 // витрина её не знает и не показывает, а сервер не вычтет её из заказа.
 // Эндпоинты: POST /customers/request-code, POST /customers/verify-code (js/rpb.js).
@@ -8,7 +9,7 @@
 
 import { shtorka, nazhatie, vibro, dvizhenieSnyato, poyavlenieKaskadom } from '../dvizhenie.js';
 import { tekst } from '../kartochka.js';
-import { zaprositKod, podtverditKod, cifryTelefona } from '../rpb.js';
+import { zaprositKod, podtverditKod, cifryTelefona, korotkiyKod } from '../rpb.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -26,6 +27,9 @@ let telefon = '';
 let zanyato = false;
 let tajmer = null;
 let ostalos = 0;
+let kod = null;          // {kod, do} — код для кассира
+let tajmerKoda = null;
+let kodZanyat = false;
 
 /** +7 (916) 123-45-67 из цифр. */
 function maska(cifry) {
@@ -54,7 +58,7 @@ export function pokazat(kontejner, yadro_, parametry = {}) {
   el = document.createElement('div');
   el.className = 'shtorka shtorka--vhod';
   el.setAttribute('role', 'dialog');
-  el.setAttribute('aria-label', 'Вход по номеру телефона');
+  el.setAttribute('aria-label', 'Скидка и код для кассира');
   el.innerHTML = `
     <div class="shtorka__shapka-korziny">
       <div class="shtorka__ruchka" data-ruchka></div>
@@ -83,6 +87,8 @@ export function ubrat() {
   otpiski.forEach((f) => { try { f(); } catch { /* уже снято */ } });
   otpiski = [];
   if (tajmer) { clearInterval(tajmer); tajmer = null; }
+  if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
+  kod = null;
   const u = upr;
   upr = null;
   el = null;
@@ -104,26 +110,38 @@ function narisovat() {
   if (shag === 'voshel') {
     const skidka = yadro.skidka(0);
     const zav = yadro.zavedenie();
-    zagolovok.textContent = 'Вы вошли';
+    zagolovok.textContent = 'Ваша скидка';
     pod.textContent = maska(telefon);
     telo.innerHTML = `
       <div class="kartochka-belaya vhod__karta">
         ${skidka.procent > 0
-          ? `<div class="vhod__skidka"><b>Ваша скидка −${skidka.procent} %</b><span>${zav ? `в заведении «${tekst(zav.nazvanie)}»` : 'в выбранном заведении'}. Вычитается из заказа сама.</span></div>`
+          ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>${zav ? `в заведении «${tekst(zav.nazvanie)}»` : 'в выбранном заведении'}. Вычитается из заказа сама.</span></div>`
           : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>${zav ? `в заведении «${tekst(zav.nazvanie)}»` : 'в выбранном заведении'}. Она появится, когда её назначат в заведении.</span></div>`}
+        <div class="vhod__kod" aria-live="polite">
+          <span class="vhod__kod-metka">Код для кассира</span>
+          <b class="vhod__kod-cifry vhod__kod-cifry--zhdem">Получаем…</b>
+          <span class="vhod__kod-srok">Назовите код у кассы — скидка применится к чеку</span>
+        </div>
+        <button class="knopka knopka--glavnaya vhod__novyy-kod" type="button">Новый код</button>
+        <p class="vhod__oshibka" hidden></p>
         <button class="knopka knopka--tihaya vhod__vyyti" type="button">Выйти</button>
       </div>`;
+    const novyy = telo.querySelector('.vhod__novyy-kod');
+    nazhatie(novyy, { masshtab: 0.96 });
+    novyy.addEventListener('click', () => poluchitKod());
     const vyyti = telo.querySelector('.vhod__vyyti');
     nazhatie(vyyti, { masshtab: 0.96 });
     vyyti.addEventListener('click', () => {
       yadro.vyytiGostyu();
+      kod = null;
       shag = 'telefon';
       telefon = '';
       narisovat();
     });
+    if (kod && kod.do > new Date()) pokazatKod(); else poluchitKod();
   } else if (shag === 'telefon') {
-    zagolovok.textContent = 'Вход';
-    pod.textContent = 'Чтобы увидеть свою скидку';
+    zagolovok.textContent = 'Скидка';
+    pod.textContent = 'Войдите — скидка и код для кассира';
     telo.innerHTML = `
       <div class="kartochka-belaya vhod__karta">
         <label class="pole vhod__pole" data-pole="vhod">
@@ -204,6 +222,64 @@ function zapustitOtschet() {
     obnovitOtschet();
   }, 1000);
   obnovitOtschet();
+}
+
+// ---------------------------------------------------------------------------
+// Код для кассира
+// ---------------------------------------------------------------------------
+
+/** Секунд до конца кода; 0 — истёк. */
+function ostalosKoda() {
+  return kod ? Math.max(0, Math.ceil((kod.do.getTime() - Date.now()) / 1000)) : 0;
+}
+
+/** Рисует цифры и таймер по текущему `kod`; по истечении — «истёк», кнопка остаётся. */
+function pokazatKod() {
+  const cifry = el?.querySelector('.vhod__kod-cifry');
+  const srok = el?.querySelector('.vhod__kod-srok');
+  if (!cifry || !srok || !kod) return;
+  const sek = ostalosKoda();
+  cifry.textContent = kod.kod;
+  cifry.classList.remove('vhod__kod-cifry--zhdem');
+  if (sek > 0) {
+    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · назовите его у кассы`;
+    srok.classList.remove('vhod__kod-srok--istek');
+    if (!tajmerKoda) tajmerKoda = setInterval(pokazatKod, 1000);
+  } else {
+    srok.textContent = 'Код истёк — нажмите «Новый код»';
+    srok.classList.add('vhod__kod-srok--istek');
+    if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
+  }
+}
+
+async function poluchitKod() {
+  if (kodZanyat) return;
+  kodZanyat = true;
+  const knopka = el?.querySelector('.vhod__novyy-kod');
+  if (knopka) knopka.disabled = true;
+  pokazatOshibku('');
+  try {
+    kod = await korotkiyKod();
+    pokazatKod();
+    vibro(10);
+  } catch (oshibka) {
+    console.warn('Код для кассира не получен', oshibka);
+    if (oshibka?.kod === 401) {
+      // токен и refresh не годятся — rpb.js уже разлогинил
+      yadro.vyytiGostyu();
+      kod = null;
+      shag = 'telefon';
+      narisovat();
+      yadro.tost('Войдите заново — срок входа вышел');
+      return;
+    }
+    const cifry = el?.querySelector('.vhod__kod-cifry');
+    if (cifry) { cifry.textContent = '— — — —'; cifry.classList.add('vhod__kod-cifry--zhdem'); }
+    pokazatOshibku(oshibka?.kod >= 500 ? 'Сервер не отвечает — попробуйте позже' : (oshibka?.message || 'Не получилось получить код'));
+  } finally {
+    kodZanyat = false;
+    if (knopka) knopka.disabled = false;
+  }
 }
 
 // ---------------------------------------------------------------------------

@@ -9,6 +9,8 @@
 //   POST /customers/request-code                @Public  — {phone, networkId} -> СМС с кодом
 //   POST /customers/verify-code                 @Public  — {phone, code, networkId} -> токены + id гостя
 //   GET  /customers/:id/discounts/:restaurantId          — личная скидка (нужен токен)
+//   POST /customers/:id/short-code              @DlyaGostya — код для кассира на 2 минуты
+//   POST /customers/refresh-token               @Public  — {refreshToken} -> новые токены
 //   POST /orders                                @Public  — настоящий заказ, оплата CASH/PENDING,
 //                                                          личная скидка вычитается на сервере
 // Заказ идёт через POST /orders, а НЕ /orders/client: клиентский требует подключённую
@@ -268,14 +270,49 @@ export async function lichnayaSkidka(zavedenieId) {
   const g = prochitat();
   if (!g || !zavedenieId) return { procent: 0, est: false };
   try {
-    const otvet = await zapros(`${BAZA}/customers/${g.id}/discounts/${zavedenieId}`, { token: g.token });
+    const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/discounts/${zavedenieId}`, { token }));
     const procent = Number(otvet?.discount) || 0;
     const aktivna = otvet?.isActive !== false;
     return { procent: aktivna ? procent : 0, est: aktivna && procent > 0 };
-  } catch (oshibka) {
-    if (oshibka.kod === 401) vyyti();
+  } catch {
     return { procent: 0, est: false };
   }
+}
+
+/**
+ * Токен гостя живёт час (JWT_ACCESS_EXPIRATION), refresh — 7 дней. Чтобы не слать СМС каждый час,
+ * на 401 один раз меняем токены через POST /customers/refresh-token; не вышло — гость разлогинен.
+ * @template T @param {(token: string) => Promise<T>} fn @returns {Promise<T>}
+ */
+export async function sTokenom(fn) {
+  const g = prochitat();
+  if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
+  try {
+    return await fn(g.token);
+  } catch (oshibka) {
+    if (oshibka?.kod !== 401 || !g.obnovit) { if (oshibka?.kod === 401) vyyti(); throw oshibka; }
+    let novye;
+    try {
+      novye = await zapros(`${BAZA}/customers/refresh-token`, { method: 'POST', telo: { refreshToken: g.obnovit } });
+    } catch (o2) { vyyti(); throw o2; }
+    const token = novye?.accessToken;
+    if (!token) { vyyti(); throw oshibka; }
+    zapisat({ ...g, token, obnovit: novye?.refreshToken || g.obnovit });
+    return fn(token);
+  }
+}
+
+/**
+ * Код для кассира: 4 цифры, живут 2 минуты (customer.service.ts generateNewShortCode).
+ * Кассир вводит его в поле «Телефон или код из приложения» и видит гостя со скидкой.
+ * @returns {Promise<{kod: string, do: Date}>}
+ */
+export async function korotkiyKod() {
+  const g = prochitat();
+  if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
+  const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/short-code`, { method: 'POST', token }));
+  if (!otvet?.shortCode) throw new Error('Сервер не выдал код');
+  return { kod: String(otvet.shortCode), do: new Date(otvet.shortCodeExpires || Date.now() + 2 * 60 * 1000) };
 }
 
 // ---------------------------------------------------------------------------

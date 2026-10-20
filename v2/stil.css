@@ -750,8 +750,8 @@ img { max-width: 100%; }
   transition: transform .45s var(--pr-myagkaya), opacity .3s;
 }
 .niz.uehal { transform: translate(-50%, calc(100% + 24px)); opacity: 0; pointer-events: none; }
-.niz__punkty { position: relative; flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; min-width: 0; }
-.niz__indikator { position: absolute; top: 0; left: 0; height: 100%; width: calc(100% / 3); border-radius: var(--r-krug); background: linear-gradient(135deg, rgba(255, 176, 58, .35), rgba(240, 83, 45, .28)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7); z-index: 0; will-change: transform; pointer-events: none; }
+.niz__punkty { position: relative; flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); height: 100%; min-width: 0; }
+.niz__indikator { position: absolute; top: 0; left: 0; height: 100%; width: calc(100% / 4); border-radius: var(--r-krug); background: linear-gradient(135deg, rgba(255, 176, 58, .35), rgba(240, 83, 45, .28)); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .7); z-index: 0; will-change: transform; pointer-events: none; }
 .niz__punkt {
   position: relative; z-index: 1;
   display: grid; justify-items: center; align-content: center; gap: 2px;
@@ -1442,6 +1442,13 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 .vhod__skidka b { font: var(--t-zagolovok-malyy, var(--t-glavnyy)); }
 .vhod__skidka span { font: var(--t-vtoroy); color: var(--ugol-72); }
 .vhod__skidka--net b { color: var(--ugol-72); }
+/* код для кассира: крупные цифры, таймер, «Новый код» */
+.vhod__kod { display: grid; gap: 6px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, rgba(255, 176, 58, .22), rgba(240, 83, 45, .16)); }
+.vhod__kod-metka { font: var(--t-metka); color: var(--ugol-72); text-transform: uppercase; letter-spacing: .04em; }
+.vhod__kod-cifry { font: var(--t-razdel); font-size: 3.25rem; letter-spacing: .18em; color: var(--ugol); font-variant-numeric: tabular-nums; }
+.vhod__kod-cifry--zhdem { font-size: 1.125rem; letter-spacing: 0; color: var(--ugol-62); }
+.vhod__kod-srok { font: var(--t-vtoroy); color: var(--ugol-72); font-variant-numeric: tabular-nums; }
+.vhod__kod-srok--istek { color: var(--krasnyy, #C0392B); font-weight: 700; }
 
 .oformlenie__vhod-knopka { display: grid; gap: 4px; width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; }
 .oformlenie__vhod-knopka b { font-weight: 800; }

@@ -715,7 +715,7 @@ function narisovatVhod() {
   }
   const knopka = mesto.querySelector('button');
   nazhatie(knopka, { masshtab: 0.98 });
-  knopka.addEventListener('click', () => yadro.perejti('#/vhod'));
+  knopka.addEventListener('click', () => yadro.perejti('#/skidka'));
 }
 
 // ---------------------------------------------------------------------------
