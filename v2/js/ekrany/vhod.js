@@ -121,8 +121,9 @@ function narisovat() {
             : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>в заведении «${tekst(zav.nazvanie)}». Она появится, когда её назначат в заведении.</span></div>`}
         <div class="vhod__kod">
           <span class="vhod__kod-metka">Код для кассира</span>
+          <div class="vhod__qr" hidden aria-label="QR для кассира — покажите экран кассиру"></div>
           <b class="vhod__kod-cifry vhod__kod-cifry--zhdem" aria-live="polite">Получаем…</b>
-          <span class="vhod__kod-srok" role="timer" aria-live="off">Назовите код у кассы — скидка применится к чеку</span>
+          <span class="vhod__kod-srok" role="timer" aria-live="off">Покажите QR кассиру или назовите код — скидка применится к чеку</span>
         </div>
         <button class="knopka knopka--glavnaya vhod__novyy-kod" type="button">Новый код</button>
         <p class="vhod__oshibka" hidden></p>
@@ -245,14 +246,38 @@ function pokazatKod() {
   cifry.textContent = kod.kod;
   cifry.setAttribute('aria-label', `Код для кассира: ${kod.kod.split('').join(' ')}`); // иначе читалка скажет «четыре тысячи…»
   cifry.classList.remove('vhod__kod-cifry--zhdem');
+  narisovatQr(sek > 0);
   if (sek > 0) {
-    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · назовите его у кассы`;
+    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · покажите QR кассиру или назовите код`;
     srok.classList.remove('vhod__kod-srok--istek');
     if (!tajmerKoda) tajmerKoda = setInterval(pokazatKod, 1000);
   } else {
     srok.textContent = 'Код истёк — нажмите «Новый код»';
     srok.classList.add('vhod__kod-srok--istek');
     if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
+  }
+}
+
+/** QR для кассира: `rpb-gost:<id гостя>:<код>` — касса сканирует камерой, повторов у такого ключа не бывает (21.10.2026). */
+let qrNarisovanDlya = '';
+async function narisovatQr(zhivoy) {
+  const mesto = el?.querySelector('.vhod__qr');
+  const g = yadro.gostRPB();
+  if (!mesto || !kod || !g) return;
+  if (!zhivoy) { mesto.hidden = true; qrNarisovanDlya = ''; return; }
+  const klyuch = `rpb-gost:${g.id}:${kod.kod}`;
+  if (qrNarisovanDlya === klyuch) { mesto.hidden = false; return; }
+  try {
+    const { default: qrcode } = await import('../lib/qrcode.js');
+    const q = qrcode(0, 'M');
+    q.addData(klyuch);
+    q.make();
+    mesto.innerHTML = q.createSvgTag({ scalable: true, margin: 2 });
+    qrNarisovanDlya = klyuch;
+    mesto.hidden = false;
+  } catch (oshibka) {
+    console.warn('QR не нарисован', oshibka);
+    mesto.hidden = true;
   }
 }
 

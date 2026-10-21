@@ -1446,6 +1446,9 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 .vhod__kod { display: grid; gap: 6px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, rgba(255, 176, 58, .22), rgba(240, 83, 45, .16)); }
 .vhod__kod-metka { font: var(--t-metka); color: var(--ugol-72); text-transform: uppercase; letter-spacing: .04em; }
 .vhod__kod-cifry { font: var(--t-razdel); font-size: 3.25rem; letter-spacing: .18em; color: var(--ugol); font-variant-numeric: tabular-nums; }
+.vhod__qr { display: grid; place-items: center; padding: 10px; border-radius: 14px; background: #fff; }
+.vhod__qr svg { display: block; width: min(62vw, 240px); height: auto; }
+.vhod__qr[hidden] { display: none; }
 .vhod__kod-cifry--zhdem { font-size: 1.125rem; letter-spacing: 0; color: var(--ugol-62); }
 .vhod__kod-srok { font: var(--t-vtoroy); color: var(--ugol-72); font-variant-numeric: tabular-nums; }
 .vhod__kod-srok--istek { color: var(--krasnyy, #C0392B); font-weight: 700; }
