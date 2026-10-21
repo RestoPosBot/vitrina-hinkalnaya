@@ -9,7 +9,7 @@
 //   POST /customers/request-code                @Public  — {phone, networkId} -> СМС с кодом
 //   POST /customers/verify-code                 @Public  — {phone, code, networkId} -> токены + id гостя
 //   GET  /customers/:id/discounts/:restaurantId          — личная скидка (нужен токен)
-//   POST /customers/:id/short-code              @DlyaGostya — код для кассира на 2 минуты
+//   POST /customers/:id/qr                      @DlyaGostya — QR для кассира на 2 минуты, один раз
 //   POST /customers/refresh-token               @Public  — {refreshToken} -> новые токены
 //   POST /orders                                @Public  — настоящий заказ, оплата CASH/PENDING,
 //                                                          личная скидка вычитается на сервере
@@ -307,17 +307,17 @@ export async function sTokenom(fn) {
 }
 
 /**
- * Код для кассира: 4 цифры, живут 2 минуты (customer.service.ts generateNewShortCode).
- * Кассир вводит его в поле «Телефон или код из приложения» и видит гостя со скидкой.
+ * QR для кассира: `rpb-gost:<id>:<случайный ключ>`, 2 минуты, срабатывает один раз (бэкенд qr-gostya.ts).
+ * Только по нему касса привязывает гостя и даёт скидку (владелец 21.10.2026). `kod` — текст QR.
  * @returns {Promise<{kod: string, do: Date}>}
  */
 export async function korotkiyKod() {
   const g = prochitat();
   if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
-  const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/short-code`, { method: 'POST', token }));
-  if (!otvet?.shortCode) throw new Error('Сервер не выдал код');
+  const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/qr`, { method: 'POST', token }));
+  if (!otvet?.qr) throw new Error('Сервер не выдал QR');
   // срок считаем от момента получения по часам устройства: часы телефона могут расходиться с сервером
-  return { kod: String(otvet.shortCode), do: new Date(Date.now() + 2 * 60 * 1000) };
+  return { kod: String(otvet.qr), do: new Date(Date.now() + 2 * 60 * 1000) };
 }
 
 // ---------------------------------------------------------------------------

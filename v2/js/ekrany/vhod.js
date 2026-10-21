@@ -1,7 +1,7 @@
 // Витрина Хинкальной v2 — «Скидка» (маршрут #/skidka, пункт нижнего меню): вход гостя
 // по номеру телефона. Шторка снизу: номер → код из СМС → вошли. После входа показывает
-// личную скидку в выбранном заведении, код для кассира (4 цифры на 2 минуты, владелец 20.10:
-// гость называет код у кассы, и его скидка применяется) и кнопку «Выйти».
+// личную скидку в выбранном заведении, QR для кассира (2 минуты, один раз — касса только по нему
+// привязывает гостя и даёт скидку, владелец 21.10) и кнопку «Выйти».
 // Зачем вход: личная скидка живёт в Resto Postbot у телефона гостя; без входа
 // витрина её не знает и не показывает, а сервер не вычтет её из заказа.
 // Эндпоинты: POST /customers/request-code, POST /customers/verify-code (js/rpb.js).
@@ -58,7 +58,7 @@ export function pokazat(kontejner, yadro_, parametry = {}) {
   el = document.createElement('div');
   el.className = 'shtorka shtorka--vhod';
   el.setAttribute('role', 'dialog');
-  el.setAttribute('aria-label', 'Скидка и код для кассира');
+  el.setAttribute('aria-label', 'Скидка и QR для кассира');
   el.innerHTML = `
     <div class="shtorka__shapka-korziny">
       <div class="shtorka__ruchka" data-ruchka></div>
@@ -120,12 +120,11 @@ function narisovat() {
             ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>в заведении «${tekst(zav.nazvanie)}». Вычитается из заказа сама.</span></div>`
             : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>в заведении «${tekst(zav.nazvanie)}». Она появится, когда её назначат в заведении.</span></div>`}
         <div class="vhod__kod">
-          <span class="vhod__kod-metka">Код для кассира</span>
+          <span class="vhod__kod-metka">QR для кассира</span>
           <div class="vhod__qr" hidden aria-label="QR для кассира — покажите экран кассиру"></div>
-          <b class="vhod__kod-cifry vhod__kod-cifry--zhdem" aria-live="polite">Получаем…</b>
-          <span class="vhod__kod-srok" role="timer" aria-live="off">Покажите QR кассиру или назовите код — скидка применится к чеку</span>
+          <span class="vhod__kod-srok" role="timer" aria-live="off">Получаем QR…</span>
         </div>
-        <button class="knopka knopka--glavnaya vhod__novyy-kod" type="button">Новый код</button>
+        <button class="knopka knopka--glavnaya vhod__novyy-kod" type="button">Новый QR</button>
         <p class="vhod__oshibka" hidden></p>
         <button class="knopka knopka--tihaya vhod__vyyti" type="button">Выйти</button>
       </div>`;
@@ -145,7 +144,7 @@ function narisovat() {
     if (kod && kod.do > new Date()) pokazatKod(); else poluchitKod();
   } else if (shag === 'telefon') {
     zagolovok.textContent = 'Скидка';
-    pod.textContent = 'Войдите — скидка и код для кассира';
+    pod.textContent = 'Войдите — скидка и QR для кассира';
     telo.innerHTML = `
       <div class="kartochka-belaya vhod__karta">
         <label class="pole vhod__pole" data-pole="vhod">
@@ -237,35 +236,30 @@ function ostalosKoda() {
   return kod ? Math.max(0, Math.ceil((kod.do.getTime() - Date.now()) / 1000)) : 0;
 }
 
-/** Рисует цифры и таймер по текущему `kod`; по истечении — «истёк», кнопка остаётся. */
+/** Рисует QR и таймер по текущему `kod`; по истечении — «истёк», кнопка остаётся. */
 function pokazatKod() {
-  const cifry = el?.querySelector('.vhod__kod-cifry');
   const srok = el?.querySelector('.vhod__kod-srok');
-  if (!cifry || !srok || !kod) return;
+  if (!srok || !kod) return;
   const sek = ostalosKoda();
-  cifry.textContent = kod.kod;
-  cifry.setAttribute('aria-label', `Код для кассира: ${kod.kod.split('').join(' ')}`); // иначе читалка скажет «четыре тысячи…»
-  cifry.classList.remove('vhod__kod-cifry--zhdem');
   narisovatQr(sek > 0);
   if (sek > 0) {
-    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · покажите QR кассиру или назовите код`;
+    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · покажите QR кассиру`;
     srok.classList.remove('vhod__kod-srok--istek');
     if (!tajmerKoda) tajmerKoda = setInterval(pokazatKod, 1000);
   } else {
-    srok.textContent = 'Код истёк — нажмите «Новый код»';
+    srok.textContent = 'QR истёк — нажмите «Новый QR»';
     srok.classList.add('vhod__kod-srok--istek');
     if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
   }
 }
 
-/** QR для кассира: `rpb-gost:<id гостя>:<код>` — касса сканирует камерой, повторов у такого ключа не бывает (21.10.2026). */
+/** QR для кассира: `kod.kod` — готовый текст с сервера, касса сканирует камерой (21.10.2026). */
 let qrNarisovanDlya = '';
 async function narisovatQr(zhivoy) {
   const mesto = el?.querySelector('.vhod__qr');
-  const g = yadro.gostRPB();
-  if (!mesto || !kod || !g) return;
+  if (!mesto || !kod) return;
   if (!zhivoy) { mesto.hidden = true; qrNarisovanDlya = ''; return; }
-  const klyuch = `rpb-gost:${g.id}:${kod.kod}`;
+  const klyuch = kod.kod;
   // экран мог перерисоваться: контейнер новый и пустой — рисуем заново, а не просто показываем
   if (qrNarisovanDlya === klyuch && mesto.querySelector('svg')) { mesto.hidden = false; return; }
   try {
@@ -304,9 +298,7 @@ async function poluchitKod() {
       yadro.tost('Войдите заново — срок входа вышел');
       return;
     }
-    // живой старый код не стираем — он ещё действует; стираем только «Получаем…»
-    const cifry = el?.querySelector('.vhod__kod-cifry');
-    if (cifry && !(kod && ostalosKoda() > 0)) { cifry.textContent = '— — — —'; cifry.classList.add('vhod__kod-cifry--zhdem'); }
+    // живой старый QR не стираем — он ещё действует
     pokazatOshibku(oshibka?.kod == null ? 'Нет сети — попробуйте ещё раз'
       : oshibka?.kod >= 500 ? 'Сервер не отвечает — попробуйте позже' : (oshibka?.message || 'Не получилось получить код'));
   } finally {
