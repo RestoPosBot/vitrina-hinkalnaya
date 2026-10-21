@@ -266,7 +266,8 @@ async function narisovatQr(zhivoy) {
   if (!mesto || !kod || !g) return;
   if (!zhivoy) { mesto.hidden = true; qrNarisovanDlya = ''; return; }
   const klyuch = `rpb-gost:${g.id}:${kod.kod}`;
-  if (qrNarisovanDlya === klyuch) { mesto.hidden = false; return; }
+  // экран мог перерисоваться: контейнер новый и пустой — рисуем заново, а не просто показываем
+  if (qrNarisovanDlya === klyuch && mesto.querySelector('svg')) { mesto.hidden = false; return; }
   try {
     const { default: qrcode } = await import('../lib/qrcode.js');
     const q = qrcode(0, 'M');
