@@ -332,15 +332,16 @@ export async function korotkiyKod() {
  * сам применит к заказу (GET /discounts/vitrina/:setId), поэтому витрина обещает
  * ровно ту сумму, которую посчитает система.
  * @param {'samovyvoz'|'dostavka'} sposob
- * @returns {Promise<{id:string, nazvanie:string, tip:'PERCENTAGE'|'FIXED', razmer:number, minSumma:number|null}[]>}
+ * @param {string} [zavedenieId] заведение гостя: сервер отдаёт только акции, что действуют в нём сейчас (часы по его поясу)
+ * @returns {Promise<{id:string, nazvanie:string, tip:'PERCENTAGE'|'FIXED', razmer:number, minSumma:number|null, maxSumma:number|null}[]>}
  */
 let akciiNeOtvechayut = false;
 
-export async function akcii(sposob) {
+export async function akcii(sposob, zavedenieId) {
   if (akciiNeOtvechayut) return [];
   const tip = sposob === 'dostavka' ? 'DELIVERY' : 'TAKEAWAY';
   try {
-    const spisok = await zapros(`${BAZA}/discounts/vitrina/${SET_ID}?orderType=${tip}`);
+    const spisok = await zapros(`${BAZA}/discounts/vitrina/${SET_ID}?orderType=${tip}${zavedenieId ? `&restaurantId=${encodeURIComponent(zavedenieId)}` : ''}`);
     return Array.isArray(spisok) ? spisok : [];
   } catch (oshibka) {
     // 404 — на сервере ещё нет этого адреса (старая сборка бэкенда): молчим и живём без акций,
@@ -359,6 +360,7 @@ export async function akcii(sposob) {
 export function summaAkcii(akciya, summa) {
   if (!akciya || !(summa > 0)) return 0;
   if (akciya.minSumma && summa < akciya.minSumma) return 0;
+  if (akciya.maxSumma && summa > akciya.maxSumma) return 0;
   const rub = akciya.tip === 'PERCENTAGE'
     ? Math.floor((summa * Number(akciya.razmer || 0)) / 100)
     : Math.floor(Number(akciya.razmer || 0));

@@ -304,7 +304,7 @@ const yadro = {
     const bylaAkciya = akciyaSeychas?.id || null;
     const [lichnaya, spisokAkciy] = await Promise.all([
       lichnaya_(gost.zavedenieId),
-      akcii(gost.sposob === 'dostavka' ? 'dostavka' : 'samovyvoz'),
+      akcii(gost.sposob === 'dostavka' ? 'dostavka' : 'samovyvoz', gost.zavedenieId),
     ]);
     skidkaGostya = lichnaya;
     // из нескольких акций берём ту, что даст больше на нынешнюю корзину
