@@ -141,7 +141,10 @@ export async function sobratMenyu(opcii = {}) {
   const dopolnenie = dopFayl.blyuda || {};
 
   const spisokTovarov = Array.isArray(tovary) ? tovary : (tovary?.data || []);
-  const vidnye = spisokTovarov.filter((t) => t && t.isUsed !== false && t.publishedInApp);
+  // 22.10: «в приложении» — витрина, установленная на телефон (значок на экране); в браузере — «на сайте».
+  // Так у блюд бывает эксклюзив только для приложения (просьба владельца). Раньше смотрели только на «в приложении».
+  const vPrilozhenii = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);
+  const vidnye = spisokTovarov.filter((t) => t && t.isUsed !== false && (vPrilozhenii ? t.publishedInApp : t.publishedOnWebsite));
 
   // Порядок блюд внутри раздела — как в панели (clientSortOrder); ищем его по id, а не перебором.
   const poryadokBlyud = new Map(vidnye.map((t) => [t.id, Number(t.clientSortOrder ?? t.sortOrder ?? 0)]));
