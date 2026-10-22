@@ -285,6 +285,27 @@ export async function lichnayaSkidka(zavedenieId, sposob) {
 }
 
 /**
+ * Сохранённые адреса доставки вошедшего гостя (23.10.2026: перенесены из старой системы — 21 тыс. адресов).
+ * Без входа или при ошибке — пусто: витрина просто предлагает поиск адреса.
+ * @returns {Promise<Array<{kratko: string, adres: string, shirota: number, dolgota: number, dop: object}>>}
+ */
+export async function moiAdresa() {
+  const g = prochitat();
+  if (!g) return [];
+  try {
+    const spisok = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/addresses`, { token }));
+    return (Array.isArray(spisok) ? spisok : []).map((a) => ({
+      kratko: a.address,
+      adres: [a.title, a.entrance && `подъезд ${a.entrance}`, a.floor && `этаж ${a.floor}`, a.apartment && `кв. ${a.apartment}`].filter(Boolean).join(' · '),
+      shirota: Number(a.latitude), dolgota: Number(a.longitude),
+      dop: { kvartira: a.apartment || '', podyezd: a.entrance || '', etazh: a.floor || '', domofon: a.intercom || '', kurieru: a.comment || '' },
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Токен гостя живёт час (JWT_ACCESS_EXPIRATION), refresh — 7 дней. Чтобы не слать СМС каждый час,
  * на 401 один раз меняем токены через POST /customers/refresh-token; не вышло — гость разлогинен.
  * @template T @param {(token: string) => Promise<T>} fn @returns {Promise<T>}

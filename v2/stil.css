@@ -1068,7 +1068,9 @@ img { max-width: 100%; }
 .adres__geroy, .gotovo__hinkalik { display: grid; place-items: end center; min-height: 190px; padding-top: 20px; }
 .adres__knopki { display: grid; gap: 12px; margin-top: 22px; }
 .adres__nizhe { margin-top: 18px; }
-.adres__nayti { margin-top: 10px; }   /* кнопка «Найти» под полем адреса: поиск только по нажатию */
+.adres__nayti { margin-top: 10px; }
+.adres__moi { display: grid; gap: 4px; margin-bottom: 18px; }   /* сохранённые адреса вошедшего гостя — над поиском */
+.adres__moi[hidden] { display: none; }   /* кнопка «Найти» под полем адреса: поиск только по нажатию */
 .ekran--adres .ekran__zagolovok, .ekran--gotovo .ekran__zagolovok { text-align: center; }
 .ekran--adres .ekran__pod, .ekran--gotovo .ekran__pod { text-align: center; }
 .ekran--adres .ekran__pod { color: var(--ugol); }

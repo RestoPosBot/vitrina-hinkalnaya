@@ -9,6 +9,7 @@ import { nazhatie, poyavlenieKaskadom, pruzhina, dvizhenieSnyato, vibro } from '
 import { blizhayshieZavedeniya, otkrytoSeychas, podskazatAdres } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
+import { gost as voshel, moiAdresa } from '../rpb.js';
 
 /** Дальше этого — доставки нет (бриф §5, тупик 3). */
 const PREDEL_DOSTAVKI_KM = 7;
@@ -429,6 +430,7 @@ function rezhimDostavka(mesto) {
   const { yadro } = s;
   const bylo = yadro.gost.adres?.tekst || '';
   mesto.innerHTML = `
+    <div class="adres__moi" role="listbox" aria-label="Ваши адреса" hidden></div>
     <label class="pole adres__pole">
       <span class="pole__metka">Куда везти</span>
       <input class="pole__vvod" id="adres-vvod" type="text" autocomplete="street-address" enterkeyhint="search"
@@ -447,7 +449,9 @@ function rezhimDostavka(mesto) {
   const itog = mesto.querySelector('.adres__itog');
   nazhatie(knopkaNayti, { masshtab: 0.95 });
   skazat('Напишите улицу и дом — найду ближайшую кухню', 'obychno');
-  if (!dvizhenieSnyato()) tajmer(() => vvod.focus({ preventScroll: true }), 420);
+  // вошедший гость — сначала его адреса (клавиатура не открывается сама, чтобы не закрыть их)
+  if (voshel()) pokazatMoiAdresa(mesto.querySelector('.adres__moi'), vvod, podskazka, spisok, itog);
+  else if (!dvizhenieSnyato()) tajmer(() => vvod.focus({ preventScroll: true }), 420);
   else vvod.focus({ preventScroll: true });
 
   const nayti = () => {
@@ -492,6 +496,26 @@ function rezhimDostavka(mesto) {
     nayti();
   });
   knopkaNayti.addEventListener('click', nayti);
+}
+
+/** Сохранённые адреса гостя кнопками над поиском: тап — как выбор найденного адреса, с подъездом, этажом и квартирой. */
+async function pokazatMoiAdresa(blok, vvod, podskazka, spisok, itog) {
+  const adresa = (await moiAdresa()).filter((a) => a.kratko);
+  if (!s || s.rezhim !== 'dostavka' || !blok.isConnected || !adresa.length) return;
+  blok.innerHTML = '<div class="metka">Ваши адреса</div>';
+  const punkty = adresa.slice(0, 6).map((a) => {
+    const el = document.createElement('button');
+    el.type = 'button';
+    el.className = 'podskazki__punkt';
+    el.setAttribute('role', 'option');
+    el.innerHTML = `${tekst(a.kratko)}${a.adres ? `<small>${tekst(a.adres)}</small>` : ''}`;
+    nazhatie(el, { masshtab: 0.97, vibro: false });
+    el.addEventListener('click', () => { blok.hidden = true; vybratAdres(a, vvod, podskazka, spisok, itog); });
+    blok.appendChild(el);
+    return el;
+  });
+  blok.hidden = false;
+  poyavlenieKaskadom(punkty, 40);
 }
 
 async function zaprositPodskazki(zapros, vvod, podskazka, spisok, itog) {
@@ -547,7 +571,7 @@ function vybratAdres(p, vvod, podskazka, spisok, itog) {
   vvod.value = p.kratko;
   vvod.blur();
   spisok.innerHTML = '';
-  const adres = { tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota };
+  const adres = { tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota, ...(p.dop || {}) };
   const blizhayshee = blizhayshieZavedeniya(p.shirota, p.dolgota, yadro.menyu).find((x) => x.km != null);
   itog.innerHTML = '';
   if (!blizhayshee) {
