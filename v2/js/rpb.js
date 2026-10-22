@@ -267,15 +267,17 @@ export async function podtverditKod(telefon, kod) {
 /**
  * Личная скидка гостя в заведении, %. Без входа — 0.
  * @param {string} zavedenieId id ресторана в RPB
+ * @param {'samovyvoz'|'dostavka'} [sposob] способ получения: у скидки бывают типы заказа («зал и с собой» — не на доставку)
  * @returns {Promise<{procent: number, est: boolean}>}
  */
-export async function lichnayaSkidka(zavedenieId) {
+export async function lichnayaSkidka(zavedenieId, sposob) {
   const g = prochitat();
   if (!g || !zavedenieId) return { procent: 0, est: false };
   try {
     const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/discounts/${zavedenieId}`, { token }));
     const procent = Number(otvet?.discount) || 0;
-    const aktivna = otvet?.isActive !== false;
+    const tipy = Array.isArray(otvet?.orderTypes) ? otvet.orderTypes : [];
+    const aktivna = otvet?.isActive !== false && (!sposob || !tipy.length || tipy.includes(sposob === 'dostavka' ? 'DELIVERY' : 'TAKEAWAY'));
     return { procent: aktivna ? procent : 0, est: aktivna && procent > 0 };
   } catch {
     return { procent: 0, est: false };

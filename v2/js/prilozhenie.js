@@ -152,9 +152,9 @@ const minimumKnopki = document.getElementById('korzina-minimum');
 const punkty = [...niz.querySelectorAll('.niz__punkt')];
 
 /** Личная скидка гостя; ошибка сети не должна мешать акциям. */
-async function lichnaya_(zavedenieId) {
+async function lichnaya_(zavedenieId, sposob) {
   try {
-    return await lichnayaSkidka(zavedenieId);
+    return await lichnayaSkidka(zavedenieId, sposob);
   } catch {
     return { procent: 0, est: false };
   }
@@ -303,7 +303,7 @@ const yadro = {
     const byloGostya = skidkaGostya.procent;
     const bylaAkciya = akciyaSeychas?.id || null;
     const [lichnaya, spisokAkciy] = await Promise.all([
-      lichnaya_(gost.zavedenieId),
+      lichnaya_(gost.zavedenieId, gost.sposob === 'dostavka' ? 'dostavka' : 'samovyvoz'),
       akcii(gost.sposob === 'dostavka' ? 'dostavka' : 'samovyvoz', gost.zavedenieId),
     ]);
     skidkaGostya = lichnaya;
