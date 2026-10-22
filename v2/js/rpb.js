@@ -297,7 +297,8 @@ export async function moiAdresa() {
     return (Array.isArray(spisok) ? spisok : []).map((a) => ({
       kratko: a.address,
       adres: [a.title, a.entrance && `подъезд ${a.entrance}`, a.floor && `этаж ${a.floor}`, a.apartment && `кв. ${a.apartment}`].filter(Boolean).join(' · '),
-      shirota: Number(a.latitude), dolgota: Number(a.longitude),
+      // 0,0 в старой базе — «координат нет», а не точка в океане (иначе витрина скажет «доставки нет»)
+      shirota: Number(a.latitude) || NaN, dolgota: Number(a.longitude) || NaN,
       dop: { kvartira: a.apartment || '', podyezd: a.entrance || '', etazh: a.floor || '', domofon: a.intercom || '', kurieru: a.comment || '' },
     }));
   } catch {

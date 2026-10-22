@@ -501,7 +501,8 @@ function rezhimDostavka(mesto) {
 /** Сохранённые адреса гостя кнопками над поиском: тап — как выбор найденного адреса, с подъездом, этажом и квартирой. */
 async function pokazatMoiAdresa(blok, vvod, podskazka, spisok, itog) {
   const adresa = (await moiAdresa()).filter((a) => a.kratko);
-  if (!s || s.rezhim !== 'dostavka' || !blok.isConnected || !adresa.length) return;
+  if (!s || s.rezhim !== 'dostavka' || !blok.isConnected) return;
+  if (!adresa.length) { vvod.focus({ preventScroll: true }); return; }   // адресов нет — сразу к поиску
   blok.innerHTML = '<div class="metka">Ваши адреса</div>';
   const punkty = adresa.slice(0, 6).map((a) => {
     const el = document.createElement('button');
