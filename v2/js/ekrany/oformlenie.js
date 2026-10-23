@@ -700,11 +700,12 @@ function narisovatVhod() {
         <b>Войти по номеру телефона</b>
         <span>Если в заведении вам дали личную скидку, она появится в заказе</span>
       </button>`;
-  } else if (sk.procent > 0) {
+  } else if (sk.procentGostya > 0) {
+    // личный % гостя, а не размер акции (с акцией, которая суммируется, procent — это акция)
     mesto.innerHTML = `
       <button class="kartochka-belaya oformlenie__vhod-knopka oformlenie__vhod-knopka--est" type="button">
-        <b>Ваша скидка −${sk.procent} %</b>
-        <span>Вошли по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · вычтем из заказа</span>
+        <b>Ваша скидка −${sk.procentGostya} %</b>
+        <span>Вошли по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · ${sk.akciya && !sk.vmeste ? 'сейчас выгоднее акция — вычтем её' : 'вычтем из заказа'}</span>
       </button>`;
   } else {
     mesto.innerHTML = `

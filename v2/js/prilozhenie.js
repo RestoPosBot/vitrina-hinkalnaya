@@ -151,8 +151,18 @@ const summaKnopki = document.getElementById('korzina-summa');
 const minimumKnopki = document.getElementById('korzina-minimum');
 const punkty = [...niz.querySelectorAll('.niz__punkt')];
 
+/** % личной скидки на нынешнюю корзину: строка — min(% гостя, потолок блюда), как на сервере (23.10.2026). */
+function sredniyProcentGostya() {
+  const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
+  const potolki = skidkaGostya.potolki || {};
+  const pozicii = korzina.pozicii || [];
+  const vsego = pozicii.reduce((s, p) => s + summaPozicii(p), 0);
+  const vzveshenno = pozicii.reduce((s, p) => s + summaPozicii(p) * Math.min(procentGostya, potolki[p.blyudoId] ?? procentGostya), 0);
+  return vsego > 0 ? vzveshenno / vsego : procentGostya;
+}
+
 /** Сколько даст акция вместе с личной скидкой, если она с ней складывается (23.10.2026). */
-const vmesteSLichnoy = (a, summa) => summaAkcii(a, summa) + (a?.slozhitSLichnoy ? Math.floor((summa * (skidkaGostya.procent || 0)) / 100) : 0);
+const vmesteSLichnoy = (a, summa) => summaAkcii(a, summa) + (a?.slozhitSLichnoy ? Math.floor((summa * sredniyProcentGostya()) / 100 + 1e-9) : 0);
 
 /** Личная скидка гостя; ошибка сети не должна мешать акциям. */
 async function lichnaya_(zavedenieId, sposob) {
@@ -259,18 +269,13 @@ const yadro = {
   /**
    * Личная скидка гостя к сумме блюд. Работает и на самовывоз, и на доставку —
    * так её считает сервер. Минимум доставки считается от суммы блюд без скидки.
-   * @returns {{procent:number, rub:number, itogo:number, podpis:string}}
+   * @returns {{procent:number, rub:number, itogo:number, podpis:string, akciya:boolean, procentGostya:number, vmeste:boolean}} procentGostya — личный % гостя; vmeste — акция и личная обе
    */
   skidka(summa = korzina.summa()) {
-    // сервер считает так же: Math.floor(сумма * процент / 100) и выбирает,
-    // что выгоднее гостю — личную скидку или акцию. Две сразу не складываются.
+    // сервер считает так же: Math.floor(сумма * процент / 100) и выбирает, что выгоднее гостю — личную скидку или акцию;
+    // обе — только если у акции галочка «суммируется с личной» (23.10.2026)
     const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
-    // потолки блюд (23.10.2026): % строки = min(% гостя, потолок блюда), как на сервере; доля — по нынешней корзине
-    const potolki = skidkaGostya.potolki || {};
-    const pozicii = korzina.pozicii || [];
-    const vsego = pozicii.reduce((s, p) => s + summaPozicii(p), 0);
-    const vzveshenno = pozicii.reduce((s, p) => s + summaPozicii(p) * Math.min(procentGostya, potolki[p.blyudoId] ?? procentGostya), 0);
-    const sredniy = vsego > 0 ? vzveshenno / vsego : procentGostya;
+    const sredniy = sredniyProcentGostya();
     const krome = procentGostya > 0 && sredniy < procentGostya;
     const rubGostya = Math.floor((summa * sredniy) / 100 + 1e-9);
     const rubAkcii = summaAkcii(akciyaSeychas, summa);
@@ -285,8 +290,10 @@ const yadro = {
         procent,
         rub,
         itogo: summa - rub,
-        podpis: vmeste ? `${nazv} + ваша скидка −${procentGostya} %` : nazv,
+        podpis: vmeste ? `${nazv} + ваша скидка −${procentGostya} %${krome ? ', на часть блюд меньше' : ''}` : nazv,
         akciya: true,
+        procentGostya,
+        vmeste,
       };
     }
     return {
@@ -295,6 +302,8 @@ const yadro = {
       itogo: summa - rubGostya,
       podpis: procentGostya ? `Ваша скидка −${procentGostya} %${krome ? ', на часть блюд меньше' : ''}` : '',
       akciya: false,
+      procentGostya,
+      vmeste: false,
     };
   },
 
