@@ -151,6 +151,9 @@ const summaKnopki = document.getElementById('korzina-summa');
 const minimumKnopki = document.getElementById('korzina-minimum');
 const punkty = [...niz.querySelectorAll('.niz__punkt')];
 
+/** Сколько даст акция вместе с личной скидкой, если она с ней складывается (23.10.2026). */
+const vmesteSLichnoy = (a, summa) => summaAkcii(a, summa) + (a?.slozhitSLichnoy ? Math.floor((summa * (skidkaGostya.procent || 0)) / 100) : 0);
+
 /** Личная скидка гостя; ошибка сети не должна мешать акциям. */
 async function lichnaya_(zavedenieId, sposob) {
   try {
@@ -271,14 +274,18 @@ const yadro = {
     const krome = procentGostya > 0 && sredniy < procentGostya;
     const rubGostya = Math.floor((summa * sredniy) / 100 + 1e-9);
     const rubAkcii = summaAkcii(akciyaSeychas, summa);
+    // акция с галочкой «суммируется с личной» (23.10.2026) — обе, иначе большая из двух; вместе не больше суммы
+    const vmeste = !!akciyaSeychas?.slozhitSLichnoy && rubAkcii > 0 && rubGostya > 0;
 
-    if (rubAkcii > rubGostya) {
+    if (vmeste || rubAkcii > rubGostya) {
       const procent = akciyaSeychas.tip === 'PERCENTAGE' ? Number(akciyaSeychas.razmer) : 0;
+      const rub = Math.min(summa, rubAkcii + (vmeste ? rubGostya : 0));
+      const nazv = akciyaSeychas.nazvanie || (procent ? `Скидка −${procent} %` : 'Скидка');
       return {
         procent,
-        rub: rubAkcii,
-        itogo: summa - rubAkcii,
-        podpis: akciyaSeychas.nazvanie || (procent ? `Скидка −${procent} %` : 'Скидка'),
+        rub,
+        itogo: summa - rub,
+        podpis: vmeste ? `${nazv} + ваша скидка −${procentGostya} %` : nazv,
         akciya: true,
       };
     }
@@ -318,7 +325,8 @@ const yadro = {
     const summa = korzina.summa() || 1000;
     akciyaSeychas = spisokAkciy
       .slice()
-      .sort((a, b) => summaAkcii(b, summa) - summaAkcii(a, summa))[0] || null;
+      // складываемая с личной считается вместе с ней — как выбирает сервер
+      .sort((a, b) => vmesteSLichnoy(b, summa) - vmesteSLichnoy(a, summa))[0] || null;
     if (skidkaGostya.procent !== byloGostya || (akciyaSeychas?.id || null) !== bylaAkciya) {
       soobshchit('skidka', { ...skidkaGostya, akciya: akciyaSeychas });
       obnovitKnopkuKorziny(false);
