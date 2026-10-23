@@ -161,8 +161,30 @@ function sredniyProcentGostya() {
   return vsego > 0 ? vzveshenno / vsego : procentGostya;
 }
 
+/**
+ * Акция и личная вместе — как на сервере: на каждой строке их сумма не больше цены строки (60 % + 50 % на блюдо
+ * дают 100 %, а не 110 %). Акция витрины всегда на весь заказ, поэтому делится по строкам пропорционально цене.
+ */
+function vmesteNeBolsheStrok(summa, rubAkcii) {
+  const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
+  const potolki = skidkaGostya.potolki || {};
+  const rubGostya = Math.floor((summa * sredniyProcentGostya()) / 100 + 1e-9);
+  if (!(summa > 0)) return 0;
+  // корзина пуста (акцию выбирают по пробной сумме) — строк нет, считаем без потолка строк
+  if (!korzina.pozicii?.length) return Math.min(summa, rubAkcii + rubGostya);
+  const poStrokam = (korzina.pozicii || []).reduce((s, p) => {
+    const cena = summaPozicii(p);
+    const pr = Math.min(procentGostya, potolki[p.blyudoId] ?? procentGostya);
+    return s + Math.min(cena, (rubAkcii * cena) / summa + (cena * pr) / 100);
+  }, 0);
+  return Math.min(summa, rubAkcii + rubGostya, Math.floor(poStrokam + 1e-9));
+}
+
 /** Сколько даст акция вместе с личной скидкой, если она с ней складывается (23.10.2026). */
-const vmesteSLichnoy = (a, summa) => summaAkcii(a, summa) + (a?.slozhitSLichnoy ? Math.floor((summa * sredniyProcentGostya()) / 100 + 1e-9) : 0);
+const vmesteSLichnoy = (a, summa) => {
+  const rubA = summaAkcii(a, summa);
+  return a?.slozhitSLichnoy && rubA > 0 ? vmesteNeBolsheStrok(summa, rubA) : rubA;
+};
 
 /** Личная скидка гостя; ошибка сети не должна мешать акциям. */
 async function lichnaya_(zavedenieId, sposob) {
@@ -284,7 +306,7 @@ const yadro = {
 
     if (vmeste || rubAkcii > rubGostya) {
       const procent = akciyaSeychas.tip === 'PERCENTAGE' ? Number(akciyaSeychas.razmer) : 0;
-      const rub = Math.min(summa, rubAkcii + (vmeste ? rubGostya : 0));
+      const rub = vmeste ? vmesteNeBolsheStrok(summa, rubAkcii) : Math.min(summa, rubAkcii);
       const nazv = akciyaSeychas.nazvanie || (procent ? `Скидка −${procent} %` : 'Скидка');
       return {
         procent,
