@@ -7,7 +7,7 @@ import {
   kEtomuBerut, naytiBlyudo,
 } from './dannye.js';
 import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB } from './rpb.js';
-import { korzina } from './korzina.js';
+import { korzina, summaPozicii } from './korzina.js';
 import {
   FonGradient, pokazatTost, pokazatChislo, poletVKorzinu, vibro, nazhatie, pruzhina, shtorka, dvizhenieSnyato,
 } from './dvizhenie.js';
@@ -156,7 +156,7 @@ async function lichnaya_(zavedenieId, sposob) {
   try {
     return await lichnayaSkidka(zavedenieId, sposob);
   } catch {
-    return { procent: 0, est: false };
+    return { procent: 0, est: false, potolki: {} };
   }
 }
 
@@ -262,7 +262,14 @@ const yadro = {
     // сервер считает так же: Math.floor(сумма * процент / 100) и выбирает,
     // что выгоднее гостю — личную скидку или акцию. Две сразу не складываются.
     const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;
-    const rubGostya = Math.floor((summa * procentGostya) / 100);
+    // потолки блюд (23.10.2026): % строки = min(% гостя, потолок блюда), как на сервере; доля — по нынешней корзине
+    const potolki = skidkaGostya.potolki || {};
+    const pozicii = korzina.pozicii || [];
+    const vsego = pozicii.reduce((s, p) => s + summaPozicii(p), 0);
+    const vzveshenno = pozicii.reduce((s, p) => s + summaPozicii(p) * Math.min(procentGostya, potolki[p.blyudoId] ?? procentGostya), 0);
+    const sredniy = vsego > 0 ? vzveshenno / vsego : procentGostya;
+    const krome = procentGostya > 0 && sredniy < procentGostya;
+    const rubGostya = Math.floor((summa * sredniy) / 100 + 1e-9);
     const rubAkcii = summaAkcii(akciyaSeychas, summa);
 
     if (rubAkcii > rubGostya) {
@@ -279,7 +286,7 @@ const yadro = {
       procent: procentGostya,
       rub: rubGostya,
       itogo: summa - rubGostya,
-      podpis: procentGostya ? `Ваша скидка −${procentGostya} %` : '',
+      podpis: procentGostya ? `Ваша скидка −${procentGostya} %${krome ? ', на часть блюд меньше' : ''}` : '',
       akciya: false,
     };
   },
