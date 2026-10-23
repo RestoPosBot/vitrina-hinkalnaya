@@ -385,7 +385,7 @@ export function summaAkcii(akciya, summa) {
   if (akciya.minSumma && summa < akciya.minSumma) return 0;
   if (akciya.maxSumma && summa > akciya.maxSumma) return 0;
   const rub = akciya.tip === 'PERCENTAGE'
-    ? Math.floor((summa * Number(akciya.razmer || 0)) / 100)
+    ? Math.floor((summa * Number(akciya.razmer || 0)) / 100 + 1e-9)   // как сервер: 2,3 % от 3000 = 69
     : Math.floor(Number(akciya.razmer || 0));
   return Math.max(0, Math.min(rub, summa));
 }
