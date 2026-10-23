@@ -326,7 +326,7 @@ function obnovitSvodku(pervyyRaz = false) {
   el.querySelector('.korzina__shtuk').textContent = `${blyud(k.pozicii.length)}, ${n} шт.`;
   el.querySelector('.korzina__summa-blyud').textContent = rub(summa);
 
-  // личная скидка гостя из Resto Postbot — ровно та, что вычтет сервер; не вошёл — строки нет
+  // личная скидка гостя из ChikChak — ровно та, что вычтет сервер; не вошёл — строки нет
   const sk = yadro.skidka(summa);
   const strokaSkidki = el.querySelector('.korzina__skidka');
   strokaSkidki.hidden = !sk.rub;

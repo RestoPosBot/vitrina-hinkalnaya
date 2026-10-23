@@ -21,7 +21,7 @@ import { rub, chislo, tekst } from './kartochka.js';
 const KLYUCH_GOSTYA = 'hinkalnaya.gost.v2';
 const KLYUCH_GOLOS = 'hinkalnaya.golos.v2';
 const MIN_DOSTAVKI = 1000;
-/** Личная скидка гостя: процент из Resto Postbot для выбранного заведения.
+/** Личная скидка гостя: процент из ChikChak для выбранного заведения.
  *  Её же вычитает сервер при создании заказа (order.service.ts:209-224), поэтому витрина
  *  показывает ровно то, что посчитает система. Не вошёл — 0, своих скидок витрина не придумывает. */
 let skidkaGostya = { procent: 0, est: false };
@@ -329,7 +329,7 @@ const yadro = {
     };
   },
 
-  /** Вошедший гость Resto Postbot или null (телефон подтверждён кодом из СМС). */
+  /** Вошедший гость ChikChak или null (телефон подтверждён кодом из СМС). */
   gostRPB() { return gostRPB(); },
 
   /** Выход гостя: забываем токен и личную скидку. */
@@ -1138,7 +1138,7 @@ function vosstanovitPerenos() {
 }
 
 /**
- * Меню из живой системы Resto Postbot; если API не ответило — снимок menyu.json рядом с витриной,
+ * Меню из живой системы ChikChak; если API не ответило — снимок menyu.json рядом с витриной,
  * чтобы гость с плохой сетью всё равно увидел блюда (цены могли устареть, заказ в таком режиме
  * не уйдёт: сервер недоступен).
  * @returns {Promise<object>}
@@ -1149,7 +1149,7 @@ async function zagruzitMenyuZhivoe() {
     if (!menyu.razdely?.length) throw new Error('RPB отдал меню без разделов');
     return menyu;
   } catch (oshibka) {
-    console.warn('Меню из Resto Postbot не пришло, берём снимок menyu.json', oshibka);
+    console.warn('Меню из ChikChak не пришло, берём снимок menyu.json', oshibka);
     const snimok = await zagruzitMenyu();
     snimok.snimok = true;
     return snimok;

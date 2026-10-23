@@ -1,7 +1,7 @@
 // Витрина Хинкальной v2 — «Заказ принят» (маршрут #/gotovo/<номер>).
 // Хинкалик 140 px радуется и подпрыгивает, номер заказа градиентом, что дальше
 // (сколько готовим, где забрать / куда везём), список и итог, «К меню» и «Повторить
-// заказ». Заказ уже создан в Resto Postbot и записан как «прошлый заказ».
+// заказ». Заказ уже создан в ChikChak и записан как «прошлый заказ».
 // Контракт экрана — design/vitrina_v2/YADRO.md §1.
 
 import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom } from '../dvizhenie.js';
@@ -39,7 +39,7 @@ export function pokazat(kontejner, yadro_, parametry) {
   const skidka = zakaz.skidka && Number(zakaz.skidka.rub) > 0 ? zakaz.skidka : null;
   const bezSeti = Boolean(zakaz.otlozhen);
   const kogda = zakaz.kogda_poluchit || {};
-  // Заказ настоящий: он создан в Resto Postbot и виден на кухне заведения.
+  // Заказ настоящий: он создан в ChikChak и виден на кухне заведения.
   let chtoDalshe;
   if (kogda.tip === 'ko_vremeni') chtoDalshe = dostavka ? `Привезём ${tekst(kogda.podpis)}` : `Будет готово ${tekst(kogda.podpis)}`;
   else chtoDalshe = dostavka ? `Готовим ~${kogda.minut || 20}${TONKIY}мин, потом везём` : `Готовим ~${kogda.minut || 20}${TONKIY}минут`;

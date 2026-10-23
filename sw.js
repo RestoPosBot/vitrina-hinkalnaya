@@ -3,8 +3,8 @@
    включает авиарежим, и белый экран означает отказ. */
 
 const KESH = 'hinkalnaya-v1-pereezd';
-// 19.10.2026: the storefront moved to client.restoposbot.ru on 02.10; this address only redirects there
-const NOVYY_ADRES = 'https://client.restoposbot.ru/';
+// the storefront lives at client.chikchak.ai (23.10.2026); this address only redirects there
+const NOVYY_ADRES = 'https://client.chikchak.ai/';
 
 const OBOLOCHKA = [
   './',

@@ -1,4 +1,4 @@
-// Витрина Хинкальной v2 — связь с живой системой Resto Postbot (RPB_backend).
+// Витрина Хинкальной v2 — связь с живой системой ChikChak (RPB_backend).
 // Меню, цены и стопы по заведениям, вход гостя по СМС, личная скидка, отправка заказа.
 // Контракт экранов не меняется: sobratMenyu() отдаёт объект той же схемы, что menyu.json
 // (design/vitrina_v2/YADRO.md §4), только id блюд и заведений — настоящие, из RPB.
@@ -18,9 +18,9 @@
 // Заведения — свой файл zavedeniya.json: публичные GET /restaurants и /restaurants/by-id/:id
 // отдают сотрудников с хешами паролей и весят 0,3-2 МБ, гостю такое грузить нельзя.
 
-const BAZA = 'https://api.restoposbot.ru/api';
+const BAZA = 'https://api.chikchak.ai/api';
 
-/** Сеть Хинкальной в RPB (в системе названа Restopost.bot). */
+/** Сеть Хинкальной в ChikChak. */
 export const SET_ID = 'cmbsh1diy000110v3ic2a7h1v';
 
 const ADRES_ZAVEDENIY = new URL('../zavedeniya.json', import.meta.url);
@@ -186,7 +186,7 @@ export async function sobratMenyu(opcii = {}) {
     set: zavFayl.set || 'Хинкальная',
     setId,
     snyato: new Date().toISOString().slice(0, 10),
-    istochnik: 'Resto Postbot, живое API (products/by-network)',
+    istochnik: 'ChikChak, живое API (products/by-network)',
     zavedeniya,
     razdely,
     banket: null,

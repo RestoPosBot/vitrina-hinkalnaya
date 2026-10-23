@@ -919,7 +919,7 @@ const ADRES_NOMINATIM = 'https://nominatim.openstreetmap.org/search';
  * В браузере этот заголовок НЕ ставим: он не входит в безопасный список CORS, вызывает preflight,
  * на который Nominatim не отвечает, и запрос блокируется; браузер сам шлёт свой User-Agent и Referer.
  */
-const AGENT_VITRINY = 'VitrinaHinkalnaya/2 (https://restoposbot.github.io/vitrina-hinkalnaya/)';
+const AGENT_VITRINY = 'VitrinaHinkalnaya/2 (https://client.chikchak.ai/)';
 const V_BRAUZERE = typeof window !== 'undefined' && typeof window.document !== 'undefined';
 
 // Политика Nominatim: не больше 1 запроса в секунду на приложение, ответы кешировать.
