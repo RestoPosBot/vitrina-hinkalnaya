@@ -1023,7 +1023,8 @@ export async function podskazatAdres(tekst, opcii = {}) {
     const podskazki = spisok
       .filter((x) => x && x.value && x.data?.geo_lat && x.data?.geo_lon)
       .map((x) => ({
-        adres: String(x.value),
+        // у DaData одна строка и так полная: «г Москва, ул Башиловская, д 19» — второй строки под ней не нужно
+        adres: '',
         kratko: String(x.value).replace(/^Россия, /, ''),
         shirota: parseFloat(x.data.geo_lat),
         dolgota: parseFloat(x.data.geo_lon),

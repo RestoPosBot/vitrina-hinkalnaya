@@ -554,7 +554,7 @@ async function zaprositPodskazki(zapros, vvod, podskazka, spisok, itog) {
     el.type = 'button';
     el.className = 'podskazki__punkt';
     el.setAttribute('role', 'option');
-    el.innerHTML = `${tekst(p.kratko)}<small>${tekst(p.adres)}</small>`;
+    el.innerHTML = `${tekst(p.kratko)}${p.adres ? `<small>${tekst(p.adres)}</small>` : ''}`;
     nazhatie(el, { masshtab: 0.97, vibro: false });
     el.addEventListener('click', () => vybratAdres(p, vvod, podskazka, spisok, itog));
     spisok.appendChild(el);
