@@ -1,12 +1,13 @@
 // Витрина Хинкальной v2 — первый экран «Где вы?» (#/adres).
 // Бриф §5 «Первый экран», §6 тупики 3 и 4; DIZAYN §3.16, §3.17, §4.5, §7.
 // Три пути: «Я рядом» (геолокация → ближайшие), «Выбрать заведение» (все 7),
-// «Указать адрес доставки» (поиск адреса по «Найти» → ближайшее заведение и км; дальше 7 км — честно).
+// «Указать адрес доставки» (подсказки при наборе или «Определить по местоположению» — метка на Яндекс Карте →
+// ближайшее заведение и км; дальше 7 км — честно).
 // Маленькое «Сначала посмотрю меню» никого не запирает.
 // Контракт экрана — design/vitrina_v2/YADRO.md §1: pokazat / ubrat.
 
 import { nazhatie, poyavlenieKaskadom, pruzhina, dvizhenieSnyato, vibro } from '../dvizhenie.js';
-import { blizhayshieZavedeniya, otkrytoSeychas, podskazatAdres } from '../dannye.js';
+import { adresPoTochke, blizhayshieZavedeniya, otkrytoSeychas, podskazatAdres } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
 import { gost as voshel, moiAdresa } from '../rpb.js';
@@ -14,11 +15,31 @@ import { gost as voshel, moiAdresa } from '../rpb.js';
 /** Дальше этого — доставки нет (бриф §5, тупик 3). */
 const PREDEL_DOSTAVKI_KM = 7;
 /**
- * Поиск адреса — только по Enter или кнопке «Найти», одно обращение на поиск.
- * С 24.10.2026 адрес ищется через наш сервер (DaData, как в кассе); каждый запрос платный и пишется на сеть —
- * поиск по кнопке, а не на каждую паузу ввода, держит расход в одном запросе на адрес.
+ * Подсказки адреса — после паузы в наборе (владелец 25.10.2026: кнопка «Найти» мешала). Адрес ищется через наш сервер
+ * (DaData, как в кассе), каждый запрос пишется на сеть; пауза 0,7 с держит расход в 1–3 запросах на адрес.
  */
 const MIN_DLINA_ADRESA = 3;
+const PAUZA_NABORA_MS = 700;
+/**
+ * Яндекс Карты для гостя (владелец 25.10.2026: в России привыкли к Яндексу). Бесплатный ключ — можно: сайт открыт всем
+ * бесплатно (условия API Яндекс Карт, п. 4.1.1). Адрес по точке — через DaData, не геокодер Яндекса: адрес в заказе
+ * хранится, а данные Яндекса хранить дольше 30 дней нельзя (п. 5.1.6). Ключ публичный по устройству JS API.
+ */
+const KLYUCH_KART = 'd6b7ba1f-a4f8-4d3f-a6d9-c64cffee0c35';
+let zagruzkaKart = null;
+function yandexKarty() {
+  if (zagruzkaKart) return zagruzkaKart;
+  zagruzkaKart = new Promise((gotovo, oshibka) => {
+    if (window.ymaps) { window.ymaps.ready(() => gotovo(window.ymaps)); return; }
+    const skript = document.createElement('script');
+    skript.src = `https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey=${KLYUCH_KART}`;
+    skript.async = true;
+    skript.onload = () => window.ymaps.ready(() => gotovo(window.ymaps));
+    skript.onerror = () => { zagruzkaKart = null; oshibka(new Error('карта не загрузилась')); };
+    document.head.appendChild(skript);
+  });
+  return zagruzkaKart;
+}
 /** Номера тех, кто ждёт доставку в свой район (демо: никуда не уходит). */
 const KLYUCH_ZHDUT = 'hinkalnaya.zhdut_dostavku.v2';
 /** Минимальная сумма доставки, если в базе не задана (бриф §5). */
@@ -268,6 +289,7 @@ function zakryt() {
   s.rezhim = null;
   s.pokolenie++;
   otmenitPoiskAdresa();
+  ubratKartu();
   const { koren, knopki, blok } = s;
   koren.classList.remove('adres--otkryt');
   blok.hidden = true;
@@ -418,6 +440,11 @@ function rezhimSpisok(mesto) {
 // «Адрес доставки»
 // ---------------------------------------------------------------------------
 
+function ubratKartu() {
+  try { s?.karta?.destroy(); } catch { /* уже снята */ }
+  if (s) s.karta = null;
+}
+
 function otmenitPoiskAdresa() {
   if (!s) return;
   if (s.kontroller) { try { s.kontroller.abort(); } catch { /* уже отменён */ } }
@@ -430,22 +457,27 @@ function rezhimDostavka(mesto) {
   const bylo = yadro.gost.adres?.tekst || '';
   mesto.innerHTML = `
     <div class="adres__moi" role="listbox" aria-label="Ваши адреса" hidden></div>
+    <button type="button" class="knopka knopka--steklo knopka--60 adres__gde" data-gde><svg aria-hidden="true"><use href="#ik-bulavka"/></svg><span>Определить по местоположению</span></button>
+    <div class="adres__karta" hidden>
+      <div class="adres__karta-pole" role="application" aria-label="Карта: подвиньте её, чтобы метка встала на ваш дом"></div>
+      <svg class="adres__karta-metka" aria-hidden="true"><use href="#ik-bulavka"/></svg>
+    </div>
     <label class="pole adres__pole">
       <span class="pole__metka">Куда везти</span>
       <input class="pole__vvod" id="adres-vvod" type="text" autocomplete="street-address" enterkeyhint="search"
         placeholder="Город, улица, дом" value="${tekst(bylo)}">
-      <span class="pole__podskazka">Напишите адрес и нажмите «Найти»</span>
+      <span class="pole__podskazka">Начните писать улицу и дом</span>
     </label>
-    <button type="button" class="knopka knopka--steklo knopka--60 adres__nayti" data-nayti><svg aria-hidden="true"><use href="#ik-poisk"/></svg><span>Найти</span></button>
     <div class="podskazki" role="listbox" aria-label="Найденные адреса"></div>
     <div class="adres__itog"></div>`;
   const vvod = mesto.querySelector('#adres-vvod');
   const pole = mesto.querySelector('.adres__pole');
   const podskazka = mesto.querySelector('.pole__podskazka');
-  const knopkaNayti = mesto.querySelector('[data-nayti]');
+  const knopkaGde = mesto.querySelector('[data-gde]');
   const spisok = mesto.querySelector('.podskazki');
   const itog = mesto.querySelector('.adres__itog');
-  nazhatie(knopkaNayti, { masshtab: 0.95 });
+  nazhatie(knopkaGde, { masshtab: 0.95 });
+  knopkaGde.addEventListener('click', () => pokazatKartu(mesto, vvod, podskazka, spisok, itog));
   skazat('Напишите улицу и дом — найду ближайшую кухню', 'obychno');
   // вошедший гость — сначала его адреса (клавиатура не открывается сама, чтобы не закрыть их)
   if (voshel()) pokazatMoiAdresa(mesto.querySelector('.adres__moi'), vvod, podskazka, spisok, itog);
@@ -473,17 +505,19 @@ function rezhimDostavka(mesto) {
     zaprositPodskazki(zapros, vvod, podskazka, spisok, itog);
   };
 
+  let pauza = null;
   vvod.addEventListener('input', () => {
-    // на каждую букву сервер не спрашиваем: старые находки убираем, ждём «Найти»
+    // на каждую букву сервер не спрашиваем: ищем, когда гость остановился на 0,7 с
+    clearTimeout(pauza);
     if (vvod.value.trim() === s.naydenoDlya) return;
     otmenitPoiskAdresa();
     s.naydenoDlya = null;
     pole.classList.remove('oshibka');
     itog.innerHTML = '';
     spisok.innerHTML = '';
-    podskazka.textContent = vvod.value.trim().length < MIN_DLINA_ADRESA
-      ? 'Напишите адрес и нажмите «Найти»'
-      : 'Нажмите «Найти» — покажем, куда привезём';
+    const dlinno = vvod.value.trim().length >= MIN_DLINA_ADRESA;
+    podskazka.textContent = dlinno ? 'Ищем адрес…' : 'Начните писать улицу и дом';
+    if (dlinno) pauza = tajmer(nayti, PAUZA_NABORA_MS);
   });
   vvod.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
@@ -491,9 +525,77 @@ function rezhimDostavka(mesto) {
     // уже нашли по этому тексту — Enter выбирает первый адрес; иначе — новый поиск
     const pervyy = spisok.querySelector('.podskazki__punkt');
     if (pervyy && s.naydenoDlya === vvod.value.trim()) { pervyy.click(); return; }
+    clearTimeout(pauza);
     nayti();
   });
-  knopkaNayti.addEventListener('click', nayti);
+}
+
+/**
+ * «Определить по местоположению» (25.10.2026): телефон даёт точку, Яндекс Карта встаёт на неё, метка — в центре карты.
+ * Гость двигает карту, пока метка не встанет на дом; когда карта остановилась — адрес по точке (DaData через наш сервер)
+ * и тот же итог, что у найденного адреса: ближайшая кухня и «Везите сюда». Место не дали — карта на Москве, двигать руками.
+ */
+async function pokazatKartu(mesto, vvod, podskazka, spisok, itog) {
+  const blok = mesto.querySelector('.adres__karta');
+  const knopka = mesto.querySelector('[data-gde]');
+  if (!s || !blok.hidden) return;
+  otmenitPoiskAdresa();
+  spisok.innerHTML = '';
+  itog.innerHTML = '';
+  knopka.hidden = true;
+  blok.hidden = false;
+  podskazka.textContent = 'Ищем, где вы…';
+  poyavlenieKaskadom([blok], 0);
+  const pokolenie = s.pokolenie;
+  const [ymaps, tochka] = await Promise.all([
+    yandexKarty().catch(() => null),
+    izvestnayaTochka ? Promise.resolve(izvestnayaTochka) : uznatTochku(),
+  ]);
+  if (!s || s.pokolenie !== pokolenie || !blok.isConnected) return;
+  if (!ymaps) {
+    blok.hidden = true;
+    knopka.hidden = false;
+    podskazka.textContent = 'Карта не загрузилась — напишите адрес';
+    return;
+  }
+  const est = tochka && !tochka.oshibka;
+  if (est) izvestnayaTochka = tochka;
+  ubratKartu();
+  const karta = new ymaps.Map(blok.querySelector('.adres__karta-pole'),
+    { center: est ? [tochka.shirota, tochka.dolgota] : [55.751, 37.618], zoom: est ? 17 : 11, controls: ['zoomControl'] },
+    { suppressMapOpenBlock: true });
+  s.karta = karta;
+  const metka = blok.querySelector('.adres__karta-metka');
+  // метка приподнимается, пока карту тянут, и встаёт на место пружиной — видно, куда она опустится
+  const metkaVverh = (vverh) => {
+    if (dvizhenieSnyato() || !metka.animate) return;
+    const niz = 'translate(-50%, -100%)', verh = 'translate(-50%, -125%)';
+    const p = vverh ? pruzhina.obychnaya : pruzhina.zhivaya;
+    metka.animate([{ transform: vverh ? niz : verh }, { transform: vverh ? verh : niz }], { duration: p.ms, easing: p.easing, fill: 'forwards' });
+  };
+  let nomer = 0;
+  const uznatAdres = async () => {
+    const moy = ++nomer;
+    const [shirota, dolgota] = karta.getCenter();
+    podskazka.textContent = 'Уточняем адрес…';
+    const otvet = await adresPoTochke(shirota, dolgota);
+    if (!s || s.karta !== karta || moy !== nomer) return; // карту уже сдвинули ещё раз
+    if (otvet.oshibka) {
+      podskazka.textContent = otvet.prichina === 'limit' ? 'Слишком часто — подождите немного' : 'Адрес по точке сейчас не находится — напишите его';
+      return;
+    }
+    if (!otvet.kratko) { itog.innerHTML = ''; podskazka.textContent = 'Здесь нет дома — подвиньте карту'; return; }
+    vybratAdres(otvet, vvod, podskazka, spisok, itog);
+  };
+  karta.events.add('actionbegin', () => { nomer++; metkaVverh(true); });
+  karta.events.add('actionend', () => { metkaVverh(false); void uznatAdres(); });
+  if (est) void uznatAdres();
+  else {
+    podskazka.textContent = tochka?.oshibka === 'zapret'
+      ? 'Доступ к месту закрыт — подвиньте карту, чтобы метка встала на ваш дом'
+      : 'Не получилось определить, где вы — подвиньте карту, чтобы метка встала на ваш дом';
+    skazat('Подвиньте карту к своему дому', 'obychno');
+  }
 }
 
 /** Сохранённые адреса гостя кнопками над поиском: тап — как выбор найденного адреса, с подъездом, этажом и квартирой. */
@@ -798,6 +900,7 @@ export function pokazat(kontejner, yadro, parametry = {}) {
 export function ubrat() {
   if (!s) return;
   otmenitPoiskAdresa();
+  ubratKartu();
   s.tajmery.forEach(clearTimeout);
   try { s.hinkalik?.unichtozhit(); } catch { /* уже снят */ }
   document.querySelectorAll('.adres__prizrak').forEach((el) => el.remove());

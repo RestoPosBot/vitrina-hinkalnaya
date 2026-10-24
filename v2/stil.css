@@ -1068,9 +1068,13 @@ img { max-width: 100%; }
 .adres__geroy, .gotovo__hinkalik { display: grid; place-items: end center; min-height: 190px; padding-top: 20px; }
 .adres__knopki { display: grid; gap: 12px; margin-top: 22px; }
 .adres__nizhe { margin-top: 18px; }
-.adres__nayti { margin-top: 10px; }
+.adres__gde { width: 100%; margin-top: 18px; }
+/* карта «Определить по местоположению»: метка в центре, карту двигают под ней (25.10.2026) */
+.adres__karta { position: relative; height: 260px; margin-top: 14px; border-radius: 20px; overflow: hidden; box-shadow: var(--ten-myagkaya); }
+.adres__karta-pole { position: absolute; inset: 0; }
+.adres__karta-metka { position: absolute; left: 50%; top: 50%; z-index: 2; width: 44px; height: 44px; color: var(--paprika); transform: translate(-50%, -100%); pointer-events: none; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, .3)); }
 .adres__moi { display: grid; gap: 4px; margin-bottom: 18px; }   /* сохранённые адреса вошедшего гостя — над поиском */
-.adres__moi[hidden] { display: none; }   /* кнопка «Найти» под полем адреса: поиск только по нажатию */
+.adres__moi[hidden] { display: none; }
 .ekran--adres .ekran__zagolovok, .ekran--gotovo .ekran__zagolovok { text-align: center; }
 .ekran--adres .ekran__pod, .ekran--gotovo .ekran__pod { text-align: center; }
 .ekran--adres .ekran__pod { color: var(--ugol); }

@@ -918,6 +918,7 @@ export function kEtomuBerut(pozicii, menyu, zavedenieId = null, n = 4) {
 // только там, расход записывается на сеть, у сети суточный лимит.
 const ADRES_PODSKAZOK = 'https://api.chikchak.ai/api/adresa/podskazki-gostyu'; // гостевой лимит сети, касса считается отдельно
 const SET_VITRINY = 'cmbsh1diy000110v3ic2a7h1v'; // сеть «Хинкальная» (как SET_ID в rpb.js)
+const ADRES_PO_TOCHKE = 'https://api.chikchak.ai/api/adresa/po-tochke-gostyu'; // тот же гостевой лимит сети
 
 // Кеш (память + sessionStorage), очередь не чаще раза в 0,3 с и пауза 30 с после 429 (лимит сети или частота с адреса).
 const INTERVAL_ADRESA_MS = 300;
@@ -1038,6 +1039,30 @@ export async function podskazatAdres(tekst, opcii = {}) {
     return sboyAdresa('set');
   } finally {
     if (taymer) clearTimeout(taymer);
+  }
+}
+
+
+/**
+ * Адрес по точке (25.10.2026, владелец: «определить по местоположению» вместо набора): наш сервер → DaData.
+ * Точка остаётся гостевой — туда, где метка, а не к дому из справочника: курьеру важнее, где гость.
+ * Как podskazatAdres: всегда объект; сбой — {oshibka: true, prichina}, адреса нет — {kratko: ''}.
+ * @returns {Promise<{kratko: string, shirota: number, dolgota: number} | {oshibka: true, prichina: string}>}
+ */
+export async function adresPoTochke(shirota, dolgota, opcii = {}) {
+  const seychas = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  if (seychas < limitDo) return { oshibka: true, prichina: 'limit' };
+  try {
+    const otvet = await fetch(ADRES_PO_TOCHKE, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: opcii.signal,
+      body: JSON.stringify({ shirota, dolgota, networkId: SET_VITRINY }),
+    });
+    if (otvet.status === 429) { limitDo = seychas + PAUZA_POSLE_LIMITA_MS; return { oshibka: true, prichina: 'limit' }; }
+    if (!otvet.ok) return { oshibka: true, prichina: 'otvet' };
+    const pervyy = ((await otvet.json())?.podskazki || []).find((x) => x && x.value);
+    return { kratko: pervyy ? String(pervyy.value).replace(/^Россия, /, '') : '', shirota, dolgota };
+  } catch (oshibka) {
+    return { oshibka: true, prichina: oshibka && oshibka.name === 'AbortError' ? 'prervano' : 'set' };
   }
 }
 
