@@ -1,7 +1,7 @@
 // Витрина Хинкальной v2 — первый экран «Где вы?» (#/adres).
 // Бриф §5 «Первый экран», §6 тупики 3 и 4; DIZAYN §3.16, §3.17, §4.5, §7.
 // Три пути: «Я рядом» (геолокация → ближайшие), «Выбрать заведение» (все 7),
-// «Указать адрес доставки» (поиск OSM по «Найти» → ближайшее заведение и км; дальше 7 км — честно).
+// «Указать адрес доставки» (поиск адреса по «Найти» → ближайшее заведение и км; дальше 7 км — честно).
 // Маленькое «Сначала посмотрю меню» никого не запирает.
 // Контракт экрана — design/vitrina_v2/YADRO.md §1: pokazat / ubrat.
 
@@ -15,9 +15,8 @@ import { gost as voshel, moiAdresa } from '../rpb.js';
 const PREDEL_DOSTAVKI_KM = 7;
 /**
  * Поиск адреса — только по Enter или кнопке «Найти», одно обращение на поиск.
- * Бриф §5 предлагал подсказки на каждую паузу ввода (debounce 350 мс), но политика публичного
- * сервера Nominatim прямо запрещает автодополнение из клиентского кода, а домен витрины общий
- * для всех страниц ChikChak: бан по Referer ударил бы по всем сразу (критик, круг 2).
+ * С 24.10.2026 адрес ищется через наш сервер (DaData, как в кассе); каждый запрос платный и пишется на сеть —
+ * поиск по кнопке, а не на каждую паузу ввода, держит расход в одном запросе на адрес.
  */
 const MIN_DLINA_ADRESA = 3;
 /** Номера тех, кто ждёт доставку в свой район (демо: никуда не уходит). */
@@ -439,8 +438,7 @@ function rezhimDostavka(mesto) {
     </label>
     <button type="button" class="knopka knopka--steklo knopka--60 adres__nayti" data-nayti><svg aria-hidden="true"><use href="#ik-poisk"/></svg><span>Найти</span></button>
     <div class="podskazki" role="listbox" aria-label="Найденные адреса"></div>
-    <div class="adres__itog"></div>
-    <small class="adres__istochnik">Адреса подсказывает OpenStreetMap</small>`;
+    <div class="adres__itog"></div>`;
   const vvod = mesto.querySelector('#adres-vvod');
   const pole = mesto.querySelector('.adres__pole');
   const podskazka = mesto.querySelector('.pole__podskazka');

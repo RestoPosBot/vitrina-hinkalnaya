@@ -910,21 +910,17 @@ export function kEtomuBerut(pozicii, menyu, zavedenieId = null, n = 4) {
 }
 
 // ---------------------------------------------------------------------------
-// Подсказки адреса (Nominatim, OpenStreetMap)
+// Подсказки адреса (наш сервер → DaData)
 // ---------------------------------------------------------------------------
 
-const ADRES_NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-/**
- * Политика OSM требует называть приложение: в node без User-Agent Nominatim отвечает 403.
- * В браузере этот заголовок НЕ ставим: он не входит в безопасный список CORS, вызывает preflight,
- * на который Nominatim не отвечает, и запрос блокируется; браузер сам шлёт свой User-Agent и Referer.
- */
-const AGENT_VITRINY = 'VitrinaHinkalnaya/2 (https://client.chikchak.ai/)';
-const V_BRAUZERE = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+// 24.10.2026: раньше — публичный Nominatim (OpenStreetMap). Его правила запрещают подсказки при наборе, а касса искала
+// адрес в DaData — один адрес у гостя и кассира попадал в разные зоны. Теперь, как касса, — через наш сервер: ключ DaData
+// только там, расход записывается на сеть, у сети суточный лимит.
+const ADRES_PODSKAZOK = 'https://api.chikchak.ai/api/adresa/podskazki';
+const SET_VITRINY = 'cmbsh1diy000110v3ic2a7h1v'; // сеть «Хинкальная» (как SET_ID в rpb.js)
 
-// Политика Nominatim: не больше 1 запроса в секунду на приложение, ответы кешировать.
-// Поэтому: кеш (память + sessionStorage), очередь с интервалом 1,1 с и пауза 30 с после 429.
-const INTERVAL_ADRESA_MS = 1100;
+// Кеш (память + sessionStorage), очередь не чаще раза в 0,3 с и пауза 30 с после 429 (лимит сети или частота с адреса).
+const INTERVAL_ADRESA_MS = 300;
 const PAUZA_POSLE_LIMITA_MS = 30000;
 const KLYUCH_KESHA_ADRESOV = 'hinkalnaya.adresa.v1';
 const PREDEL_KESHA_ADRESOV = 40;
@@ -976,9 +972,9 @@ function pauzaAdresa(ms, signal) {
 }
 
 /**
- * Подсказки адреса через Nominatim (OSM), только Россия, до 5 штук.
+ * Подсказки адреса через наш сервер (DaData), до 5 штук.
  * Дребезг (debounce) — на стороне вызывающего; сама функция держит не больше одного запроса
- * в 1,1 с (политика OSM), кеширует ответы (память + sessionStorage) и после 429 30 с не ходит в сеть.
+ * в 0,3 с, кеширует ответы (память + sessionStorage) и после 429 30 с не ходит в сеть.
  * Всегда возвращает массив. Пустой массив бывает двух видов:
  * - адрес не найден — просто [];
  * - сбой сервиса — [] с полями `oshibka: true` и `prichina`:
@@ -997,12 +993,6 @@ export async function podskazatAdres(tekst, opcii = {}) {
   if (izKesha) return izKesha.map((x) => ({ ...x }));
   if ((typeof performance !== 'undefined' ? performance.now() : Date.now()) < limitDo) return sboyAdresa('limit');
 
-  const url = new URL(ADRES_NOMINATIM);
-  url.searchParams.set('format', 'jsonv2');
-  url.searchParams.set('countrycodes', 'ru');
-  url.searchParams.set('limit', '5');
-  url.searchParams.set('addressdetails', '1');
-  url.searchParams.set('q', zapros);
   let kontroller = null;
   let taymer = null;
   let signal = opcii.signal || null;
@@ -1022,20 +1012,21 @@ export async function podskazatAdres(tekst, opcii = {}) {
       if (sleduyushchiySlotAdresa === moySlot + INTERVAL_ADRESA_MS) sleduyushchiySlotAdresa = moySlot;
       return sboyAdresa('prervano');
     }
-    const zagolovki = { 'Accept-Language': 'ru' };
-    if (!V_BRAUZERE) zagolovki['User-Agent'] = AGENT_VITRINY;
-    const otvet = await fetch(url, { headers: zagolovki, signal });
+    const otvet = await fetch(ADRES_PODSKAZOK, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, signal,
+      body: JSON.stringify({ zapros, networkId: SET_VITRINY, skolko: 5 }),
+    });
     if (otvet.status === 429) { limitDo = seychas() + PAUZA_POSLE_LIMITA_MS; return sboyAdresa('limit'); }
     if (!otvet.ok) return sboyAdresa('otvet');
-    const spisok = await otvet.json();
+    const spisok = (await otvet.json())?.podskazki;
     if (!Array.isArray(spisok)) return sboyAdresa('otvet');
     const podskazki = spisok
-      .filter((x) => x && x.lat && x.lon)
+      .filter((x) => x && x.value && x.data?.geo_lat && x.data?.geo_lon)
       .map((x) => ({
-        adres: String(x.display_name || ''),
-        kratko: kratkiyAdres(x),
-        shirota: parseFloat(x.lat),
-        dolgota: parseFloat(x.lon),
+        adres: String(x.value),
+        kratko: String(x.value).replace(/^Россия, /, ''),
+        shirota: parseFloat(x.data.geo_lat),
+        dolgota: parseFloat(x.data.geo_lon),
       }))
       .filter((x) => Number.isFinite(x.shirota) && Number.isFinite(x.dolgota));
     zapomnitAdresa(klyuch, podskazki);
@@ -1049,12 +1040,3 @@ export async function podskazatAdres(tekst, opcii = {}) {
   }
 }
 
-/** Короткая строка адреса из ответа Nominatim: улица, дом, город. */
-function kratkiyAdres(x) {
-  const a = x.address || {};
-  const ulica = a.road || a.pedestrian || a.residential || a.neighbourhood || a.suburb || '';
-  const dom = a.house_number || '';
-  const gorod = a.city || a.town || a.village || a.municipality || a.state || '';
-  const chasti = [[ulica, dom].filter(Boolean).join(', '), gorod].filter(Boolean);
-  return chasti.length ? chasti.join(', ') : String(x.display_name || '').split(',').slice(0, 3).join(',').trim();
-}
