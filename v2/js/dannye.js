@@ -916,7 +916,7 @@ export function kEtomuBerut(pozicii, menyu, zavedenieId = null, n = 4) {
 // 24.10.2026: раньше — публичный Nominatim (OpenStreetMap). Его правила запрещают подсказки при наборе, а касса искала
 // адрес в DaData — один адрес у гостя и кассира попадал в разные зоны. Теперь, как касса, — через наш сервер: ключ DaData
 // только там, расход записывается на сеть, у сети суточный лимит.
-const ADRES_PODSKAZOK = 'https://api.chikchak.ai/api/adresa/podskazki';
+const ADRES_PODSKAZOK = 'https://api.chikchak.ai/api/adresa/podskazki-gostyu'; // гостевой лимит сети, касса считается отдельно
 const SET_VITRINY = 'cmbsh1diy000110v3ic2a7h1v'; // сеть «Хинкальная» (как SET_ID в rpb.js)
 
 // Кеш (память + sessionStorage), очередь не чаще раза в 0,3 с и пауза 30 с после 429 (лимит сети или частота с адреса).
