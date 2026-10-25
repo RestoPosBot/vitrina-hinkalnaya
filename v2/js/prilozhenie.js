@@ -1106,8 +1106,10 @@ if (window.visualViewport) {
   const podnyat = () => {
     const vysota = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
     document.documentElement.style.setProperty('--klaviatura', `${vysota}px`);
+    // экран «Адрес» держит поле посередине — с клавиатурой поле и подсказки уходили под неё (Б-27)
+    document.documentElement.classList.toggle('klaviatura-otkryta', vysota > 80);
     const pole = document.activeElement;
-    if (vysota && pole && pole.matches?.('.shtorka input, .shtorka textarea')) pole.scrollIntoView({ block: 'nearest' });
+    if (vysota && pole && pole.matches?.('input, textarea')) pole.scrollIntoView({ block: 'nearest' });
   };
   vv.addEventListener('resize', podnyat);
   vv.addEventListener('scroll', podnyat);

@@ -1138,6 +1138,7 @@ body.est-shtorka .hinkalik--plavayushchiy { z-index: 30; }
    ========================================================================= */
 .ekran--adres { display: flex; flex-direction: column; }
 .adres { display: flex; flex-direction: column; flex: 1; justify-content: center; padding-bottom: 24px; }
+.klaviatura-otkryta .adres { justify-content: flex-start; }   /* поле и подсказки — над клавиатурой (Б-27) */
 .adres--otkryt { justify-content: flex-start; padding-bottom: 0; }
 .adres__nazad { position: absolute; top: calc(16px + env(safe-area-inset-top)); left: var(--polya); z-index: 2; }
 .adres__geroy { display: grid; place-items: center; padding-top: 88px; transition: padding .45s var(--pr-myagkaya); }

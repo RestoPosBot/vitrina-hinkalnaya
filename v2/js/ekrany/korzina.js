@@ -87,6 +87,7 @@ export function pokazat(kontejner, yadro_, parametry) {
 
   otpiski.push(yadro.korzina.na('izmenilas', (sobytie) => obnovit(sobytie)));
   otpiski.push(yadro.na('gost', () => obnovit({ tip: 'gost' })));
+  otpiski.push(yadro.na('skidka', () => obnovit({ tip: 'gost' })));   // акция пришла после смены способа (Б-26)
 
   upr = shtorka(el, {
     cvetFona: 'rgba(60, 25, 10, .28)',

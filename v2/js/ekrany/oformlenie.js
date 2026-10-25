@@ -195,7 +195,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
         </label>
         <label class="pole" data-pole="telefon">
           <span class="pole__metka">Телефон</span>
-          <input class="pole__vvod" name="telefon" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" placeholder="+7 (___) ___-__-__" maxlength="18">
+          <input class="pole__vvod" name="telefon" type="tel" inputmode="tel" autocomplete="tel" enterkeyhint="next" placeholder="+7 (___) ___-__-__">
           <span class="pole__podskazka">Позвоним, только если что-то закончится</span>
         </label>
         <label class="pole pole--tekst" data-pole="kommentariy">
@@ -256,6 +256,9 @@ export function pokazat(kontejner_, yadro_, parametry) {
   zakazat.addEventListener('click', () => zakazat_());
 
   otpiski.push(yadro.na('gost', () => obnovitVse()));
+  // акции у самовывоза и доставки разные и приходят с сервера позже смены способа: без этого «Самовывоз −10 %»
+  // оставался в сумме доставки (прогон на Андроиде 26.10.2026, Б-26)
+  otpiski.push(yadro.na('skidka', () => obnovitVse()));
   otpiski.push(yadro.korzina.na('izmenilas', () => {
     if (zakazano) return;
     if (yadro.korzina.pusta()) { yadro.perejti('#/', { zamenit: true }); return; }

@@ -16,8 +16,8 @@
 //                                                          личная скидка вычитается на сервере
 // Заказ идёт через POST /orders, а НЕ /orders/client: клиентский требует подключённую
 // ЮKassa и падает «Платежная система недоступна» (order.service.ts:527).
-// Заведения — свой файл zavedeniya.json: публичные GET /restaurants и /restaurants/by-id/:id
-// отдают сотрудников с хешами паролей и весят 0,3-2 МБ, гостю такое грузить нельзя.
+// Заведения — свой файл zavedeniya.json (адреса, точки, фото); часы работы — из GET /restaurants/by-id/:id
+// (с 24.10 он отдаёт 2–3 КБ без сотрудников; раньше отдавал хеши паролей и весил до 2 МБ).
 
 import { konturZony } from './dannye.js';
 
@@ -124,6 +124,39 @@ function blyudoIzTovara(tovar, nashi, dopolnenie) {
   };
 }
 
+const DNI_PANELI = [['mo', 'monday'], ['tu', 'tuesday'], ['we', 'wednesday'], ['th', 'thursday'], ['fr', 'friday'], ['sa', 'saturday'], ['su', 'sunday']];
+
+/** Минуты от полуночи в поясе заведения: в панели время хранится как момент 2026-01-01 в UTC. */
+function minutyVPoyase(moment, poyas) {
+  const [ch, m] = new Intl.DateTimeFormat('ru-RU', { timeZone: poyas, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .format(new Date(moment)).split(':').map(Number);
+  return ch * 60 + m;
+}
+
+/**
+ * Часы работы заведений из панели (GET /restaurants/by-id/:id, 2–3 КБ без сотрудников) в виде файла витрины:
+ * {mo: [от, до] в минутах, …, su: null — выходной}; «до» за полночь — больше 1440. Не ответило — заведения нет в ответе.
+ * @param {string[]} idy
+ * @returns {Promise<Map<string, object>>}
+ */
+async function chasyIzPaneli(idy) {
+  const otvety = await Promise.all(idy.map((id) => zapros(`${BAZA}/restaurants/by-id/${encodeURIComponent(id)}`, { srok: 4000 }).catch(() => null)));
+  const out = new Map();
+  otvety.forEach((r, i) => {
+    if (!r || !DNI_PANELI.some(([, d]) => r[`${d}Open`])) return;
+    const poyas = r.timezone || 'Europe/Moscow';
+    const chasy = {};
+    for (const [k, d] of DNI_PANELI) {
+      if (r[`${d}IsWorking`] === false || !r[`${d}Open`] || !r[`${d}Close`]) { chasy[k] = null; continue; }
+      const ot = minutyVPoyase(r[`${d}Open`], poyas);
+      const do_ = minutyVPoyase(r[`${d}Close`], poyas);
+      chasy[k] = [ot, do_ > ot ? do_ : do_ + 1440];
+    }
+    out.set(idy[i], chasy);
+  });
+  return out;
+}
+
 /**
  * Собирает меню витрины из живого RPB.
  * Гостю попадают только товары с publishedInApp — правило владельца: видно то, что показано в приложении.
@@ -132,14 +165,18 @@ function blyudoIzTovara(tovar, nashi, dopolnenie) {
  */
 export async function sobratMenyu(opcii = {}) {
   const setId = opcii.setId || SET_ID;
-  const [tovary, derevo, zavFayl, dopFayl] = await Promise.all([
+  const fayl = fetch(ADRES_ZAVEDENIY, { cache: 'no-cache' }).then((o) => o.json());
+  const [tovary, derevo, zavFayl, dopFayl, chasy] = await Promise.all([
     zapros(`${BAZA}/products/by-network/${setId}`, { srok: 25000 }),
     zapros(`${BAZA}/categories/network/${setId}/tree`, { srok: 20000 }).catch(() => []),
-    fetch(ADRES_ZAVEDENIY, { cache: 'no-cache' }).then((o) => o.json()),
+    fayl,
     fetch(ADRES_DOPOLNENIYA, { cache: 'no-cache' }).then((o) => o.json()).catch(() => ({ blyuda: {} })),
+    // часы — из панели, пока меню ещё грузится; в файле у всех стоят «по умолчанию», и витрина писала
+    // «часы уточняйте», хотя в панели 11:00–22:00 (Б-28, 26.10.2026)
+    fayl.then((f) => chasyIzPaneli((f.zavedeniya || []).map((z) => z.id))).catch(() => new Map()),
   ]);
 
-  const zavedeniya = (zavFayl.zavedeniya || []).map((z) => ({ ...z }));
+  const zavedeniya = (zavFayl.zavedeniya || []).map((z) => (chasy.has(z.id) ? { ...z, chasy: chasy.get(z.id) } : { ...z }));
   const nashi = new Set(zavedeniya.map((z) => z.id));
   const dopolnenie = dopFayl.blyuda || {};
 

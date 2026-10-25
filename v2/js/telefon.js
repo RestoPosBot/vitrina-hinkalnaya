@@ -55,7 +55,8 @@ export function maskaNaPole(vvod, naIzmenenie) {
       else if (e.inputType === 'deleteContentForward' && sleva < nomer.length) nomer = nomer.slice(0, sleva) + nomer.slice(sleva + 1);
     }
     bylo = nomer;
-    vvod.value = maskaNomera(nomer, kod);
+    // набрали только «+» — ждём 7 гостя, а не подставляем свою: иначе его «+7» становилось «+7 (7…» (Б-25, 26.10.2026)
+    vvod.value = syroe.trim() === '+' ? '+' : maskaNomera(nomer, kod);
     const poz = kursor >= syroe.length ? vvod.value.length : poziciya(vvod.value, sleva);
     try { vvod.setSelectionRange(poz, poz); } catch { /* не все поля умеют */ }
     if (naIzmenenie) naIzmenenie(nomer);
