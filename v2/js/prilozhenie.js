@@ -1104,8 +1104,20 @@ window.addEventListener('online', () => yadro.tost('Сеть вернулась'
 
 function zaregistrirovatSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  // Новая версия вышла, пока витрина открыта или открыта ещё вкладка: ставим её сразу и перезагружаем вкладки.
+  // Раньше она ждала, пока закроют все вкладки, — 25.10.2026 починенная маска телефона так и не дошла до владельца.
+  // sw.js встаёт сразу (skipWaiting при установке); первая установка — не повод перезагружаться
+  let bylaVersiya = !!navigator.serviceWorker.controller;
+  let perezagruzka = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (bylaVersiya && !perezagruzka) { perezagruzka = true; location.reload(); }
+    bylaVersiya = true;
+  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* без оффлайна витрина тоже работает */ });
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      // вернулись в открытую вкладку — спросить, нет ли новой версии
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+    }).catch(() => { /* без оффлайна витрина тоже работает */ });
   });
 }
 
