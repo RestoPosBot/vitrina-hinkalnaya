@@ -1109,7 +1109,8 @@ if (window.visualViewport) {
     // экран «Адрес» держит поле посередине — с клавиатурой поле и подсказки уходили под неё (Б-27)
     document.documentElement.classList.toggle('klaviatura-otkryta', vysota > 80);
     const pole = document.activeElement;
-    if (vysota && pole && pole.matches?.('input, textarea')) pole.scrollIntoView({ block: 'nearest' });
+    // поле адреса — к верху экрана: под ним список подсказок, иначе над клавиатурой виднелась одна из пяти (Б-27)
+    if (vysota && pole && pole.matches?.('input, textarea')) pole.scrollIntoView({ block: pole.id === 'adres-vvod' ? 'start' : 'nearest' });
   };
   vv.addEventListener('resize', podnyat);
   vv.addEventListener('scroll', podnyat);
