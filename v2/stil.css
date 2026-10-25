@@ -819,10 +819,10 @@ img { max-width: 100%; }
 .sloy-shtorok { position: relative; z-index: 40; }
 .shtorka-fon { position: fixed; inset: 0; z-index: 40; background: rgba(60, 25, 10, .28); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; }
 .shtorka {
-  position: fixed; left: 50%; bottom: 0;
+  position: fixed; left: 50%; bottom: var(--klaviatura, 0px);   /* над клавиатурой телефона (prilozhenie.js) */
   translate: -50% 0;
   width: min(100%, var(--shirina));
-  max-height: calc(100dvh - 24px - env(safe-area-inset-top));
+  max-height: calc(100dvh - var(--klaviatura, 0px) - 24px - env(safe-area-inset-top));
   z-index: 41;
   display: flex; flex-direction: column;
   border-radius: var(--r-shtorka) var(--r-shtorka) 0 0;

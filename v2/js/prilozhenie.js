@@ -1099,6 +1099,20 @@ window.addEventListener('hashchange', () => zaplanirovat());
 // Сеть
 // ---------------------------------------------------------------------------
 
+// Клавиатура телефона накрывала низ шторки — поле кода из СМС на Андроиде (владелец 25.10.2026). Шторка стоит
+// над клавиатурой: --klaviatura — сколько экрана снизу она заняла; поле в фокусе прокручивается в видимую часть.
+if (window.visualViewport) {
+  const vv = window.visualViewport;
+  const podnyat = () => {
+    const vysota = Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop));
+    document.documentElement.style.setProperty('--klaviatura', `${vysota}px`);
+    const pole = document.activeElement;
+    if (vysota && pole && pole.matches?.('.shtorka input, .shtorka textarea')) pole.scrollIntoView({ block: 'nearest' });
+  };
+  vv.addEventListener('resize', podnyat);
+  vv.addEventListener('scroll', podnyat);
+}
+
 window.addEventListener('offline', () => yadro.tost('Нет сети. Меню открыто из памяти — смотреть и собирать корзину можно', { ms: 3600 }));
 window.addEventListener('online', () => yadro.tost('Сеть вернулась', { vid: 'uspeh' }));
 
