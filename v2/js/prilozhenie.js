@@ -777,7 +777,8 @@ function razobrat(hash) {
   if (!MARSHRUTY[imya] || imya === 'glavnaya' && chasti.length) return { imya: 'glavnaya', id: null, nomer: null, put: '#/' };
   return {
     imya,
-    id: imya === 'blyudo' ? decodeURIComponent(chasti[1] || '') : null,
+    // #/adres/dostavka — экран адреса сразу на доставке (25.10.2026: из оформления не через выбор «Где вы?»)
+    id: imya === 'blyudo' || imya === 'adres' ? decodeURIComponent(chasti[1] || '') : null,
     nomer: imya === 'gotovo' ? decodeURIComponent(chasti[1] || '') : null,
     put: imya === 'glavnaya' ? '#/' : put,
   };

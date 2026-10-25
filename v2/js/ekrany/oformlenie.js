@@ -426,7 +426,9 @@ function narisovatMesto() {
   mesto.classList.remove('oshibka');
   const knopka = mesto.querySelector('[data-k-adresu]');
   nazhatie(knopka, { masshtab: 0.97 });
-  knopka.addEventListener('click', () => yadro.perejti('#/adres', { istochnik: knopka }));
+  // доставка — сразу на поле адреса, без выбора «Где вы?» (владелец 25.10 не нашёл «Определить по местоположению»)
+  const kuda = sposob === 'dostavka' ? '#/adres/dostavka' : '#/adres';
+  knopka.addEventListener('click', () => yadro.perejti(kuda, { istochnik: knopka }));
   const sam = mesto.querySelector('[data-sam-daleko]');
   if (sam) {
     nazhatie(sam, { masshtab: 0.95 });
@@ -440,7 +442,7 @@ function narisovatMesto() {
   const drugoy = mesto.querySelector('[data-drugoy-adres]');
   if (drugoy) {
     nazhatie(drugoy, { masshtab: 0.95 });
-    drugoy.addEventListener('click', () => yadro.perejti('#/adres', { istochnik: knopka }));
+    drugoy.addEventListener('click', () => yadro.perejti(kuda, { istochnik: knopka }));
   }
 }
 

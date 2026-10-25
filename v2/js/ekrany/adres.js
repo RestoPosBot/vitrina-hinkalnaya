@@ -877,6 +877,8 @@ export function pokazat(kontejner, yadro, parametry = {}) {
     nazhatie(k, { masshtab: 0.95 });
     k.addEventListener('click', () => otkryt(k.dataset.rezhim, k));
   });
+  // #/adres/dostavka: гость уже сказал «доставка» (оформление) — сразу поле адреса и «Определить по местоположению»
+  if (parametry.id === 'dostavka') otkryt('dostavka', knopki.find((k) => k.dataset.rezhim === 'dostavka'));
   const potom = koren.querySelector('.adres__potom');
   nazhatie(potom, { masshtab: 0.95, vibro: false });
   potom.addEventListener('click', posmotretMenyu);
