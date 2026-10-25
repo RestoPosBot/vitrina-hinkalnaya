@@ -18,7 +18,7 @@ import { Hinkalik } from '../hinkalik.js';
 // здесь свой, маленький, в шапке рядом с заголовком.
 export const nastroyki = { niz: false, hinkalik: false };
 
-/** Радиус доставки — тот же, что на экране адреса (бриф §6.3). */
+/** Радиус доставки для адреса, сохранённого до зон доставки (бриф §6.3); новый адрес несёт свои зоны (экран адреса). */
 const PREDEL_DOSTAVKI_KM = 7;
 /** «Сейчас» предлагаем, только если до закрытия успеем приготовить и отдать с запасом. */
 const ZAPAS_DO_ZAKRYTIYA = 10;
@@ -355,8 +355,19 @@ function kmTekst(km) {
 }
 
 /**
+ * Кто возит на адрес гостя, ближние первыми: заведения, в чью зону доставки попал адрес (экран адреса кладёт их
+ * в adres.zony); адрес, сохранённый до зон, — все в 7 км.
+ * @returns {{zavedenie: object, km: number}[]}
+ */
+function vezutNaAdres(a) {
+  const spisok = blizhayshieZavedeniya(a.shirota, a.dolgota, yadro.menyu).filter((x) => x.km != null);
+  if (!Array.isArray(a.zony)) return spisok.filter((x) => x.km <= PREDEL_DOSTAVKI_KM);
+  return spisok.filter((x) => a.zony.some((z) => z.zavedenieId === x.zavedenie.id));
+}
+
+/**
  * Возим ли по адресу гостя (тупик 3). Адрес мог остаться с экрана адреса, где сказали «доставки нет»
- * и выбрали самовывоз, — при переключении на доставку сверяем расстояние заново.
+ * и выбрали самовывоз, — при переключении на доставку сверяем заново.
  * @returns {null | { km: number, zav: object|null, blizhe: {zavedenie, km}|null }} null — возим или проверить нечем
  */
 function dalekoDlyaDostavki() {
@@ -364,10 +375,11 @@ function dalekoDlyaDostavki() {
   if (!koordinaty(a)) return null;
   const zav = yadro.zavedenie();
   const spisok = blizhayshieZavedeniya(a.shirota, a.dolgota, yadro.menyu).filter((x) => x.km != null);
-  const blizhe = spisok.find((x) => x.km <= PREDEL_DOSTAVKI_KM) || null;
+  const vezut = vezutNaAdres(a);
+  const blizhe = vezut[0] || null;
   if (koordinaty(zav)) {
+    if (vezut.some((x) => x.zavedenie.id === zav.id)) return null;
     const km = rasstoyanieKm(a.shirota, a.dolgota, zav.shirota, zav.dolgota);
-    if (km <= PREDEL_DOSTAVKI_KM) return null;
     return { km, zav, blizhe: blizhe && blizhe.zavedenie.id !== zav.id ? blizhe : null };
   }
   if (!spisok.length || blizhe) return null;
@@ -400,7 +412,7 @@ function narisovatMesto() {
       } else if (daleko) {
         html += `<div class="preduprezhdenie oformlenie__daleko" style="margin-top:12px">
           <b>Доставки сюда пока нет</b>
-          <p>Возим до ${PREDEL_DOSTAVKI_KM}${TONKIY}км от заведения. Заберите сами — без минимальной суммы — или укажите другой адрес.</p>
+          <p>Адрес вне зоны доставки. Заберите сами — без минимальной суммы — или укажите другой адрес.</p>
           <div class="preduprezhdenie__knopki">
             <button type="button" class="knopka knopka--glavnaya" data-sam-daleko>Заберу сам</button>
             <button type="button" class="knopka knopka--steklo" data-drugoy-adres>Другой адрес</button>
@@ -877,12 +889,12 @@ async function zakazat_() {
     .finally(() => k.ochistit());
 }
 
-/** Ближайшая кухня в радиусе доставки по адресу гостя — когда заведение не выбрано вручную. */
+/** Ближайшая кухня, которая возит по адресу гостя, — когда заведение не выбрано вручную. */
 function blizhayshayaKuhnya() {
   const a = yadro.gost.adres;
   if (!a || !Number.isFinite(Number(a.shirota)) || !Number.isFinite(Number(a.dolgota))) return null;
-  const spisok = blizhayshieZavedeniya(Number(a.shirota), Number(a.dolgota), yadro.menyu)
-    .filter((x) => x.km != null && x.km <= PREDEL_DOSTAVKI_KM && x.zavedenie.prinimaet !== false);
+  const spisok = vezutNaAdres({ ...a, shirota: Number(a.shirota), dolgota: Number(a.dolgota) })
+    .filter((x) => x.zavedenie.prinimaet !== false);
   return spisok.length ? spisok[0].zavedenie.id : null;
 }
 

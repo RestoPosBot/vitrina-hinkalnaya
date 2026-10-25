@@ -11,12 +11,15 @@
 //   GET  /customers/:id/discounts/:restaurantId          — личная скидка (нужен токен)
 //   POST /customers/:id/qr                      @DlyaGostya — QR для кассира на 2 минуты, один раз
 //   POST /customers/refresh-token               @Public  — {refreshToken} -> новые токены
+//   GET  /delivery-zones/restaurant/:id         @Public  — зоны доставки заведения (контур WKT, минимум, приоритет)
 //   POST /orders                                @Public  — настоящий заказ, оплата CASH/PENDING,
 //                                                          личная скидка вычитается на сервере
 // Заказ идёт через POST /orders, а НЕ /orders/client: клиентский требует подключённую
 // ЮKassa и падает «Платежная система недоступна» (order.service.ts:527).
 // Заведения — свой файл zavedeniya.json: публичные GET /restaurants и /restaurants/by-id/:id
 // отдают сотрудников с хешами паролей и весят 0,3-2 МБ, гостю такое грузить нельзя.
+
+import { konturZony } from './dannye.js';
 
 const BAZA = 'https://api.chikchak.ai/api';
 
@@ -281,6 +284,25 @@ export async function lichnayaSkidka(zavedenieId, sposob) {
   } catch {
     return { procent: 0, est: false, potolki: {} };
   }
+}
+
+let zagruzkaZon = null;
+/**
+ * Зоны доставки всех заведений — те, что рисуют в панели (GET /delivery-zones/restaurant/:id, @Public), раз за открытие сайта.
+ * Не ответило хоть одно заведение — null: экраны решают по-старому, по 7 км, чтобы не закрыть доставку его району.
+ * @param {{id: string}[]} zavedeniya
+ * @returns {Promise<Array<{zavedenieId, nazvanie, cena, min, prioritet, cvet, kontur}>|null>}
+ */
+export function zonyDostavki(zavedeniya) {
+  if (zagruzkaZon) return zagruzkaZon;
+  zagruzkaZon = Promise.all((zavedeniya || []).map((z) => zapros(`${BAZA}/delivery-zones/restaurant/${encodeURIComponent(z.id)}`)
+    .then((spisok) => (Array.isArray(spisok) ? spisok : []).map((x) => ({
+      zavedenieId: z.id, nazvanie: x.title, cena: Number(x.price) || 0, min: Number(x.minOrder) || 0,
+      prioritet: Number(x.priority) || 0, cvet: x.color || null, kontur: konturZony(x.polygon),
+    })))))
+    .then((vse) => vse.flat())
+    .catch(() => { zagruzkaZon = null; return null; });
+  return zagruzkaZon;
 }
 
 /**

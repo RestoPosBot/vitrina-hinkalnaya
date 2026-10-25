@@ -2,17 +2,17 @@
 // Бриф §5 «Первый экран», §6 тупики 3 и 4; DIZAYN §3.16, §3.17, §4.5, §7.
 // Три пути: «Я рядом» (геолокация → ближайшие), «Выбрать заведение» (все 7),
 // «Указать адрес доставки» (подсказки при наборе или «Определить по местоположению» — метка на Яндекс Карте →
-// ближайшее заведение и км; дальше 7 км — честно).
+// кто везёт — по зонам доставки из панели (25.10.2026), их видно на карте; вне зон — честно).
 // Маленькое «Сначала посмотрю меню» никого не запирает.
 // Контракт экрана — design/vitrina_v2/YADRO.md §1: pokazat / ubrat.
 
 import { nazhatie, poyavlenieKaskadom, pruzhina, dvizhenieSnyato, vibro } from '../dvizhenie.js';
-import { adresPoTochke, blizhayshieZavedeniya, otkrytoSeychas, podskazatAdres } from '../dannye.js';
+import { adresPoTochke, blizhayshieZavedeniya, ktoVezet, otkrytoSeychas, podskazatAdres } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
-import { gost as voshel, moiAdresa } from '../rpb.js';
+import { gost as voshel, moiAdresa, zonyDostavki } from '../rpb.js';
 
-/** Дальше этого — доставки нет (бриф §5, тупик 3). */
+/** Дальше этого — доставки нет (бриф §5, тупик 3), если зоны доставки не загрузились. */
 const PREDEL_DOSTAVKI_KM = 7;
 /**
  * Подсказки адреса — после паузы в наборе (владелец 25.10.2026: кнопка «Найти» мешала). Адрес ищется через наш сервер
@@ -565,6 +565,7 @@ async function pokazatKartu(mesto, vvod, podskazka, spisok, itog) {
     { center: est ? [tochka.shirota, tochka.dolgota] : [55.751, 37.618], zoom: est ? 17 : 11, controls: ['zoomControl'] },
     { suppressMapOpenBlock: true });
   s.karta = karta;
+  void narisovatZony(ymaps, karta);
   const metka = blok.querySelector('.adres__karta-metka');
   // метка приподнимается, пока карту тянут, и встаёт на место пружиной — видно, куда она опустится
   const metkaVverh = (vverh) => {
@@ -595,6 +596,23 @@ async function pokazatKartu(mesto, vvod, podskazka, spisok, itog) {
       ? 'Доступ к месту закрыт — подвиньте карту, чтобы метка встала на ваш дом'
       : 'Не получилось определить, где вы — подвиньте карту, чтобы метка встала на ваш дом';
     skazat('Подвиньте карту к своему дому', 'obychno');
+  }
+}
+
+/**
+ * Зоны доставки на карте гостя — те же контуры и цвета, что в панели. Карта под ними двигается как обычно (события
+ * проходят сквозь). Снизу — зоны с большим минимумом (внешние, «Серая»), сверху — с меньшим (внутренние, «Зелёная»).
+ */
+async function narisovatZony(ymaps, karta) {
+  const zony = await zonyDostavki(s?.yadro.menyu?.zavedeniya);
+  if (!zony || !s || s.karta !== karta) return;
+  const poryadok = zony.filter((z) => z.kontur.length).sort((a, b) => b.min - a.min || a.prioritet - b.prioritet);
+  for (const z of poryadok) {
+    const cvet = z.cvet || '#3B82F6';
+    karta.geoObjects.add(new ymaps.Polygon([z.kontur], {}, {
+      fillColor: cvet, fillOpacity: 0.12, strokeColor: cvet, strokeOpacity: 0.6, strokeWidth: 2,
+      interactivityModel: 'default#transparent',
+    }));
   }
 }
 
@@ -665,26 +683,37 @@ async function zaprositPodskazki(zapros, vvod, podskazka, spisok, itog) {
   poyavlenieKaskadom(punkty, 40);
 }
 
-function vybratAdres(p, vvod, podskazka, spisok, itog) {
+async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   if (!s) return;
   const { yadro } = s;
   vibro(8);
   vvod.value = p.kratko;
   vvod.blur();
   spisok.innerHTML = '';
-  const adres = { tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota, ...(p.dop || {}) };
-  const blizhayshee = blizhayshieZavedeniya(p.shirota, p.dolgota, yadro.menyu).find((x) => x.km != null);
   itog.innerHTML = '';
+  const moy = s.vyborAdresa = (s.vyborAdresa || 0) + 1;
+  const zony = await zonyDostavki(yadro.menyu?.zavedeniya);
+  if (!s || s.vyborAdresa !== moy) return; // пока грузились зоны, гость выбрал другой адрес или ушёл
+  const blizhayshee = blizhayshieZavedeniya(p.shirota, p.dolgota, yadro.menyu).find((x) => x.km != null);
   if (!blizhayshee) {
     podskazka.textContent = 'Не смогли посчитать расстояние — выберите заведение';
     return;
   }
-  const z = blizhayshee.zavedenie;
-  if (blizhayshee.km <= PREDEL_DOSTAVKI_KM) {
+  // возим, если адрес в зоне доставки заведения (как в кассе); зоны не загрузились — по-старому, 7 км до ближайшего
+  const vezut = zony
+    ? ktoVezet(p.shirota, p.dolgota, yadro.menyu, zony)
+    : (blizhayshee.km <= PREDEL_DOSTAVKI_KM ? [blizhayshee] : []);
+  // кто везёт сюда — с адресом: оформление и минимум корзины решают по нему; без поля zony — старое правило 7 км
+  const adres = {
+    tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota, ...(p.dop || {}),
+    ...(zony ? { zony: vezut.map((x) => ({ zavedenieId: x.zavedenie.id, km: x.km, min: x.zona.min })) } : {}),
+  };
+  if (vezut.length) {
+    const { zavedenie: z, zona } = vezut[0];
     podskazka.textContent = 'Адрес понятен';
-    const min = Number(z.min_zakaz) > 0 ? Number(z.min_zakaz) : MIN_DOSTAVKI;
+    const min = zona?.min > 0 ? zona.min : Number(z.min_zakaz) > 0 ? Number(z.min_zakaz) : MIN_DOSTAVKI;
     itog.innerHTML = `<div class="metka adres__metka">Привезём из</div>`;
-    const karta = kartochkaZavedeniya(z, blizhayshee.km, {
+    const karta = kartochkaZavedeniya(z, vezut[0].km, {
       vybrano: true,
       naVybor: (zz, el) => { yadro.obnovitGostya({ sposob: 'dostavka', adres }); vybrano(zz.id, el.querySelector('.zavedenie__nazvanie')); },
     });
@@ -698,10 +727,11 @@ function vybratAdres(p, vvod, podskazka, spisok, itog) {
     knopka.addEventListener('click', () => { yadro.obnovitGostya({ sposob: 'dostavka', adres }); vybrano(z.id, karta.querySelector('.zavedenie__nazvanie')); });
     itog.appendChild(knopka);
     poyavlenieKaskadom(itog.children, 60);
-    skazat(`Привезём из заведения «${z.nazvanie}» — ${km(blizhayshee.km)}`, 'rad');
+    skazat(`Привезём из заведения «${z.nazvanie}» — ${km(vezut[0].km)}`, 'rad');
     return;
   }
-  // Дальше 7 км — честно (бриф §6.3, DIZAYN §3.17, текст §7 №18)
+  // Вне зон доставки — честно (бриф §6.3, DIZAYN §3.17, текст §7 №18)
+  const z = blizhayshee.zavedenie;
   podskazka.textContent = 'Адрес понятен';
   itog.innerHTML = `
     <div class="preduprezhdenie adres__daleko">

@@ -651,6 +651,59 @@ export function blizhayshieZavedeniya(shirota, dolgota, menyu) {
 }
 
 // ---------------------------------------------------------------------------
+// Зоны доставки (те же, что рисуют в панели, 25.10.2026)
+// ---------------------------------------------------------------------------
+
+/**
+ * Контур зоны из WKT панели «POLYGON((долгота широта, …))» → [[широта, долгота], …] (порядок Яндекс Карт).
+ * Не разобрали или меньше трёх точек — [] (такая зона никого не накрывает).
+ * @param {string} wkt
+ * @returns {number[][]}
+ */
+export function konturZony(wkt) {
+  const m = /POLYGON\s*\(\s*\(\s*(.+?)\s*\)\s*\)/i.exec(String(wkt ?? ''));
+  if (!m) return [];
+  const tochki = m[1].split(',')
+    .map((para) => para.trim().split(/\s+/).map(Number))
+    .filter(([d, sh]) => koordinataCela(d) && koordinataCela(sh))
+    .map(([d, sh]) => [sh, d]);
+  return tochki.length >= 3 ? tochki : [];
+}
+
+/** Точка внутри контура — луч вправо, как на сервере (delivery-zone.service.ts pointInPolygon). */
+export function vnutriKontura(shirota, dolgota, kontur) {
+  let vnutri = false;
+  for (let i = 0, j = kontur.length - 1; i < kontur.length; j = i++) {
+    const [si, di] = kontur[i];
+    const [sj, dj] = kontur[j];
+    if ((si > shirota) !== (sj > shirota) && dolgota < ((dj - di) * (shirota - si)) / (sj - si) + di) vnutri = !vnutri;
+  }
+  return vnutri;
+}
+
+/**
+ * Кто везёт на точку: заведения, чья зона накрывает точку, по возрастанию км. У заведения берётся накрывшая зона
+ * с высшим приоритетом — как сервер выбирает её для кассы (coverage/check): у неё минимум заказа и цена.
+ * @param {number} shirota
+ * @param {number} dolgota
+ * @param {object} menyu
+ * @param {{zavedenieId: string, prioritet: number, kontur: number[][]}[]} zony
+ * @returns {{zavedenie: object, km: number, zona: object}[]}
+ */
+export function ktoVezet(shirota, dolgota, menyu, zony) {
+  if (!koordinataCela(shirota) || !koordinataCela(dolgota)) return [];
+  const luchshaya = new Map();
+  for (const z of zony || []) {
+    if (!vnutriKontura(shirota, dolgota, z.kontur || [])) continue;
+    const byla = luchshaya.get(z.zavedenieId);
+    if (!byla || z.prioritet > byla.prioritet) luchshaya.set(z.zavedenieId, z);
+  }
+  return blizhayshieZavedeniya(shirota, dolgota, menyu)
+    .filter((x) => x.km != null && luchshaya.has(x.zavedenie.id))
+    .map((x) => ({ ...x, zona: luchshaya.get(x.zavedenie.id) }));
+}
+
+// ---------------------------------------------------------------------------
 // Часы работы (минуты от полуночи по Москве)
 // ---------------------------------------------------------------------------
 

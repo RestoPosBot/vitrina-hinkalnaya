@@ -286,6 +286,9 @@ const yadro = {
   },
   minZakaz() {
     const z = yadro.zavedenie();
+    // у зоны доставки адреса свой минимум (Зелёная от 800 ₽, Серая от 5 000 ₽) — он главнее минимума заведения
+    const zona = gost.sposob === 'dostavka' && z ? gost.adres?.zony?.find?.((x) => x.zavedenieId === z.id) : null;
+    if (zona?.min > 0) return zona.min;
     return Number(z?.min_zakaz) > 0 ? Number(z.min_zakaz) : MIN_DOSTAVKI;
   },
   /**
