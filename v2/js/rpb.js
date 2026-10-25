@@ -294,6 +294,7 @@ let zagruzkaZon = null;
  * @returns {Promise<Array<{zavedenieId, nazvanie, cena, min, prioritet, cvet, kontur}>|null>}
  */
 export function zonyDostavki(zavedeniya) {
+  if (!zavedeniya?.length) return Promise.resolve(null);   // меню ещё не загрузилось — пустоту не запоминаем
   if (zagruzkaZon) return zagruzkaZon;
   zagruzkaZon = Promise.all((zavedeniya || []).map((z) => zapros(`${BAZA}/delivery-zones/restaurant/${encodeURIComponent(z.id)}`)
     .then((spisok) => (Array.isArray(spisok) ? spisok : []).map((x) => ({

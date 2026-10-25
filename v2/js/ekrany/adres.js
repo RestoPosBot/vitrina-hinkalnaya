@@ -691,9 +691,11 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   vvod.blur();
   spisok.innerHTML = '';
   itog.innerHTML = '';
+  const ekran = s;
   const moy = s.vyborAdresa = (s.vyborAdresa || 0) + 1;
+  podskazka.textContent = 'Проверяем, возим ли сюда…';
   const zony = await zonyDostavki(yadro.menyu?.zavedeniya);
-  if (!s || s.vyborAdresa !== moy) return; // пока грузились зоны, гость выбрал другой адрес или ушёл
+  if (s !== ekran || s.vyborAdresa !== moy) return; // пока грузились зоны, гость выбрал другой адрес или ушёл с экрана
   const blizhayshee = blizhayshieZavedeniya(p.shirota, p.dolgota, yadro.menyu).find((x) => x.km != null);
   if (!blizhayshee) {
     podskazka.textContent = 'Не смогли посчитать расстояние — выберите заведение';
