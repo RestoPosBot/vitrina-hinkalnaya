@@ -12,6 +12,7 @@ import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo
 import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
 import { otpravitZakaz } from '../rpb.js';
+import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 import { Hinkalik } from '../hinkalik.js';
 
 // Плавающий Хинкалик на экране без нижней навигации закрывал суммы и поля —
@@ -79,44 +80,9 @@ function sohranitChernovik() {
 // Телефон: маска +7 (___) ___-__-__
 // ---------------------------------------------------------------------------
 
-/** Десять цифр номера без кода страны. */
-function cifryTelefona(znachenie) {
-  const s = String(znachenie || '').trim();
-  let d = s.replace(/\D/g, '');
-  if (s.startsWith('+7')) d = d.slice(1);                                  // «+7» маски — не цифра номера
-  if (d.length >= 11 && (d[0] === '7' || d[0] === '8')) d = d.slice(1);   // вставили «8 916 …» целиком
-  return d.slice(0, 10);
-}
-
-/** Форматирует цифры по маске по мере набора. */
-function maskaTelefona(d) {
-  if (!d) return '';
-  let s = `+7 (${d.slice(0, 3)}`;
-  if (d.length >= 3) s += ')';
-  if (d.length > 3) s += ` ${d.slice(3, 6)}`;
-  if (d.length > 6) s += `-${d.slice(6, 8)}`;
-  if (d.length > 8) s += `-${d.slice(8, 10)}`;
-  return s;
-}
-
-/** Сколько цифр номера (без «7» кода страны) стоит левее позиции pos в строке. */
-function cifrSleva(stroka, pos) {
-  const levee = String(stroka || '').slice(0, pos);
-  let n = levee.replace(/\D/g, '').length;
-  if (levee.startsWith('+7')) n -= 1;
-  return Math.max(0, n);
-}
-
-/** Позиция каретки сразу после n-й цифры номера в отформатированной строке. */
-function poziciyaPoCifram(stroka, n) {
-  const nachalo = stroka.startsWith('+7 (') ? 4 : 0;
-  if (n <= 0) return Math.min(nachalo, stroka.length);
-  let schet = 0;
-  for (let i = nachalo; i < stroka.length; i++) {
-    if (/\d/.test(stroka[i]) && ++schet === n) return i + 1;
-  }
-  return stroka.length;
-}
+/** Десять цифр номера без кода страны (маска — js/telefon.js, общая для всей витрины). */
+const cifryTelefona = (znachenie) => razobratNomer(znachenie).nomer;
+const maskaTelefona = (d) => maskaNomera(d, false);
 
 // ---------------------------------------------------------------------------
 // Время: «сейчас» и слоты «ко времени» по часам работы
@@ -574,30 +540,11 @@ function navesitPolya() {
     sohranitChernovik();
   });
 
-  let bylo = cifryTelefona(tel.value);
-  tel.addEventListener('input', (s) => {
-    const syroe = tel.value;
-    let kursor = null;
-    try { kursor = tel.selectionStart; } catch { /* не все поля умеют */ }
-    const vKonce = kursor == null || kursor >= syroe.length;
-    let d = cifryTelefona(syroe);
-    // сколько цифр номера левее каретки — по ним вернём её на место после маски
-    let sleva = vKonce ? d.length : Math.min(d.length, cifrSleva(syroe, kursor));
-    // стёрли скобку или дефис — стираем и цифру перед ним, иначе маска вернёт знак обратно
-    if (s.inputType === 'deleteContentBackward' && d === bylo && d.length && sleva > 0) {
-      d = d.slice(0, sleva - 1) + d.slice(sleva);
-      sleva -= 1;
-    }
-    bylo = d;
-    tel.value = maskaTelefona(d);
-    const poz = vKonce ? tel.value.length : poziciyaPoCifram(tel.value, sleva);
-    try { tel.setSelectionRange(poz, poz); } catch { /* не все поля умеют */ }
+  // «+7 (» при фокусе убран: набранная следом привычная 7 или 8 попадала в номер (25.10.2026)
+  maskaNaPole(tel, (d) => {
     forma.telefon = d;
     sohranitChernovik();
     if (d.length === 10) snyatOshibku('telefon');
-  });
-  tel.addEventListener('focus', () => {
-    if (!tel.value) { tel.value = '+7 ('; }
   });
   // тупик 12: неполный номер — подсказка у поля сразу при уходе с него, а не молчание
   tel.addEventListener('blur', () => {

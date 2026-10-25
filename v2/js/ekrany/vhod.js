@@ -10,6 +10,7 @@
 import { shtorka, nazhatie, vibro, dvizhenieSnyato, poyavlenieKaskadom } from '../dvizhenie.js';
 import { tekst } from '../kartochka.js';
 import { zaprositKod, podtverditKod, cifryTelefona, korotkiyKod } from '../rpb.js';
+import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -32,17 +33,7 @@ let tajmerKoda = null;
 let kodZanyat = false;
 
 /** +7 (916) 123-45-67 из цифр. */
-function maska(cifry) {
-  const d = cifryTelefona(cifry);
-  const ch = d.startsWith('7') ? d.slice(1, 11) : d.slice(0, 10);
-  let s = '+7';
-  if (ch.length) s += ` (${ch.slice(0, 3)}`;
-  if (ch.length >= 3) s += ') ';
-  if (ch.length > 3) s += ch.slice(3, 6);
-  if (ch.length > 6) s += `-${ch.slice(6, 8)}`;
-  if (ch.length > 8) s += `-${ch.slice(8, 10)}`;
-  return s;
-}
+const maska = (cifry) => maskaNomera(razobratNomer(cifry).nomer);
 
 function zakryt(prichina) {
   if (upr) upr.zakryt(prichina);
@@ -157,11 +148,7 @@ function narisovat() {
         <p class="vhod__oshibka" hidden></p>
       </div>`;
     const vvod = telo.querySelector('input');
-    vvod.addEventListener('input', () => {
-      const bylo = vvod.value;
-      vvod.value = maska(bylo);
-      telefon = cifryTelefona(vvod.value);
-    });
+    maskaNaPole(vvod, (nomer) => { telefon = nomer; });
     const dalshe = telo.querySelector('.vhod__dalshe');
     nazhatie(dalshe, { masshtab: 0.96 });
     dalshe.addEventListener('click', () => poslatKod(dalshe));

@@ -11,6 +11,7 @@ import { adresPoTochke, blizhayshieZavedeniya, ktoVezet, otkrytoSeychas, podskaz
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
 import { gost as voshel, moiAdresa, zonyDostavki } from '../rpb.js';
+import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 
 /** Дальше этого — доставки нет (бриф §5, тупик 3), если зоны доставки не загрузились. */
 const PREDEL_DOSTAVKI_KM = 7;
@@ -757,18 +758,10 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   skazat('Туда пока не возим. Заберёте сами?', 'grustno');
 }
 
-/** Маска телефона: «+7 (___) ___-__-__» по мере ввода. */
+/** Маска телефона — общая для витрины (js/telefon.js): «+7 (916) 805-45-70» и сколько цифр номера. */
 function maskaTelefona(znachenie) {
-  let c = String(znachenie || '').replace(/\D/g, '');
-  if (c.startsWith('8') || c.startsWith('7')) c = c.slice(1);
-  c = c.slice(0, 10);
-  let v = '+7';
-  if (c.length) v += ` (${c.slice(0, 3)}`;
-  if (c.length >= 3) v += ')';
-  if (c.length > 3) v += ` ${c.slice(3, 6)}`;
-  if (c.length > 6) v += `-${c.slice(6, 8)}`;
-  if (c.length > 8) v += `-${c.slice(8, 10)}`;
-  return { v, cifr: c.length };
+  const { nomer } = razobratNomer(znachenie);
+  return { v: maskaNomera(nomer, false), cifr: nomer.length };
 }
 
 function pokazatPoleNomera(blokDaleko, adres, knopkaNomera) {
@@ -788,22 +781,7 @@ function pokazatPoleNomera(blokDaleko, adres, knopkaNomera) {
   const podskazka = mesto.querySelector('.pole__podskazka');
   const knopka = mesto.querySelector('.knopka');
   nazhatie(knopka, { masshtab: 0.95 });
-  vvod.addEventListener('input', () => {
-    // каретку не гоним в конец: правка цифры в середине номера остаётся на месте
-    const syroe = vvod.value;
-    let kursor = null;
-    try { kursor = vvod.selectionStart; } catch { /* не все поля умеют */ }
-    const vKonce = kursor == null || kursor >= syroe.length;
-    const levee = vKonce ? '' : syroe.slice(0, kursor);
-    const sleva = Math.max(0, levee.replace(/\D/g, '').length - (levee.startsWith('+7') ? 1 : 0));
-    vvod.value = maskaTelefona(syroe).v;
-    if (!vKonce) {
-      let poz = vvod.value.length;
-      let schet = 0;
-      if (sleva === 0) poz = Math.min(4, vvod.value.length);
-      else for (let i = 2; i < vvod.value.length; i++) { if (/\d/.test(vvod.value[i]) && ++schet === sleva) { poz = i + 1; break; } }
-      try { vvod.setSelectionRange(poz, poz); } catch { /* не все поля умеют */ }
-    }
+  maskaNaPole(vvod, () => {
     pole.classList.remove('oshibka');
     podskazka.textContent = 'Позвоним, когда начнём возить в ваш район';
   });
