@@ -870,7 +870,7 @@ export function pokazat(kontejner, yadro, parametry = {}) {
     s.hinkalik = new Hinkalik(koren.querySelector('.adres__hinkalik'), { razmer: 120, plavayushchiy: false });
     s.hinkalik.naNazhatie?.(() => { s?.hinkalik?.pryg(); });
   } catch (oshibka) { console.error('Экран адреса: Хинкалик не нарисовался', oshibka); }
-  tajmer(() => skazat('Привет. Куда везти или где заберёте?', 'rad'), dvizhenieSnyato() ? 0 : 380);
+  if (parametry.id !== 'dostavka') tajmer(() => skazat('Привет. Куда везти или где заберёте?', 'rad'), dvizhenieSnyato() ? 0 : 380);
 
   const knopki = [...s.knopki.querySelectorAll('.knopka--60')];
   knopki.forEach((k) => {
