@@ -4,9 +4,9 @@
 
 import {
   zagruzitMenyu, podgotovitMenyu, cenaV, prichinaNedostupnosti, semeystvoRazdela, naytiZavedenie, perenestiKorzinu,
-  kEtomuBerut, naytiBlyudo,
+  kEtomuBerut, naytiBlyudo, ktoVezet, zonyAdresa,
 } from './dannye.js';
-import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB } from './rpb.js';
+import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB, zonyDostavki } from './rpb.js';
 import { korzina, summaPozicii } from './korzina.js';
 import {
   FonGradient, pokazatTost, pokazatChislo, poletVKorzinu, vibro, nazhatie, pruzhina, shtorka, dvizhenieSnyato,
@@ -306,7 +306,7 @@ const yadro = {
   /** Доставка по зоне адреса, ₽ — как сервер: от минимума цена зоны, меньше — «ниже минимума» зоны; не доставка — 0. */
   dostavka(summa = korzina.summa()) {
     const zona = yadro.zonaAdresa();
-    if (!zona) return 0;
+    if (!zona || summa <= 0) return 0;   // пустая корзина — доставки ещё нет
     return summa >= (zona.min || 0) ? zona.cena || 0 : zona.nizheMin ?? zona.cena ?? 0;
   },
   skidka(summa = korzina.summa()) {
@@ -1195,6 +1195,15 @@ function vosstanovitPerenos() {
  * не уйдёт: сервер недоступен).
  * @returns {Promise<object>}
  */
+/** Адрес, сохранённый до цен зон (26.10.2026), без цены доставки — пересчитать его зоны по точке: «Итого» как у сервера. */
+function obnovitZonyAdresa(menyu) {
+  const a = gost.adres;
+  if (!Array.isArray(a?.zony) || a.zony.every((z) => 'cena' in z) || !Number.isFinite(a.shirota) || !Number.isFinite(a.dolgota)) return;
+  zonyDostavki(menyu.zavedeniya).then((zony) => {
+    if (zony && gost.adres === a) yadro.obnovitGostya({ adres: { ...a, zony: zonyAdresa(ktoVezet(a.shirota, a.dolgota, menyu, zony)) } });
+  }).catch(() => {});
+}
+
 async function zagruzitMenyuZhivoe() {
   try {
     const menyu = podgotovitMenyu(await sobratMenyu());
@@ -1229,6 +1238,7 @@ async function zapustit() {
       throw new Error('menyu.json без заведений или разделов');
     }
     yadro.menyu = menyu;
+    obnovitZonyAdresa(menyu);
     // гость мог войти в прошлый раз — личную скидку спрашиваем сразу, но экран ею не держим
     yadro.obnovitSkidku().catch(() => {});
     // долго ждать сторис не будем: не пришли за 0,8 с после меню — главная нарисует их позже

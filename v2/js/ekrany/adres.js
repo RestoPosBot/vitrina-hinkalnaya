@@ -7,7 +7,7 @@
 // Контракт экрана — design/vitrina_v2/YADRO.md §1: pokazat / ubrat.
 
 import { nazhatie, poyavlenieKaskadom, pruzhina, dvizhenieSnyato, vibro } from '../dvizhenie.js';
-import { adresPoTochke, blizhayshieZavedeniya, ktoVezet, otkrytoSeychas, podskazatAdres } from '../dannye.js';
+import { adresPoTochke, blizhayshieZavedeniya, ktoVezet, otkrytoSeychas, podskazatAdres, zonyAdresa } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
 import { gost as voshel, moiAdresa, zonyDostavki } from '../rpb.js';
@@ -709,7 +709,7 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   // кто везёт сюда — с адресом: оформление и минимум корзины решают по нему; без поля zony — старое правило 7 км
   const adres = {
     tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota, ...(p.dop || {}),
-    ...(zony ? { zony: vezut.map((x) => ({ zavedenieId: x.zavedenie.id, km: x.km, min: x.zona.min, cena: x.zona.cena, nizheMin: x.zona.nizheMin })) } : {}),
+    ...(zony ? { zony: zonyAdresa(vezut) } : {}),
   };
   if (vezut.length) {
     const { zavedenie: z, zona } = vezut[0];
@@ -721,7 +721,11 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
       naVybor: (zz, el) => { yadro.obnovitGostya({ sposob: 'dostavka', adres }); vybrano(zz.id, el.querySelector('.zavedenie__nazvanie')); },
     });
     itog.appendChild(karta);
-    itog.insertAdjacentHTML('beforeend', `<p class="adres__primechanie">Доставка от ${rub(min)} · заберёте сами — без минимума</p>`);
+    // меньше минимума зона может возить за плату (26.10.2026) — тогда минимум не порог, а «бесплатно от»
+    const usloviya = zona?.min > 0 && zona.nizheMin != null
+      ? `Доставка ${zona.cena ? rub(zona.cena) : 'бесплатно'} от ${rub(zona.min)}, меньше — ${rub(zona.nizheMin)}`
+      : `Доставка от ${rub(min)}${zona?.cena ? ` · ${rub(zona.cena)}` : ''} · заберёте сами — без минимума`;
+    itog.insertAdjacentHTML('beforeend', `<p class="adres__primechanie">${usloviya}</p>`);
     const knopka = document.createElement('button');
     knopka.type = 'button';
     knopka.className = 'knopka knopka--glavnaya knopka--60';

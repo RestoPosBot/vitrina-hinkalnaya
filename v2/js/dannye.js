@@ -690,6 +690,9 @@ export function vnutriKontura(shirota, dolgota, kontur) {
  * @param {{zavedenieId: string, prioritet: number, kontur: number[][]}[]} zony
  * @returns {{zavedenie: object, km: number, zona: object}[]}
  */
+/** Зоны, что везут на адрес, — в виде, в каком их хранит адрес гостя (минимум, цена, цена ниже минимума). */
+export const zonyAdresa = (vezut) => vezut.map((x) => ({ zavedenieId: x.zavedenie.id, km: x.km, min: x.zona.min, cena: x.zona.cena, nizheMin: x.zona.nizheMin }));
+
 export function ktoVezet(shirota, dolgota, menyu, zony) {
   if (!koordinataCela(shirota) || !koordinataCela(dolgota)) return [];
   const luchshaya = new Map();
