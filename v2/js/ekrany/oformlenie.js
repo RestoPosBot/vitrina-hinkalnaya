@@ -218,6 +218,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
       <div class="kartochka-belaya oformlenie__itog">
         <div class="oformlenie__pozicii"></div>
         <div class="korzina__stroka oformlenie__skidka" style="padding-top:10px" hidden><span class="oformlenie__skidka-podpis"></span><span class="oformlenie__skidka-rub"></span></div>
+        <div class="korzina__stroka oformlenie__dostavka" style="padding-top:10px" hidden><span>Доставка</span><span class="oformlenie__dostavka-rub"></span></div>
         <div class="itog"><span>Итого</span><b class="itog__summa"></b></div>
       </div>
     </section>`;
@@ -623,6 +624,9 @@ function narisovatItog() {
     stroka.querySelector('.oformlenie__skidka-podpis').textContent = sk.podpis || `Скидка −${sk.procent}${TONKIY}%`;
     stroka.querySelector('.oformlenie__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
+  const dostavka = kontejner.querySelector('.oformlenie__dostavka');
+  dostavka.hidden = !sk.dostavka;
+  if (sk.dostavka) dostavka.querySelector('.oformlenie__dostavka-rub').textContent = rub(sk.dostavka);
   kontejner.querySelector('.itog__summa').textContent = rub(sk.itogo);
   const v = niz?.querySelector('.summa-v');
   if (v) {

@@ -284,10 +284,17 @@ const yadro = {
     const s = semeystvoRazdela(razdel);
     return s === 'vino' ? 'napitki' : s;
   },
+  /** Зона адреса доставки у выбранного заведения или null. */
+  zonaAdresa() {
+    const z = yadro.zavedenie();
+    return gost.sposob === 'dostavka' && z ? gost.adres?.zony?.find?.((x) => x.zavedenieId === z.id) ?? null : null;
+  },
   minZakaz() {
     const z = yadro.zavedenie();
     // у зоны доставки адреса свой минимум (Зелёная от 800 ₽, Серая от 5 000 ₽) — он главнее минимума заведения
-    const zona = gost.sposob === 'dostavka' && z ? gost.adres?.zony?.find?.((x) => x.zavedenieId === z.id) : null;
+    const zona = yadro.zonaAdresa();
+    // меньше минимума зона возит за плату (владелец 26.10.2026) — минимум не запрет, а порог бесплатной доставки
+    if (zona?.min > 0 && zona.nizheMin != null) return 0;
     if (zona?.min > 0) return zona.min;
     return Number(z?.min_zakaz) > 0 ? Number(z.min_zakaz) : MIN_DOSTAVKI;
   },
@@ -296,7 +303,19 @@ const yadro = {
    * так её считает сервер. Минимум доставки считается от суммы блюд без скидки.
    * @returns {{procent:number, rub:number, itogo:number, podpis:string, akciya:boolean, procentGostya:number, vmeste:boolean}} procentGostya — личный % гостя; vmeste — акция и личная обе
    */
+  /** Доставка по зоне адреса, ₽ — как сервер: от минимума цена зоны, меньше — «ниже минимума» зоны; не доставка — 0. */
+  dostavka(summa = korzina.summa()) {
+    const zona = yadro.zonaAdresa();
+    if (!zona) return 0;
+    return summa >= (zona.min || 0) ? zona.cena || 0 : zona.nizheMin ?? zona.cena ?? 0;
+  },
   skidka(summa = korzina.summa()) {
+    const s = yadro.skidkaBezDostavki(summa);
+    // доставка входит в «Итого» и в сумму на кнопке — сервер возьмёт её же
+    const dostavka = yadro.dostavka(summa);
+    return { ...s, dostavka, itogo: s.itogo + dostavka };
+  },
+  skidkaBezDostavki(summa) {
     // сервер считает так же: Math.floor(сумма * процент / 100) и выбирает, что выгоднее гостю — личную скидку или акцию;
     // обе — только если у акции галочка «суммируется с личной» (23.10.2026)
     const procentGostya = skidkaGostya.procent > 0 ? skidkaGostya.procent : 0;

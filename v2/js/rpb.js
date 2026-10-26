@@ -328,14 +328,14 @@ let zagruzkaZon = null;
  * Зоны доставки всех заведений — те, что рисуют в панели (GET /delivery-zones/restaurant/:id, @Public), раз за открытие сайта.
  * Не ответило хоть одно заведение — null: экраны решают по-старому, по 7 км, чтобы не закрыть доставку его району.
  * @param {{id: string}[]} zavedeniya
- * @returns {Promise<Array<{zavedenieId, nazvanie, cena, min, prioritet, cvet, kontur}>|null>}
+ * @returns {Promise<Array<{zavedenieId, nazvanie, cena, min, nizheMin, prioritet, cvet, kontur}>|null>} nizheMin — доставка меньше минимума, ₽; null — не возим
  */
 export function zonyDostavki(zavedeniya) {
   if (!zavedeniya?.length) return Promise.resolve(null);   // меню ещё не загрузилось — пустоту не запоминаем
   if (zagruzkaZon) return zagruzkaZon;
   zagruzkaZon = Promise.all((zavedeniya || []).map((z) => zapros(`${BAZA}/delivery-zones/restaurant/${encodeURIComponent(z.id)}`)
     .then((spisok) => (Array.isArray(spisok) ? spisok : []).map((x) => ({
-      zavedenieId: z.id, nazvanie: x.title, cena: Number(x.price) || 0, min: Number(x.minOrder) || 0,
+      zavedenieId: z.id, nazvanie: x.title, cena: Number(x.price) || 0, min: Number(x.minOrder) || 0, nizheMin: x.priceBelowMin ?? null,
       prioritet: Number(x.priority) || 0, cvet: x.color || null, kontur: konturZony(x.polygon),
     })))))
     .then((vse) => vse.flat())
@@ -497,6 +497,8 @@ export async function otpravitZakaz(zakaz) {
     telo.deliveryIntercom = adres.domofon || undefined;
     telo.deliveryCourierComment = adres.kurieru || undefined;
     if (typeof zakaz.cenaDostavki === 'number') telo.deliveryPrice = zakaz.cenaDostavki;
+    // точка адреса: по ней сервер сам находит зону, цену доставки и минимум (26.10.2026)
+    if (Number.isFinite(adres.shirota) && Number.isFinite(adres.dolgota)) { telo.deliveryLat = adres.shirota; telo.deliveryLng = adres.dolgota; }
   }
 
   const otvet = await zapros(`${BAZA}/orders`, { method: 'POST', telo, srok: 25000, token: g?.token });

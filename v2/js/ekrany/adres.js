@@ -709,7 +709,7 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
   // кто везёт сюда — с адресом: оформление и минимум корзины решают по нему; без поля zony — старое правило 7 км
   const adres = {
     tekst: p.kratko, shirota: p.shirota, dolgota: p.dolgota, ...(p.dop || {}),
-    ...(zony ? { zony: vezut.map((x) => ({ zavedenieId: x.zavedenie.id, km: x.km, min: x.zona.min })) } : {}),
+    ...(zony ? { zony: vezut.map((x) => ({ zavedenieId: x.zavedenie.id, km: x.km, min: x.zona.min, cena: x.zona.cena, nizheMin: x.zona.nizheMin })) } : {}),
   };
   if (vezut.length) {
     const { zavedenie: z, zona } = vezut[0];

@@ -227,6 +227,7 @@ function narisovatPozicii() {
     <div class="kartochka-belaya korzina__itog">
       <div class="korzina__stroka"><span class="korzina__shtuk"></span><span class="korzina__summa-blyud"></span></div>
       <div class="korzina__stroka korzina__skidka" hidden><span class="korzina__skidka-podpis"></span><span class="korzina__skidka-rub"></span></div>
+      <div class="korzina__stroka korzina__dostavka" hidden><span>Доставка</span><span class="korzina__dostavka-rub"></span></div>
       <div class="itog"><span>Итого</span><b class="itog__summa">0${TONKIY}₽</b></div>
     </div>`;
   niz.innerHTML = `
@@ -335,6 +336,9 @@ function obnovitSvodku(pervyyRaz = false) {
     strokaSkidki.querySelector('.korzina__skidka-podpis').textContent = sk.podpis || `Скидка −${sk.procent}${TONKIY}%`;
     strokaSkidki.querySelector('.korzina__skidka-rub').textContent = `−${rub(sk.rub)}`;
   }
+  const strokaDostavki = el.querySelector('.korzina__dostavka');
+  strokaDostavki.hidden = !sk.dostavka;
+  if (sk.dostavka) strokaDostavki.querySelector('.korzina__dostavka-rub').textContent = rub(sk.dostavka);
 
   const itogEl = el.querySelector('.itog__summa');
   itogEl.innerHTML = `<span class="summa-v"></span>${TONKIY}₽`;
