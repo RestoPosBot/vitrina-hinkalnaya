@@ -286,7 +286,8 @@ img { max-width: 100%; }
 .mesto__nazvanie svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .mesto__nazvanie--adres span { hyphens: manual; overflow-wrap: normal; }
 .gotovo__oplata { margin-top: 16px; text-align: left; }
-.gotovo__forma { min-height: 120px; }
+.gotovo__forma { min-height: 120px; margin: 0 -10px; overflow: hidden; }
+.gotovo__forma iframe { width: 100% !important; min-width: 0 !important; max-width: 100%; display: block; }
 .gotovo__zhdem { font: var(--t-vtoroy); color: var(--ugol-62); padding: 24px 0; text-align: center; }
 .gotovo__oplacheno { display: grid; gap: 4px; padding: 14px 16px; border-radius: 14px; background: rgba(46, 125, 50, .1); }
 .gotovo__oplacheno b { color: #2E7D32; font-size: 1.125rem; }
