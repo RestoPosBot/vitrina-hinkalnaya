@@ -33,7 +33,8 @@ const TEKST_OFLAYN = 'Нет сети: заказ не отправить — о
 const KLYUCH_CHERNOVIKA = 'hinkalnaya.oformlenie.v2';
 const SHAG_SLOTA = 30;            // минут между слотами «ко времени»
 const ZAPAS_DO_SLOTA = 40;        // первый слот не раньше, чем через столько минут
-const SLOTOV = 12;
+const DNEY_VPERED = 3;            // сегодня, завтра, послезавтра: старая брала предзаказ на дни вперёд (Войковская 300754, 29.10.2026)
+const IMENA_DNEY = ['Сегодня', 'Завтра', 'Послезавтра'];
 
 // Состояние формы живёт в модуле: уход на #/adres и возврат ничего не теряют (тупик 14)
 // oplata: 'pri_poluchenii' | 'onlayn' (28.10.2026) — по умолчанию при получении: зеркало старой системы платит так же, без ЮKassa
@@ -108,17 +109,21 @@ function podpisMomenta(ms, segodnyaDen) {
   return { korotko: `${DNI[den].replace(/^во? /, '')} ${vremya}`, polno: `${DNI[den]} к ${vremya}` };
 }
 
-/** Слоты по 30 минут, когда заведение открыто (без заведения или без часов — любые). */
+/** Слоты по 30 минут на DNEY_VPERED дней по Москве, когда заведение открыто (без заведения или без часов — любые).
+ * den — 0 сегодня, 1 завтра, 2 послезавтра; korotko — только время (день выбран отдельно). */
 function slotyVremeni(zav) {
   const seychas = Date.now();
   const shag = SHAG_SLOTA * 60000;
   const start = Math.ceil((seychas + ZAPAS_DO_SLOTA * 60000) / shag) * shag;
   const segodnyaDen = vremyaMoskvy(new Date(seychas)).den;
   const sloty = [];
-  for (let i = 0; i < 48 * 2 && sloty.length < SLOTOV; i++) {
+  for (let i = 0; i < 48 * DNEY_VPERED; i++) {
     const t = start + i * shag;
+    const { den: denNedeli, minuty } = vremyaMoskvy(new Date(t));
+    const den = (denNedeli - segodnyaDen + 7) % 7;
+    if (den >= DNEY_VPERED) break;
     if (zav && zav.chasy && !otkrytoSeychas(zav, new Date(t)).otkryto) continue;
-    sloty.push({ ms: t, ...podpisMomenta(t, segodnyaDen) });
+    sloty.push({ ms: t, den, korotko: formatVremeni(minuty), polno: podpisMomenta(t, segodnyaDen).polno });
   }
   return sloty;
 }
@@ -181,7 +186,8 @@ export function pokazat(kontejner_, yadro_, parametry) {
       <div class="metka">Когда</div>
       <div class="oformlenie__zakryto"></div>
       <div class="vybor oformlenie__kogda"></div>
-      <div class="ryad oformlenie__sloty" hidden></div>
+      <div class="ryad oformlenie__sloty oformlenie__dni" hidden></div>
+      <div class="ryad oformlenie__sloty oformlenie__vremena" hidden></div>
     </section>
 
     <section class="oformlenie__blok" data-blok="vhod">
@@ -530,16 +536,34 @@ function narisovatVremya() {
     });
   }
 
-  const ryad = kontejner.querySelector('.oformlenie__sloty');
+  const ryadDney = kontejner.querySelector('.oformlenie__dni');
+  const ryad = kontejner.querySelector('.oformlenie__vremena');
   const pokazatSloty = forma.kogda === 'ko_vremeni';
   const bylSkryt = ryad.hidden;
   ryad.hidden = !pokazatSloty;
+  ryadDney.hidden = !pokazatSloty || !sloty.length;
   if (!pokazatSloty) return;
   if (!sloty.length) {
     ryad.innerHTML = '<p class="oformlenie__net-slotov">Ближайших окон нет — напишите удобное время в комментарии.</p>';
     return;
   }
-  ryad.innerHTML = sloty.map((x) => `<button class="oformlenie__slot${x.ms === forma.slot ? ' vybran' : ''}" type="button" data-slot="${x.ms}">${tekst(x.korotko)}</button>`).join('');
+  // День выбранного слота; дни без окон (выходной заведения) не показываем
+  const denVybran = sloty.find((x) => x.ms === forma.slot)?.den ?? sloty[0].den;
+  const dni = [...new Set(sloty.map((x) => x.den))];
+  ryadDney.innerHTML = dni.map((d) => `<button class="oformlenie__slot${d === denVybran ? ' vybran' : ''}" type="button" data-den="${d}">${IMENA_DNEY[d]}</button>`).join('');
+  ryadDney.querySelectorAll('[data-den]').forEach((b) => {
+    nazhatie(b, { masshtab: 0.93 });
+    b.addEventListener('click', () => {
+      const d = Number(b.dataset.den);
+      if (d === denVybran) return;
+      forma.slot = sloty.find((x) => x.den === d).ms;   // первое окно дня
+      vibro(6);
+      narisovatVremya();
+      ryad.scrollLeft = 0;
+      obnovitPodzagolovok();
+    });
+  });
+  ryad.innerHTML = sloty.filter((x) => x.den === denVybran).map((x) => `<button class="oformlenie__slot${x.ms === forma.slot ? ' vybran' : ''}" type="button" data-slot="${x.ms}">${tekst(x.korotko)}</button>`).join('');
   ryad.querySelectorAll('[data-slot]').forEach((b) => {
     nazhatie(b, { masshtab: 0.93 });
     b.addEventListener('click', () => {

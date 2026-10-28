@@ -1290,6 +1290,7 @@ body.est-shtorka .hinkalik--plavayushchiy { z-index: 30; }
 .oformlenie__chasy { width: 16px; height: 16px; }
 .oformlenie__sloty { gap: 8px; padding-top: 12px; padding-bottom: 10px; }
 .oformlenie__sloty[hidden] { display: none; }
+.oformlenie__dni { padding-bottom: 0; }
 .oformlenie__slot { height: 46px; padding: 0 14px; border: 0; border-radius: 14px; font: 700 0.875rem/1 var(--sh-zag); letter-spacing: -.01em; color: var(--ugol); background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); white-space: nowrap; transition: background .25s, box-shadow .25s; }
 .oformlenie__slot.vybran { background: var(--gr-knopka); box-shadow: var(--ten-knopki); }
 .oformlenie__net-slotov { font: var(--t-vtoroy); color: var(--ugol-72); padding: 0 var(--polya); }
