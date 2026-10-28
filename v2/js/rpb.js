@@ -508,6 +508,15 @@ export async function oplatitOnlayn(zakazId, vozvrat) {
   return zapros(`${BAZA}/orders/${encodeURIComponent(zakazId)}/oplata-onlayn`, { method: 'POST', telo: { vozvrat }, srok: 35000 });
 }
 
+/**
+ * Форма оплаты ЮKassa прямо на витрине (29.10.2026, владелец: «нельзя уводить людей с сайта»): сервер создаёт платёж
+ * с подтверждением embedded и отдаёт токен формы. popytka — новая попытка после неудачной (у неё новый платёж).
+ * @returns {Promise<{token: string}>}
+ */
+export async function tokenOplaty(zakazId, popytka = 0) {
+  return zapros(`${BAZA}/orders/${encodeURIComponent(zakazId)}/oplata-onlayn`, { method: 'POST', telo: { vidzhet: true, popytka }, srok: 35000 });
+}
+
 export async function otpravitZakaz(zakaz) {
   const g = prochitat();
   const adres = zakaz.adres || {};

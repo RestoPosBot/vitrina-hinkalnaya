@@ -285,6 +285,11 @@ img { max-width: 100%; }
 }
 .mesto__nazvanie svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .mesto__nazvanie--adres span { hyphens: manual; overflow-wrap: normal; }
+.gotovo__oplata { margin-top: 16px; text-align: left; }
+.gotovo__forma { min-height: 120px; }
+.gotovo__zhdem { font: var(--t-vtoroy); color: var(--ugol-62); padding: 24px 0; text-align: center; }
+.gotovo__oplacheno { display: grid; gap: 4px; padding: 14px 16px; border-radius: 14px; background: rgba(46, 125, 50, .1); }
+.gotovo__oplacheno b { color: #2E7D32; font-size: 1.125rem; }
 .mesto__status { font-weight: 600; font-size: 0.8438rem; display: flex; align-items: center; gap: 7px; }
 .mesto__adres { font: var(--t-vtoroy); color: var(--ugol-62); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Пульс точки — кольцо ::after на transform/opacity (композитор), а не box-shadow (перерисовка каждый кадр) */

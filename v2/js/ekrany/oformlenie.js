@@ -11,7 +11,7 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom, p
 import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo, perenestiKorzinu, rasstoyanieKm, blizhayshieZavedeniya } from '../dannye.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
-import { otpravitZakaz, oplatitOnlayn, imyaGostya } from '../rpb.js';
+import { otpravitZakaz, imyaGostya } from '../rpb.js';
 import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 import { Hinkalik } from '../hinkalik.js';
 
@@ -902,17 +902,8 @@ async function zakazat_() {
 
   // Номер и суммы — те, что вернул сервер; свой счётчик остаётся только на крайний случай.
   const nomer = otvet.nomer ?? sleduyushchiyNomer();
-  // Онлайн: ссылка на оплату ЮKassa. Не открылась — заказ уже есть, гость платит при получении (сказали тостом).
-  let ssylkaOplaty = null;
-  if (forma.oplata === 'onlayn' && otvet.id) {
-    if (podpisKnopki) podpisKnopki.textContent = 'Открываем оплату…';
-    try {
-      ssylkaOplaty = (await oplatitOnlayn(otvet.id, `${location.origin}${location.pathname}#/gotovo/${encodeURIComponent(nomer)}`)).url || null;
-    } catch (oshibka) {
-      console.warn('Оплата не открылась', oshibka);
-      yadro.tost(String(oshibka?.message || 'Онлайн-оплата не открылась — оплатите при получении'), { vid: 'oshibka' });
-    }
-  }
+  // Онлайн: платить будут в форме ЮKassa прямо на «готово» — со страницы витрины гость не уходит (29.10.2026)
+  const onlayn = forma.oplata === 'onlayn' && Boolean(otvet.id);
   const summaBlyud = yadro.korzina.summa();
   const skidkaRub = otvet.skidka > 0 ? otvet.skidka : yadro.skidka(summaBlyud).rub;
   const zapis = yadro.korzina.zapomnitZakaz({
@@ -923,7 +914,7 @@ async function zakazat_() {
     kommentariy: forma.kommentariy.trim(),
     kogda_poluchit: kogda,
     zavedenieNazvanie: zav?.nazvanie || null,
-    oplata: ssylkaOplaty ? 'onlayn' : 'pri_poluchenii',
+    oplata: onlayn ? 'onlayn' : 'pri_poluchenii',
     otlozhen: false,
     skidka: {
       procent: yadro.skidka(summaBlyud).procent,
@@ -933,12 +924,6 @@ async function zakazat_() {
     },
   });
   if (!zapis) { yadro.perejti('#/', { zamenit: true }); return; }
-  if (ssylkaOplaty) {
-    // корзину чистим до ухода: вернувшись с оплаты, гость попадёт на «готово», а не в полную корзину
-    yadro.korzina.ochistit();
-    location.href = ssylkaOplaty;
-    return;
-  }
   vibro([10, 40, 20]);
   forma.kogda = null;
   forma.slot = null;

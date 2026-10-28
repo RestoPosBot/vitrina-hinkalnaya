@@ -8,12 +8,34 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom } 
 import { naytiZavedenie, perenestiKorzinu } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { tekst, rub, TONKIY, strokaPozicii } from '../kartochka.js';
+import { tokenOplaty } from '../rpb.js';
 
 export const nastroyki = { niz: false, hinkalik: false, palitra: 'gotovo' };
 
 let yadro = null;
 let personazh = null;
 let tajmery = [];
+/** Форма оплаты ЮKassa на этом экране (29.10.2026): гость платит у нас, без перехода на yoomoney.ru. */
+let forma = null;
+let zagruzkaVidzheta = null;
+const SKRIPT_VIDZHETA = 'https://yookassa.ru/checkout-widget/v1/checkout-widget.js';
+
+function vidzhetYukassy() {
+  if (window.YooMoneyCheckoutWidget) return Promise.resolve(window.YooMoneyCheckoutWidget);
+  if (zagruzkaVidzheta) return zagruzkaVidzheta;
+  zagruzkaVidzheta = new Promise((gotovo, oshibka) => {
+    const s = document.createElement('script');
+    s.src = SKRIPT_VIDZHETA;
+    s.onload = () => (window.YooMoneyCheckoutWidget ? gotovo(window.YooMoneyCheckoutWidget) : oshibka(new Error('Форма оплаты не загрузилась')));
+    s.onerror = () => { zagruzkaVidzheta = null; oshibka(new Error('Форма оплаты не загрузилась — проверьте интернет')); };
+    document.head.appendChild(s);
+  });
+  return zagruzkaVidzheta;
+}
+
+function ubratFormu() {
+  if (forma) { try { forma.destroy(); } catch { /* уже убрана */ } forma = null; }
+}
 
 export function pokazat(kontejner, yadro_, parametry) {
   yadro = yadro_;
@@ -46,9 +68,14 @@ export function pokazat(kontejner, yadro_, parametry) {
   const gde = dostavka
     ? `<b>Адрес доставки</b><span>${tekst(zakaz.adres?.tekst || 'адрес из заказа')}</span>${zav ? `<small>Заведение: ${tekst(zav.nazvanie)}</small>` : ''}`
     : `<b>Самовывоз из «${tekst(zav?.nazvanie || zakaz.zavedenieNazvanie || 'заведения')}»</b>${zav ? `<span>${tekst([zav.adres, zav.metro].filter(Boolean).join(' · '))}</span>` : ''}`;
+  // онлайн и ещё не оплачен — форма оплаты здесь же; кухня ждёт денег
+  const zhdemOplatu = !bezSeti && zakaz.oplata === 'onlayn' && !zakaz.oplacheno && Boolean(zakaz.zakazId);
   const plashka = bezSeti
     ? '<b>Сети не было — заказ сохранён только на этом телефоне</b><p>В заведение он не ушёл. Как появится сеть, соберите его заново кнопкой «Повторить заказ».</p>'
-    : '<b>Заказ принят</b><p>Он уже на кухне заведения. Позвоним по телефону из заказа, если что-то закончилось.</p>';
+    : zhdemOplatu
+      ? '<b>Осталось оплатить</b><p>Форма оплаты — ниже, прямо здесь. Как только оплата пройдёт, заказ уйдёт на кухню.</p>'
+      : '<b>Заказ принят</b><p>Он уже на кухне заведения. Позвоним по телефону из заказа, если что-то закончилось.</p>';
+  const itogo = skidka?.rub ? skidka.itogo : zakaz.summa;
 
   kontejner.innerHTML = `
     <div class="gotovo__hinkalik"></div>
@@ -57,17 +84,18 @@ export function pokazat(kontejner, yadro_, parametry) {
       <div class="gotovo__podpis">Номер заказа</div>
       <div class="gotovo__nomer"><small>№</small>${tekst(nomer)}</div>
       <div class="preduprezhdenie gotovo__demo" style="margin-top:14px;text-align:left">${plashka}</div>
+      ${zhdemOplatu ? `<div class="gotovo__oplata"><div class="metka">Оплата ${rub(itogo)}</div><div class="gotovo__forma"><p class="gotovo__zhdem">Открываем форму оплаты…</p></div></div>` : ''}
       <div class="gotovo__shagi">
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-chasy"/></svg></span><div><b>${chtoDalshe}</b><span>${zakaz.imya ? `${tekst(zakaz.imya)}, ` : ''}${zakaz.telefon ? `позвоним на ${tekst(zakaz.telefon)}, если что-то закончится` : 'позвоним, если что-то закончится'}</span></div></div>
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-${dostavka ? 'dostavka' : 'bulavka'}"/></svg></span><div>${gde}</div></div>
-        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span><div>${zakaz.oplata === 'onlayn' ? '<b>Оплата картой онлайн</b><span>Как только оплата пройдёт, заказ уйдёт на кухню</span>' : '<b>Оплата при получении</b><span>Картой или наличными</span>'}</div></div>
+        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span><div>${zakaz.oplata === 'onlayn' ? (zakaz.oplacheno ? '<b>Оплачено картой онлайн</b><span>Заказ ушёл на кухню</span>' : '<b>Оплата картой онлайн</b><span>Как только оплата пройдёт, заказ уйдёт на кухню</span>') : '<b>Оплата при получении</b><span>Картой или наличными</span>'}</div></div>
       </div>
     </div>
     <div class="metka">Что в заказе</div>
     <div class="kartochka-belaya gotovo__spisok">
       <div class="gotovo__pozicii"></div>
       ${skidka?.rub ? `<div class="korzina__stroka korzina__skidka" style="padding-top:10px"><span>${tekst(skidka.podpis || `Скидка −${skidka.procent} %`)}</span><span>−${rub(skidka.rub)}</span></div>` : ''}
-      <div class="itog"><span>Итого</span><b class="itog__summa">${rub(skidka?.rub ? skidka.itogo : zakaz.summa)}</b></div>
+      <div class="itog"><span>Итого</span><b class="itog__summa">${rub(itogo)}</b></div>
     </div>
     <div class="gotovo__knopki">
       <a class="knopka knopka--glavnaya" href="#/" data-v-menyu><svg width="22" height="22" aria-hidden="true"><use href="#ik-menyu"/></svg><span>К меню</span></a>
@@ -99,7 +127,8 @@ export function pokazat(kontejner, yadro_, parametry) {
     Promise.resolve(yadro.perejti('#/', { zamenit: true })).then(() => yadro.perejti('#/korzina', { istochnik: yadro.knopkaKorziny }));
   });
 
-  sozdatPersonazha(kontejner, 'rad', bezSeti ? 'Сохранил на телефоне' : 'Вот так это будет');
+  sozdatPersonazha(kontejner, 'rad', bezSeti ? 'Сохранил на телефоне' : zhdemOplatu ? 'Осталось оплатить' : 'Вот так это будет');
+  if (zhdemOplatu) otkrytOplatu(kontejner, zakaz, 0);
 
   // Движение: кнопка «Заказать» растёт в карточку с номером, остальное — лесенкой
   if (!dvizhenieSnyato()) {
@@ -112,6 +141,57 @@ export function pokazat(kontejner, yadro_, parametry) {
     nomerEl.animate([{ transform: 'scale(.6)', opacity: 0 }, { transform: 'scale(1)', opacity: 1 }], { duration: pruzhina.zhivaya.ms, delay: 260, easing: pruzhina.zhivaya.easing, fill: 'backwards' });
     poyavlenieKaskadom([...kontejner.querySelectorAll('.gotovo__demo, .gotovo__shag, .metka, .gotovo__spisok, .gotovo__knopki')], 70);
   }
+}
+
+/** Форма ЮKassa в .gotovo__forma. Без return_url: иначе ЮKassa уводит на свою страницу, а события success/fail не приходят. */
+async function otkrytOplatu(kontejner, zakaz, popytka) {
+  const mesto = kontejner.querySelector('.gotovo__forma');
+  if (!mesto) return;
+  ubratFormu();
+  mesto.innerHTML = '<p class="gotovo__zhdem">Открываем форму оплаты…</p>';
+  let token;
+  let Vidzhet;
+  try {
+    [{ token }, Vidzhet] = await Promise.all([tokenOplaty(zakaz.zakazId, popytka), vidzhetYukassy()]);
+  } catch (oshibka) {
+    neVyshlo(kontejner, zakaz, popytka, String(oshibka?.message || 'Форма оплаты не открылась'));
+    return;
+  }
+  if (!mesto.isConnected) return;
+  mesto.innerHTML = '<div id="yukassa-forma"></div>';
+  forma = new Vidzhet({
+    confirmation_token: token,
+    error_callback: (o) => { console.warn('ЮKassa', o); neVyshlo(kontejner, zakaz, popytka, 'Форма оплаты не открылась'); },
+  });
+  forma.on('success', () => {
+    ubratFormu();
+    yadro.korzina.otmetitOplatu();
+    vibro([10, 40, 20]);
+    mesto.innerHTML = '<div class="gotovo__oplacheno"><b>Оплачено</b><span>Заказ ушёл на кухню. Спасибо!</span></div>';
+    const plashka = kontejner.querySelector('.gotovo__demo');
+    if (plashka) plashka.innerHTML = '<b>Заказ принят и оплачен</b><p>Позвоним по телефону из заказа, если что-то закончилось.</p>';
+    const shag = [...kontejner.querySelectorAll('.gotovo__shag b')].find((b) => b.textContent === 'Оплата картой онлайн');
+    if (shag) { shag.textContent = 'Оплачено картой онлайн'; shag.nextElementSibling.textContent = 'Заказ ушёл на кухню'; }
+    personazh?.pryg();
+    personazh?.skazat('Оплачено!', 3200);
+  });
+  forma.on('fail', () => { ubratFormu(); neVyshlo(kontejner, zakaz, popytka, 'Оплата не прошла'); });
+  forma.render('yukassa-forma');
+}
+
+function neVyshlo(kontejner, zakaz, popytka, prichina) {
+  const mesto = kontejner.querySelector('.gotovo__forma');
+  if (!mesto) return;
+  ubratFormu();
+  mesto.innerHTML = `
+    <div class="preduprezhdenie" style="text-align:left">
+      <b>${tekst(prichina)}</b>
+      <p>Деньги не списаны. Попробуйте ещё раз или оплатите при получении — заказ уже у кассира.</p>
+      <div class="preduprezhdenie__knopki"><button class="knopka knopka--glavnaya" type="button" data-snova>Оплатить ещё раз</button></div>
+    </div>`;
+  const snova = mesto.querySelector('[data-snova]');
+  nazhatie(snova, { masshtab: 0.96 });
+  snova.addEventListener('click', () => otkrytOplatu(kontejner, zakaz, popytka + 1));
 }
 
 function sozdatPersonazha(kontejner, nastroenie, fraza) {
@@ -129,6 +209,7 @@ function sozdatPersonazha(kontejner, nastroenie, fraza) {
 }
 
 export function ubrat() {
+  ubratFormu();
   tajmery.forEach((t) => clearTimeout(t));
   tajmery = [];
   if (personazh) { try { personazh.unichtozhit(); } catch { /* уже убран */ } personazh = null; }

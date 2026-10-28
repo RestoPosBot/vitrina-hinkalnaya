@@ -530,6 +530,12 @@ export class Korzina {
    * Прошлый заказ из localStorage — для кнопки «повторить прошлый заказ».
    * @returns {object|null}
    */
+  /** Онлайн-оплата прошла в форме на витрине: «готово» больше не показывает форму. */
+  otmetitOplatu() {
+    const zapis = prochitatIzHranilishcha(this.#klyuchZakaza);
+    if (zapis) zapisatVHranilishche(this.#klyuchZakaza, { ...zapis, oplacheno: true });
+  }
+
   proshlyyZakaz() {
     const zapis = prochitatIzHranilishcha(this.#klyuchZakaza);
     if (!zapis || !Array.isArray(zapis.pozicii)) return null;
