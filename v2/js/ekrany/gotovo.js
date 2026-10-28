@@ -8,7 +8,7 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom } 
 import { naytiZavedenie, perenestiKorzinu } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { tekst, rub, TONKIY, strokaPozicii } from '../kartochka.js';
-import { tokenOplaty } from '../rpb.js';
+import { tokenOplaty, oplatitOnlayn } from '../rpb.js';
 
 export const nastroyki = { niz: false, hinkalik: false, palitra: 'gotovo' };
 
@@ -128,7 +128,16 @@ export function pokazat(kontejner, yadro_, parametry) {
   });
 
   sozdatPersonazha(kontejner, 'rad', bezSeti ? 'Сохранил на телефоне' : zhdemOplatu ? 'Осталось оплатить' : 'Вот так это будет');
-  if (zhdemOplatu) otkrytOplatu(kontejner, zakaz, 0);
+  let ushliNaSayt = false;
+  try { ushliNaSayt = zhdemOplatu && sessionStorage.getItem(`oplata-na-sayte-${zakaz.zakazId}`) === '1'; } catch { /* нет хранилища */ }
+  if (ushliNaSayt) {
+    const mesto = kontejner.querySelector('.gotovo__forma');
+    mesto.innerHTML = '<div class="gotovo__oplacheno"><b>Оплата на странице ЮKassa</b><span>Если оплатили — заказ уйдёт на кухню, как только банк подтвердит.</span></div><button class="knopka knopka--tihaya gotovo__zapas" type="button" data-ne-oplatil>Не оплатил — открыть форму</button>';
+    mesto.querySelector('[data-ne-oplatil]').addEventListener('click', () => {
+      try { sessionStorage.removeItem(`oplata-na-sayte-${zakaz.zakazId}`); } catch { /* нет хранилища */ }
+      otkrytOplatu(kontejner, zakaz, true);
+    });
+  } else if (zhdemOplatu) otkrytOplatu(kontejner, zakaz);
 
   // Движение: кнопка «Заказать» растёт в карточку с номером, остальное — лесенкой
   if (!dvizhenieSnyato()) {
@@ -144,9 +153,21 @@ export function pokazat(kontejner, yadro_, parametry) {
 }
 
 /** Форма ЮKassa в .gotovo__forma. Без return_url: иначе ЮKassa уводит на свою страницу, а события success/fail не приходят. */
-async function otkrytOplatu(kontejner, zakaz, popytka) {
+/** Номер попытки оплаты заказа на этом телефоне: только растёт — у новой попытки новый платёж, старый отклонённый не вернётся.
+ * Перезагрузка «готово» берёт ту же попытку — тот же ещё не оплаченный платёж. */
+function popytkaOplaty(zakazId, novaya) {
+  const klyuch = `oplata-popytka-${zakazId}`;
+  let n = 0;
+  try { n = Number(sessionStorage.getItem(klyuch)) || 0; } catch { /* нет хранилища */ }
+  if (novaya) n += 1;
+  try { sessionStorage.setItem(klyuch, String(n)); } catch { /* нет хранилища */ }
+  return n;
+}
+
+async function otkrytOplatu(kontejner, zakaz, novaya = false) {
   const mesto = kontejner.querySelector('.gotovo__forma');
   if (!mesto) return;
+  const popytka = popytkaOplaty(zakaz.zakazId, novaya);
   ubratFormu();
   mesto.innerHTML = '<p class="gotovo__zhdem">Открываем форму оплаты…</p>';
   let token;
@@ -154,14 +175,14 @@ async function otkrytOplatu(kontejner, zakaz, popytka) {
   try {
     [{ token }, Vidzhet] = await Promise.all([tokenOplaty(zakaz.zakazId, popytka), vidzhetYukassy()]);
   } catch (oshibka) {
-    neVyshlo(kontejner, zakaz, popytka, String(oshibka?.message || 'Форма оплаты не открылась'));
+    neVyshlo(kontejner, zakaz, String(oshibka?.message || 'Форма оплаты не открылась'));
     return;
   }
   if (!mesto.isConnected) return;
   mesto.innerHTML = '<div id="yukassa-forma"></div>';
   forma = new Vidzhet({
     confirmation_token: token,
-    error_callback: (o) => { console.warn('ЮKassa', o); neVyshlo(kontejner, zakaz, popytka, 'Форма оплаты не открылась'); },
+    error_callback: (o) => { console.warn('ЮKassa', o); neVyshlo(kontejner, zakaz, 'Форма оплаты не открылась'); },
   });
   forma.on('success', () => {
     ubratFormu();
@@ -175,11 +196,26 @@ async function otkrytOplatu(kontejner, zakaz, popytka) {
     personazh?.pryg();
     personazh?.skazat('Оплачено!', 3200);
   });
-  forma.on('fail', () => { ubratFormu(); neVyshlo(kontejner, zakaz, popytka, 'Оплата не прошла'); });
+  forma.on('fail', () => { ubratFormu(); neVyshlo(kontejner, zakaz, 'Оплата не прошла'); });
   forma.render('yukassa-forma');
+  // запасной выход: у гостя не открывается yoomoney.ru в рамке (29.10.2026 так было на Redmi) — оплата на странице ЮKassa
+  tajmery.push(setTimeout(() => {
+    if (!mesto.isConnected || !mesto.querySelector('#yukassa-forma') || mesto.querySelector('[data-sayt-yukassy]')) return;
+    mesto.insertAdjacentHTML('beforeend', '<button class="knopka knopka--tihaya gotovo__zapas" type="button" data-sayt-yukassy>Форма не открылась? Оплатить на странице ЮKassa</button>');
+    const k = mesto.querySelector('[data-sayt-yukassy]');
+    nazhatie(k, { masshtab: 0.96 });
+    k.addEventListener('click', async () => {
+      try {
+        const { url } = await oplatitOnlayn(zakaz.zakazId, location.href);
+        // вернувшись с ЮKassa, гость не должен увидеть форму снова и заплатить второй раз
+        try { sessionStorage.setItem(`oplata-na-sayte-${zakaz.zakazId}`, '1'); } catch { /* без хранилища — форма покажется снова */ }
+        if (url) location.href = url;
+      } catch (o) { yadro.tost(String(o?.message || 'Оплата не открылась — оплатите при получении'), { vid: 'oshibka' }); }
+    });
+  }, 12000));
 }
 
-function neVyshlo(kontejner, zakaz, popytka, prichina) {
+function neVyshlo(kontejner, zakaz, prichina) {
   const mesto = kontejner.querySelector('.gotovo__forma');
   if (!mesto) return;
   ubratFormu();
@@ -191,7 +227,7 @@ function neVyshlo(kontejner, zakaz, popytka, prichina) {
     </div>`;
   const snova = mesto.querySelector('[data-snova]');
   nazhatie(snova, { masshtab: 0.96 });
-  snova.addEventListener('click', () => otkrytOplatu(kontejner, zakaz, popytka + 1));
+  snova.addEventListener('click', () => otkrytOplatu(kontejner, zakaz, true));
 }
 
 function sozdatPersonazha(kontejner, nastroenie, fraza) {
