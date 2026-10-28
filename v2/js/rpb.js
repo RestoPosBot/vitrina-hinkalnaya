@@ -269,7 +269,7 @@ function zapisat(s) {
   } catch { /* приватный режим: вход живёт только до перезагрузки */ }
 }
 
-/** Вошедший гость или null. @returns {{id: string, telefon: string, token: string}|null} */
+/** Вошедший гость или null. @returns {{id: string, telefon: string, token: string, imya?: string}|null} */
 export function gost() {
   return prochitat();
 }
@@ -315,9 +315,26 @@ export async function podtverditKod(telefon, kod) {
   const token = otvet?.tokens?.accessToken;
   const id = otvet?.customer?.id;
   if (!token || !id) throw new Error('Сервер не выдал токен');
-  const zapis = { id, telefon: phone, token, obnovit: otvet?.tokens?.refreshToken || null };
+  const zapis = { id, telefon: phone, token, obnovit: otvet?.tokens?.refreshToken || null, imya: otvet?.customer?.name || '' };
   zapisat(zapis);
   return zapis;
+}
+
+/**
+ * Имя вошедшего гостя: из входа, иначе из профиля на сервере (вход до 29.10.2026 имени не хранил), иначе ''.
+ * Ответ запоминаем в сессии — профиль спрашиваем один раз.
+ * @returns {Promise<string>}
+ */
+export async function imyaGostya() {
+  const g = prochitat();
+  if (!g) return '';
+  if (typeof g.imya === 'string') return g.imya;
+  try {
+    const p = await sTokenom((token) => zapros(`${BAZA}/customers/profile`, { token }));
+    const s = prochitat();   // sTokenom мог сменить токен — пишем поверх свежей записи
+    if (s) zapisat({ ...s, imya: String(p?.name || '').trim() });
+  } catch { return ''; }   // вход истёк или сеть — просто спросим имя
+  return prochitat()?.imya || '';
 }
 
 /**

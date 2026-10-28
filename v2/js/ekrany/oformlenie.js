@@ -11,7 +11,7 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom, p
 import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo, perenestiKorzinu, rasstoyanieKm, blizhayshieZavedeniya } from '../dannye.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
-import { otpravitZakaz, oplatitOnlayn } from '../rpb.js';
+import { otpravitZakaz, oplatitOnlayn, imyaGostya } from '../rpb.js';
 import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 import { Hinkalik } from '../hinkalik.js';
 
@@ -680,8 +680,36 @@ function obnovitVse() {
   narisovatMinimum();
   narisovatVremya();
   narisovatVhod();
+  narisovatKontakty();
   narisovatItog();
   obnovitPodzagolovok();
+}
+
+/**
+ * Вошедший гость: телефон берём из входа, имя — из профиля; спрашиваем только то, чего не знаем
+ * (владелец 28.10.2026: вошёл по номеру, а «С собой» снова просило имя и телефон).
+ */
+let zhdemImya = false;
+function narisovatKontakty() {
+  const poleImya = kontejner?.querySelector('[data-pole="imya"]');
+  const poleTel = kontejner?.querySelector('[data-pole="telefon"]');
+  if (!poleImya || !poleTel) return;
+  const g = yadro.gostRPB();
+  poleTel.hidden = Boolean(g);
+  poleImya.hidden = Boolean(g?.imya);
+  if (!g) return;
+  forma.telefon = cifryTelefona(g.telefon);
+  poleTel.querySelector('input').value = maskaTelefona(forma.telefon);
+  snyatOshibku('telefon');
+  if (g.imya) {
+    forma.imya = g.imya;
+    poleImya.querySelector('input').value = g.imya;
+    snyatOshibku('imya');
+  } else if (g.imya === undefined && !zhdemImya) {
+    // вход до 29.10.2026 имени не хранил — спросим профиль один раз
+    zhdemImya = true;
+    imyaGostya().then(() => { zhdemImya = false; if (kontejner) { narisovatKontakty(); narisovatVhod(); } });
+  }
 }
 
 /**
@@ -704,13 +732,13 @@ function narisovatVhod() {
     mesto.innerHTML = `
       <button class="kartochka-belaya oformlenie__vhod-knopka oformlenie__vhod-knopka--est" type="button">
         <b>Ваша скидка −${sk.procentGostya} %</b>
-        <span>Вошли по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · ${sk.akciya && !sk.vmeste ? 'сейчас выгоднее акция — вычтем её' : 'вычтем из заказа'}</span>
+        <span>${g.imya ? `${tekst(g.imya)}, вошли` : 'Вошли'} по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · ${sk.akciya && !sk.vmeste ? 'сейчас выгоднее акция — вычтем её' : 'вычтем из заказа'}</span>
       </button>`;
   } else {
     mesto.innerHTML = `
       <button class="kartochka-belaya oformlenie__vhod-knopka" type="button">
         <b>Вы вошли</b>
-        <span>${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · личной скидки в этом заведении пока нет</span>
+        <span>${g.imya ? `${tekst(g.imya)} · ` : ''}${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · личной скидки в этом заведении пока нет</span>
       </button>`;
   }
   const knopka = mesto.querySelector('button');
