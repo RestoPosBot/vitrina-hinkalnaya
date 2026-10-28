@@ -25,6 +25,8 @@
  *   или свой hex (`#B8213F`) — тогда градиент строится от него.
  */
 
+import { ISTOCHNIK } from './rpb.js';
+
 const KLYUCH_HRANILISHCHA = 'hinkalnaya.istorii.v2';
 const SOBYTIE_PROSMOTRA = 'hinkalnaya:istoriya-prosmotrena';
 const DLITELNOST_KADRA = 5000;
@@ -285,7 +287,8 @@ export async function zagruzitIstorii() {
     const otvet = await fetch(new URL('../istorii.json', import.meta.url));
     if (!otvet.ok) throw new Error(`istorii.json: ${otvet.status}`);
     const spisok = await otvet.json();
-    keshIstoriy = Array.isArray(spisok) ? spisok : [];
+    // «Самовывоз −10 %» — только в приложении (владелец 28.10.2026): на сайте баннер обещал бы скидку, которой сайт не даст
+    keshIstoriy = (Array.isArray(spisok) ? spisok : []).filter((x) => !x.tolkoPrilozhenie || ISTOCHNIK === 'MOBILE');
   } catch (oshibka) {
     keshIstoriy = [];
   }

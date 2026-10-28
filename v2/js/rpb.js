@@ -29,7 +29,7 @@ const BAZA = 'https://api.chikchak.ai/api';
  * Метка помнится: у обёртки своё хранилище, а внутри неё гость переходит по страницам без параметра.
  * shortcut: гость сайта может дописать ?prilozhenie=1 руками и получить скидку приложения; закрыть — подписью обёртки
  */
-const ISTOCHNIK = (() => {
+export const ISTOCHNIK = (() => {
   const vUA = /ChikChakApp/i.test(navigator.userAgent);
   try {
     if (/[?&]prilozhenie=1(&|$)/.test(location.search)) localStorage.setItem('chikchak_prilozhenie', '1');
