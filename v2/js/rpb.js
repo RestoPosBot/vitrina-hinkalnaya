@@ -23,6 +23,22 @@ import { konturZony } from './dannye.js';
 
 const BAZA = 'https://api.chikchak.ai/api';
 
+/**
+ * Витрина открыта в приложении гостя: обёртка открывает её с ?prilozhenie=1 (или пишет «ChikChakApp» в User-Agent).
+ * Тогда заказ уходит как MOBILE — «самовывоз −10 %» только из приложения, на сайте её нет (владелец 28.10.2026).
+ * Метка помнится: у обёртки своё хранилище, а внутри неё гость переходит по страницам без параметра.
+ * shortcut: гость сайта может дописать ?prilozhenie=1 руками и получить скидку приложения; закрыть — подписью обёртки
+ */
+const ISTOCHNIK = (() => {
+  const vUA = /ChikChakApp/i.test(navigator.userAgent);
+  try {
+    if (/[?&]prilozhenie=1(&|$)/.test(location.search)) localStorage.setItem('chikchak_prilozhenie', '1');
+    return vUA || localStorage.getItem('chikchak_prilozhenie') === '1' ? 'MOBILE' : 'SITE';
+  } catch {
+    return vUA ? 'MOBILE' : 'SITE';
+  }
+})();
+
 /** Сеть Хинкальной в ChikChak. */
 export const SET_ID = 'cmbsh1diy000110v3ic2a7h1v';
 
@@ -424,7 +440,7 @@ export async function akcii(sposob, zavedenieId) {
   if (akciiNeOtvechayut) return [];
   const tip = sposob === 'dostavka' ? 'DELIVERY' : 'TAKEAWAY';
   try {
-    const spisok = await zapros(`${BAZA}/discounts/vitrina/${SET_ID}?orderType=${tip}${zavedenieId ? `&restaurantId=${encodeURIComponent(zavedenieId)}` : ''}`);
+    const spisok = await zapros(`${BAZA}/discounts/vitrina/${SET_ID}?orderType=${tip}&istochnik=${ISTOCHNIK}${zavedenieId ? `&restaurantId=${encodeURIComponent(zavedenieId)}` : ''}`);
     return Array.isArray(spisok) ? spisok : [];
   } catch (oshibka) {
     // 404 — на сервере ещё нет этого адреса (старая сборка бэкенда): молчим и живём без акций,
@@ -481,7 +497,7 @@ export async function otpravitZakaz(zakaz) {
   const telo = {
     restaurantId: zakaz.zavedenieId,
     type: zakaz.sposob === 'dostavka' ? 'DELIVERY' : 'TAKEAWAY',
-    source: 'SITE',
+    source: ISTOCHNIK,
     customerName: zakaz.imya,
     phone: cifryTelefona(zakaz.telefon),
     comment: zakaz.kommentariy || undefined,
