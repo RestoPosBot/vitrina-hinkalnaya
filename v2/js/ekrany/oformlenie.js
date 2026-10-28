@@ -11,7 +11,7 @@ import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom, p
 import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo, perenestiKorzinu, rasstoyanieKm, blizhayshieZavedeniya } from '../dannye.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
-import { otpravitZakaz } from '../rpb.js';
+import { otpravitZakaz, oplatitOnlayn } from '../rpb.js';
 import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 import { Hinkalik } from '../hinkalik.js';
 
@@ -25,6 +25,8 @@ const PREDEL_DOSTAVKI_KM = 7;
 const ZAPAS_DO_ZAKRYTIYA = 10;
 /** Над кнопкой: чем платим. Заказ уходит в заведение, оплата при получении. */
 const TEKST_OPLATA = 'Оплата при получении: картой или наличными';
+const TEKST_ONLAYN = 'После «Заказать» — оплата картой на странице ЮKassa';
+const tekstOplaty = () => (forma.oplata === 'onlayn' ? TEKST_ONLAYN : TEKST_OPLATA);
 const TEKST_OFLAYN = 'Нет сети: заказ не отправить — он сохранится на телефоне';
 
 /** Черновик контактов (удобство гостя: имя и телефон не набирать заново). */
@@ -34,7 +36,8 @@ const ZAPAS_DO_SLOTA = 40;        // первый слот не раньше, ч
 const SLOTOV = 12;
 
 // Состояние формы живёт в модуле: уход на #/adres и возврат ничего не теряют (тупик 14)
-const forma = { imya: '', telefon: '', kommentariy: '', kogda: null, slot: null };
+// oplata: 'pri_poluchenii' | 'onlayn' (28.10.2026) — по умолчанию при получении: зеркало старой системы платит так же, без ЮKassa
+const forma = { imya: '', telefon: '', kommentariy: '', kogda: null, slot: null, oplata: 'pri_poluchenii' };
 let chernovikProchitan = false;
 
 let yadro = null;
@@ -207,9 +210,13 @@ export function pokazat(kontejner_, yadro_, parametry) {
 
     <section class="oformlenie__blok" data-blok="oplata">
       <div class="metka">Оплата</div>
+      <div class="vybor oformlenie__kogda" style="margin-bottom:10px">
+        <button class="chip-dobavka" type="button" data-oplata="onlayn">Картой онлайн</button>
+        <button class="chip-dobavka vybran" type="button" data-oplata="pri_poluchenii">При получении</button>
+      </div>
       <div class="kartochka-belaya oformlenie__oplata">
         <span class="oformlenie__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span>
-        <div><b>При получении</b><small>Картой или наличными. Предоплаты нет.</small></div>
+        <div class="oformlenie__oplata-tekst"></div>
       </div>
     </section>
 
@@ -229,7 +236,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
   // строка над кнопкой — на плотной подложке, чтобы сквозь неё не просвечивал текст формы
   niz.style.background = 'linear-gradient(to top, rgb(255, 247, 236) calc(100% - 14px), rgba(255, 247, 236, 0))';
   niz.innerHTML = `
-    <p class="oformlenie__set" style="font-weight:700">${TEKST_OPLATA}</p>
+    <p class="oformlenie__set" style="font-weight:700">${tekstOplaty()}</p>
     <button class="knopka knopka--korzina oformlenie__zakazat" type="button">
       <svg width="22" height="22" aria-hidden="true"><use href="#ik-strelka"/></svg>
       <span>Заказать</span>
@@ -249,6 +256,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
   } catch { personazh = null; /* без персонажа форма всё равно понятна */ }
 
   navesitSposob();
+  navesitOplatu();
   navesitPolya();
   obnovitVse();
 
@@ -265,7 +273,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
     if (yadro.korzina.pusta()) { yadro.perejti('#/', { zamenit: true }); return; }
     obnovitVse();
   }));
-  const naSet = () => { const p = niz?.querySelector('.oformlenie__set'); if (p) p.textContent = navigator.onLine === false ? TEKST_OFLAYN : TEKST_OPLATA; };
+  const naSet = () => { const p = niz?.querySelector('.oformlenie__set'); if (p) p.textContent = navigator.onLine === false ? TEKST_OFLAYN : tekstOplaty(); };
   window.addEventListener('online', naSet);
   window.addEventListener('offline', naSet);
   otpiski.push(() => { window.removeEventListener('online', naSet); window.removeEventListener('offline', naSet); });
@@ -300,6 +308,29 @@ export function ubrat() {
 // ---------------------------------------------------------------------------
 // Способ получения и место
 // ---------------------------------------------------------------------------
+
+/** Оплата: картой онлайн (ЮKassa магазина заведения) или при получении. */
+function navesitOplatu() {
+  const pokazat = () => {
+    kontejner.querySelectorAll('[data-oplata]').forEach((b) => b.classList.toggle('vybran', b.dataset.oplata === forma.oplata));
+    const t = kontejner.querySelector('.oformlenie__oplata-tekst');
+    if (t) t.innerHTML = forma.oplata === 'onlayn'
+      ? '<b>Картой онлайн</b><small>После «Заказать» откроется оплата. На кухню заказ уйдёт, как только оплата пройдёт.</small>'
+      : '<b>При получении</b><small>Картой или наличными. Предоплаты нет.</small>';
+    const p = niz?.querySelector('.oformlenie__set');
+    if (p && navigator.onLine !== false) p.textContent = tekstOplaty();
+  };
+  kontejner.querySelectorAll('[data-oplata]').forEach((b) => {
+    nazhatie(b, { masshtab: 0.94 });
+    b.addEventListener('click', () => {
+      if (forma.oplata === b.dataset.oplata) return;
+      forma.oplata = b.dataset.oplata;
+      vibro(6);
+      pokazat();
+    });
+  });
+  pokazat();
+}
 
 function navesitSposob() {
   const p = kontejner.querySelector('.pereklyuchatel');
@@ -799,6 +830,7 @@ async function zakazat_() {
       kommentariy: forma.kommentariy.trim(),
       adres: sposob === 'dostavka' ? yadro.gost.adres : null,
       kogda: kogda.tip === 'ko_vremeni' ? new Date(kogda.ms).toISOString() : undefined,
+      onlayn: forma.oplata === 'onlayn',
     });
   } catch (oshibka) {
     console.warn('Заказ не ушёл', oshibka);
@@ -813,6 +845,17 @@ async function zakazat_() {
 
   // Номер и суммы — те, что вернул сервер; свой счётчик остаётся только на крайний случай.
   const nomer = otvet.nomer ?? sleduyushchiyNomer();
+  // Онлайн: ссылка на оплату ЮKassa. Не открылась — заказ уже есть, гость платит при получении (сказали тостом).
+  let ssylkaOplaty = null;
+  if (forma.oplata === 'onlayn' && otvet.id) {
+    if (podpisKnopki) podpisKnopki.textContent = 'Открываем оплату…';
+    try {
+      ssylkaOplaty = (await oplatitOnlayn(otvet.id, `${location.origin}${location.pathname}#/gotovo/${encodeURIComponent(nomer)}`)).url || null;
+    } catch (oshibka) {
+      console.warn('Оплата не открылась', oshibka);
+      yadro.tost(String(oshibka?.message || 'Онлайн-оплата не открылась — оплатите при получении'), { vid: 'oshibka' });
+    }
+  }
   const summaBlyud = yadro.korzina.summa();
   const skidkaRub = otvet.skidka > 0 ? otvet.skidka : yadro.skidka(summaBlyud).rub;
   const zapis = yadro.korzina.zapomnitZakaz({
@@ -823,7 +866,7 @@ async function zakazat_() {
     kommentariy: forma.kommentariy.trim(),
     kogda_poluchit: kogda,
     zavedenieNazvanie: zav?.nazvanie || null,
-    oplata: 'pri_poluchenii',
+    oplata: ssylkaOplaty ? 'onlayn' : 'pri_poluchenii',
     otlozhen: false,
     skidka: {
       procent: yadro.skidka(summaBlyud).procent,
@@ -833,6 +876,12 @@ async function zakazat_() {
     },
   });
   if (!zapis) { yadro.perejti('#/', { zamenit: true }); return; }
+  if (ssylkaOplaty) {
+    // корзину чистим до ухода: вернувшись с оплаты, гость попадёт на «готово», а не в полную корзину
+    yadro.korzina.ochistit();
+    location.href = ssylkaOplaty;
+    return;
+  }
   vibro([10, 40, 20]);
   forma.kogda = null;
   forma.slot = null;

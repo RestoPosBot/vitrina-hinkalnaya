@@ -470,6 +470,11 @@ export function summaAkcii(akciya, summa) {
  * @param {string} [zakaz.kogda] ISO-время, если «ко времени»
  * @returns {Promise<{id: string, nomer: string|number, summa: number, skidka: number, otvet: object}>}
  */
+/** Ссылка на оплату заказа картой (ЮKassa магазина заведения, 28.10.2026). Сумму считает сервер; vozvrat — куда вернуть гостя. */
+export async function oplatitOnlayn(zakazId, vozvrat) {
+  return zapros(`${BAZA}/orders/${encodeURIComponent(zakazId)}/oplata-onlayn`, { method: 'POST', telo: { vozvrat }, srok: 35000 });
+}
+
 export async function otpravitZakaz(zakaz) {
   const g = prochitat();
   const adres = zakaz.adres || {};
@@ -501,6 +506,7 @@ export async function otpravitZakaz(zakaz) {
     if (Number.isFinite(adres.shirota) && Number.isFinite(adres.dolgota)) { telo.deliveryLat = adres.shirota; telo.deliveryLng = adres.dolgota; }
   }
 
+  if (zakaz.onlayn) telo.payment = { method: 'ONLINE' };   // касса видит «онлайн»; на кухню заказ уйдёт, когда пройдёт оплата
   const otvet = await zapros(`${BAZA}/orders`, { method: 'POST', telo, srok: 25000, token: g?.token });
   return {
     id: otvet?.id || null,
