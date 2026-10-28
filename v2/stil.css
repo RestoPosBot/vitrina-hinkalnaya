@@ -284,6 +284,7 @@ img { max-width: 100%; }
   .shapka__verh .chip { width: 44px; padding: 0; gap: 0; justify-content: center; font-size: 0; }
 }
 .mesto__nazvanie svg { width: 18px; height: 18px; flex: 0 0 auto; }
+.mesto__nazvanie--adres span { hyphens: manual; overflow-wrap: normal; }
 .mesto__status { font-weight: 600; font-size: 0.8438rem; display: flex; align-items: center; gap: 7px; }
 .mesto__adres { font: var(--t-vtoroy); color: var(--ugol-62); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* Пульс точки — кольцо ::after на transform/opacity (композитор), а не box-shadow (перерисовка каждый кадр) */
@@ -956,6 +957,8 @@ img { max-width: 100%; }
    ========================================================================= */
 
 .pole { display: grid; gap: 6px; }
+.adres__detali { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 14px; }
+.adres__detali-shiroko { grid-column: 1 / -1; }
 .pole__metka { font: var(--t-metka); letter-spacing: .12em; text-transform: uppercase; opacity: .72; }
 .pole__vvod { height: 54px; padding: 0 16px; border-radius: var(--r-knopka); border: 0; background: rgba(255, 255, 255, .72); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .9), var(--ten-myagkaya); font: var(--t-tekst); color: var(--ugol); outline: 0; width: 100%; transition: box-shadow .25s; }
 .pole__vvod::placeholder { color: var(--ugol-72); }

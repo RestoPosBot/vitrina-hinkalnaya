@@ -470,7 +470,8 @@ function rezhimDostavka(mesto) {
       <span class="pole__podskazka">Начните писать улицу и дом</span>
     </label>
     <div class="podskazki" role="listbox" aria-label="Найденные адреса"></div>
-    <div class="adres__itog"></div>`;
+    <div class="adres__itog"></div>
+    ${s.ot ? '' : '<button type="button" class="knopka knopka--steklo knopka--60 adres__sam" data-sam><svg aria-hidden="true"><use href="#ik-sumka"/></svg><span>Заберу сам</span></button>'}`;
   const vvod = mesto.querySelector('#adres-vvod');
   const pole = mesto.querySelector('.adres__pole');
   const podskazka = mesto.querySelector('.pole__podskazka');
@@ -479,6 +480,19 @@ function rezhimDostavka(mesto) {
   const itog = mesto.querySelector('.adres__itog');
   nazhatie(knopkaGde, { masshtab: 0.95 });
   knopkaGde.addEventListener('click', () => pokazatKartu(mesto, vvod, podskazka, spisok, itog));
+  // первый экран — поле адреса (владелец 29.10.2026); самовывоз в одно нажатие — список заведений
+  const sam = mesto.querySelector('[data-sam]');
+  if (sam) {
+    nazhatie(sam, { masshtab: 0.95 });
+    sam.addEventListener('click', () => {
+      if (!s) return;
+      s.rezhim = null;
+      s.pokolenie++;
+      otmenitPoiskAdresa();
+      ubratKartu();
+      otkryt('spisok', null);
+    });
+  }
   skazat('Напишите улицу и дом — найду ближайшую кухню', 'obychno');
   // вошедший гость — сначала его адреса (клавиатура не открывается сама, чтобы не закрыть их)
   if (voshel()) pokazatMoiAdresa(mesto.querySelector('.adres__moi'), vvod, podskazka, spisok, itog);
@@ -718,7 +732,7 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
     itog.innerHTML = `<div class="metka adres__metka">Привезём из</div>`;
     const karta = kartochkaZavedeniya(z, vezut[0].km, {
       vybrano: true,
-      naVybor: (zz, el) => { yadro.obnovitGostya({ sposob: 'dostavka', adres }); vybrano(zz.id, el.querySelector('.zavedenie__nazvanie')); },
+      naVybor: (zz, el) => { yadro.obnovitGostya({ sposob: 'dostavka', adres: sDetalyami() }); vybrano(zz.id, el.querySelector('.zavedenie__nazvanie')); },
     });
     itog.appendChild(karta);
     // меньше минимума зона может возить за плату (26.10.2026) — тогда минимум не порог, а «бесплатно от»
@@ -726,12 +740,28 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
       ? `Доставка ${zona.cena ? rub(zona.cena) : 'бесплатно'} от ${rub(zona.min)}, меньше — ${rub(zona.nizheMin)}`
       : `Доставка от ${rub(min)}${zona?.cena ? ` · ${rub(zona.cena)}` : ''} · заберёте сами — без минимума`;
     itog.insertAdjacentHTML('beforeend', `<p class="adres__primechanie">${usloviya}</p>`);
+    // Подъезд, код двери, этаж, квартира, комментарий — как у Додо (владелец 29.10.2026: «нет подъезда, квартиры, домофона»);
+    // тот же адрес, что был, — подставляем прежнее; сервер принимает их полями deliveryEntrance… (rpb.js otpravitZakaz)
+    const bylo = yadro.gost.adres?.tekst === adres.tekst ? yadro.gost.adres : adres;
+    const pole = (k, metka, dop = '') => `<label class="pole"><span class="pole__metka">${metka}</span><input class="pole__vvod" data-d="${k}" ${dop} value="${tekst(bylo[k] || '')}"></label>`;
+    itog.insertAdjacentHTML('beforeend', `
+      <div class="adres__detali">
+        ${pole('podyezd', 'Подъезд', 'inputmode="numeric" maxlength="10" autocomplete="off"')}
+        ${pole('domofon', 'Код двери', 'maxlength="20" autocomplete="off"')}
+        ${pole('etazh', 'Этаж', 'inputmode="numeric" maxlength="10" autocomplete="off"')}
+        ${pole('kvartira', 'Квартира', 'maxlength="20" autocomplete="address-line2"')}
+        <label class="pole adres__detali-shiroko"><span class="pole__metka">Комментарий к адресу</span><input class="pole__vvod" data-d="kurieru" maxlength="200" placeholder="Как найти вход, где оставить" value="${tekst(bylo.kurieru || '')}"></label>
+      </div>`);
+    const sDetalyami = () => {
+      itog.querySelectorAll('[data-d]').forEach((v) => { adres[v.dataset.d] = v.value.trim(); });
+      return adres;
+    };
     const knopka = document.createElement('button');
     knopka.type = 'button';
     knopka.className = 'knopka knopka--glavnaya knopka--60';
     knopka.innerHTML = '<svg aria-hidden="true"><use href="#ik-dostavka"/></svg><span>Везите сюда</span>';
     nazhatie(knopka, { masshtab: 0.95 });
-    knopka.addEventListener('click', () => { yadro.obnovitGostya({ sposob: 'dostavka', adres }); vybrano(z.id, karta.querySelector('.zavedenie__nazvanie')); });
+    knopka.addEventListener('click', () => { yadro.obnovitGostya({ sposob: 'dostavka', adres: sDetalyami() }); vybrano(z.id, karta.querySelector('.zavedenie__nazvanie')); });
     itog.appendChild(knopka);
     poyavlenieKaskadom(itog.children, 60);
     skazat(`Привезём из заведения «${z.nazvanie}» — ${km(vezut[0].km)}`, 'rad');
@@ -893,6 +923,7 @@ export function pokazat(kontejner, yadro, parametry = {}) {
   });
   // #/adres/dostavka: гость уже сказал «доставка» (оформление) — сразу поле адреса и «Определить по местоположению»
   if (parametry.id === 'dostavka') otkryt('dostavka', knopki.find((k) => k.dataset.rezhim === 'dostavka'));
+  else if (parametry.id === 'spisok') otkryt('spisok', knopki.find((k) => k.dataset.rezhim === 'spisok'));
   const potom = koren.querySelector('.adres__potom');
   nazhatie(potom, { masshtab: 0.95, vibro: false });
   potom.addEventListener('click', posmotretMenyu);

@@ -405,6 +405,7 @@ function narisovatMesto() {
       const daleko = dalekoDlyaDostavki();
       html = `<button class="zavedenie oformlenie__vybor" type="button" data-k-adresu>
         <span class="zavedenie__nazvanie">${tekst(g.adres.tekst)}</span>
+        ${detaliAdresa(g.adres) ? `<span class="zavedenie__adres">${tekst(detaliAdresa(g.adres))}</span>` : ''}
         <span class="zavedenie__adres">${daleko ? `${daleko.zav ? `До «${tekst(daleko.zav.nazvanie)}» ` : ''}${kmTekst(daleko.km)}` : zav ? `Готовит ${tekst(zav.nazvanie)}` : 'Заведение подберём ближайшее'}</span>
         <span class="zavedenie__km oformlenie__smenit">Изменить</span></button>`;
       if (daleko && daleko.blizhe) {
@@ -708,6 +709,10 @@ function obnovitVse() {
   narisovatItog();
   obnovitPodzagolovok();
 }
+
+/** «подъезд 3 · код 45К · этаж 5 · кв. 12» — то, что гость написал на экране адреса (29.10.2026). */
+const detaliAdresa = (a) => [a.podyezd && `подъезд ${a.podyezd}`, a.domofon && `код ${a.domofon}`, a.etazh && `этаж ${a.etazh}`, a.kvartira && `кв. ${a.kvartira}`]
+  .filter(Boolean).join(' · ');
 
 /**
  * Вошедший гость: телефон берём из входа, имя — из профиля; спрашиваем только то, чего не знаем

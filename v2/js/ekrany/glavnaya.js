@@ -83,13 +83,20 @@ function narisovatShapku(shapka) {
     status = `<i class="tochka net"></i><span>${n} ${sklon(n, ['заведение', 'заведения', 'заведений'])} · выберите своё</span>`;
   }
   const dostavka = g.sposob === 'dostavka';
-  const adresStroka = dostavka && g.adres?.tekst ? `<span class="mesto__adres">${tekst(g.adres.tekst)}</span>` : '';
   const sposobTekst = g.sposob === 'dostavka' ? 'Доставка' : g.sposob === 'samovyvoz' ? 'Самовывоз' : 'Получение';
+  // Шапка с адреса, как у Додо и Яндекс Еды (владелец 29.10.2026): доставка — крупно адрес, ниже кто везёт;
+  // самовывоз — заведение; ничего не выбрано — «Укажите адрес», меню и цены зависят от заведения
+  const adresDostavki = dostavka && g.adres?.tekst ? korotkiyAdres(g.adres.tekst) : '';
+  const metka = adresDostavki ? 'Доставка' : g.sposob === 'samovyvoz' && z ? 'Самовывоз' : 'Хинкальная';
+  const krupno = adresDostavki || (z ? z.nazvanie : g.sposob === 'samovyvoz' ? 'Выберите заведение' : 'Укажите адрес');
+  const nizhe = adresDostavki && z ? `<span class="mesto__adres">привезёт ${tekst(z.nazvanie)}</span>`
+    : !z ? '<span class="mesto__adres">меню и цены зависят от заведения</span>' : '';
+  if (!z) status = '';
   shapka.querySelector('.shapka__verh').innerHTML = `
-    <button class="mesto" type="button" aria-label="Сменить заведение">
-      <span class="mesto__set">Хинкальная</span>
-      <span class="mesto__nazvanie"><span>${tekst(z ? z.nazvanie : 'Выберите заведение')}</span><svg aria-hidden="true"><use href="#ik-vniz"/></svg></span>
-      ${adresStroka}
+    <button class="mesto" type="button" aria-label="${adresDostavki ? 'Сменить адрес доставки' : 'Указать адрес или заведение'}">
+      <span class="mesto__set">${metka}</span>
+      <span class="mesto__nazvanie${adresDostavki ? ' mesto__nazvanie--adres' : ''}"><span>${tekst(krupno)}</span><svg aria-hidden="true"><use href="#ik-vniz"/></svg></span>
+      ${nizhe}
       ${status ? `<span class="mesto__status">${status}</span>` : ''}
     </button>
     <button class="chip" type="button" aria-label="Способ получения: ${sposobTekst}">
@@ -97,10 +104,18 @@ function narisovatShapku(shapka) {
     </button>`;
   const mesto = shapka.querySelector('.mesto');
   nazhatie(mesto, { masshtab: 0.97 });
-  mesto.addEventListener('click', () => yadro.perejti('#/adres', { istochnik: mesto.querySelector('.mesto__nazvanie') }));
+  // доставка или ничего не выбрано — сразу поле адреса; самовывоз — выбор заведения
+  const kuda = g.sposob === 'samovyvoz' ? (z ? '#/adres' : '#/adres/spisok') : '#/adres/dostavka';
+  mesto.addEventListener('click', () => yadro.perejti(kuda, { istochnik: mesto.querySelector('.mesto__nazvanie') }));
   const chip = shapka.querySelector('.chip');
   nazhatie(chip, { masshtab: 0.93 });
   chip.addEventListener('click', vybratSposob);
+}
+
+/** «г Москва, ул Башиловская, д 19» → «Башиловская, 19»: город, «ул» и «д» в шапке лишние — пусть влезет номер дома. */
+function korotkiyAdres(t) {
+  return String(t).replace(/^(Россия,\s*)?((г\.?\s*)?Москва|Московская обл\.?)\s*,\s*/i, '')
+    .replace(/(^|,\s*)(ул|д)\.?\s+/gi, '$1');
 }
 
 function vybratSposob() {

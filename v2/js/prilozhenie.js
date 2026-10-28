@@ -480,6 +480,8 @@ const yadro = {
       podskokKnopki();
     }
     if (yadro.hinkalik && !yadro.hinkalik.spryatan) yadro.hinkalik.pryg();
+    // «Сначала посмотрю меню» и положил блюдо — спрашиваем, куда везти, один раз, как Додо (владелец 29.10.2026); тост не перекрывает шторку
+    if (!gost.sposob && !sprosiliKudaVezti) { sprosiliKudaVezti = true; setTimeout(sprositKudaVezti, 600); return poziciya; }
     if (!opcii.tiho) yadro.tost(`${blyudo.nazvanie} в корзине`, { vid: 'uspeh' });
     // Хинкалик подсказывает, что к этому берут (не чаще раза в 20 с)
     const sovet = kEtomuBerut(korzina.pozicii, yadro.menyu, gost.zavedenieId, 1)[0];
@@ -743,6 +745,19 @@ function malayaShtorka(o = {}) {
     setTimeout(() => { if (upr.otkryta && upr.fon) upr.fon.style.pointerEvents = 'auto'; }, 400);
   }
   return gotovo;
+}
+
+let sprosiliKudaVezti = false;
+function sprositKudaVezti() {
+  if (gost.sposob) return;
+  malayaShtorka({
+    zagolovok: 'Куда привезти?',
+    tekst: 'Блюда, цены и акции зависят от заведения. Адрес запомним для следующих заказов.',
+    knopki: [
+      { tekst: 'Указать адрес доставки', znak: '#ik-dostavka', klass: 'knopka--glavnaya knopka--60', naNazhatie: () => setTimeout(() => yadro.perejti('#/adres/dostavka'), 320) },
+      { tekst: 'Заберу сам', znak: '#ik-sumka', klass: 'knopka--steklo knopka--60', naNazhatie: () => setTimeout(() => yadro.perejti('#/adres/spisok'), 320) },
+    ],
+  });
 }
 
 function shtorkaGolosa() {
@@ -1285,7 +1300,7 @@ async function zapustit() {
     await zaplanirovat();
     yadro.perejti('#/perenos');
   } else if (nachalo.imya === 'glavnaya' && !gost.zavedenieId && !gost.smotritMenyu) {
-    history.replaceState({ hinkalnaya: true, glubina }, '', '#/adres');
+    history.replaceState({ hinkalnaya: true, glubina }, '', '#/adres/dostavka');
     await zaplanirovat();
   } else {
     history.replaceState({ hinkalnaya: true, glubina }, '', nachalo.put);
