@@ -1377,7 +1377,7 @@ body.est-shtorka .hinkalik--plavayushchiy { z-index: 30; }
 .perenos, .perenos > *, .perenos__gruppa, .perenos .propalo { min-width: 0; }
 .perenos__gruppy { grid-template-columns: minmax(0, 1fr); }
 /* gotovo — поправки после снимка: номер в одну строку, значки шагов по центру */
-.gotovo__kartochka .gotovo__nomer { font-size: clamp(2rem, 11vw, 2.875rem); white-space: nowrap; }
+.gotovo__kartochka .gotovo__nomer { font-size: clamp(1.5rem, 8.5vw, 2.875rem); white-space: nowrap; }   /* «291026-3731» на 360–390 px влезает в карточку (29.10.2026) */
 .gotovo__nomer small { font-size: .55em; margin-right: .12em; vertical-align: .35em; }
 .gotovo__shag > .gotovo__znak { display: grid; margin-top: 0; }
 .poisk-ekran__skolko { margin-bottom: 26px; }
