@@ -118,16 +118,16 @@ function strokaIstorii(t) {
 /** Как копятся: правило кешбэка сети одной строкой. */
 function kakKopyatsya() {
   const k = yadro.keshbek();
-  if (!k) return 'Баллы начисляет заведение — подарком или за акции.';
-  const vse = [k.vsyoMenyu, ...Object.values(k.kategorii), ...Object.values(k.bluda)];
-  const max = Math.max(...vse);
+  const vse = k ? [k.vsyoMenyu, ...Object.values(k.kategorii), ...Object.values(k.bluda)] : [];
+  const max = vse.length ? Math.max(...vse) : 0;
+  if (!(max > 0)) return 'Баллы начисляет заведение — подарком или за акции.';
   const odin = vse.every((x) => x === max);
   return `Копятся сами: ${odin ? '' : 'до '}${max} % с каждого заказа после скидки${odin ? '' : ' — на разные блюда по-разному'}. Заказ на сайте — войдите по номеру, в зале — покажите QR кассиру.`;
 }
 
 async function narisovatBally(mesto, zakazy, moe) {
   let b;
-  try { b = await moiBally(); } catch (oshibka) {
+  try { [b] = await Promise.all([moiBally(), yadro.keshbekGotov()]); } catch (oshibka) {
     if (moe !== pokolenie) return;
     if (oshibka?.kod === 401) { narisovat(); return; }
     mesto.innerHTML = '<p class="profil__tiho">Баллы не загрузились — похоже, нет сети.</p>';

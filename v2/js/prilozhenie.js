@@ -360,6 +360,8 @@ const yadro = {
 
   /** Правило кешбэка сети или null — выключен. */
   keshbek() { return keshbek; },
+  /** Дождаться правила кешбэка (профиль пишет «как копятся» по нему). */
+  keshbekGotov() { return zagruzkaKeshbeka; },
 
   /**
    * Сколько баллов вернётся за нынешнюю корзину — как сервер считает при закрытии (src/order/keshbek.ts):
@@ -1249,7 +1251,7 @@ function obnovitZonyAdresa(menyu) {
 }
 
 // кешбэк не держит запуск: пришёл — экраны перерисуются по событию «skidka»
-keshbekSeti().then((p) => {
+const zagruzkaKeshbeka = keshbekSeti().then((p) => {
   keshbek = p?.vklyuchen ? p : null;
   if (keshbek) soobshchit('skidka', { ...skidkaGostya, akciya: akciyaSeychas });
 });

@@ -564,7 +564,7 @@ export class Hinkalik {
    * - пока под ним прокручивают страницу — приглушается и уезжает к краю, касания проходят сквозь;
    * - через 600 мс покоя возвращается, но только туда, где под видимой частью нет ни кнопок
    *   («+», степпер), ни строк текста (название, описание, цена, заголовок раздела):
-   *   если место занято — поднимается выше, а если свободного нет — выглядывает на своём месте (29.10);
+   *   если место занято — поднимается выше; без текста места нет — встаёт на край текста, но не на кнопку (29.10);
    * - на экране уже есть другой Хинкалик (баннер, пустой поиск, шторка) — уступает ему.
    * Место перепроверяется по событиям (касание, смена экрана, конец прокрутки, размер окна)
    * и изредка для страховки — но не в покое (html.pokoy) и не на скрытой вкладке.
@@ -714,8 +714,9 @@ export class Hinkalik {
    * Большие кликабельные области (вся карточка) не в счёт — у них есть свободное место.
    * @param {number} dy
    * @param {boolean} [celikom=false] проверять всю фигуру (вышел поговорить), а не полоску у края
+   * @param {boolean} [tolkoKnopki=false] текст под полоской не в счёт — только кнопки (запасное место, 29.10)
    */
-  mestoSvobodno(dy, celikom = false) {
+  mestoSvobodno(dy, celikom = false, tolkoKnopki = false) {
     const m = this.bazovyyPryamougolnik();
     const r = this.razmer;
     if (m.top + dy < 72) return false; // не лезть на шапку
@@ -743,7 +744,7 @@ export class Hinkalik {
           const b = k.getBoundingClientRect();
           if (b.width * b.height < ploshchadPredel) return false;
         }
-        if (this.tekstVPolose(t, p, diapazon)) return false;
+        if (!tolkoKnopki && this.tekstVPolose(t, p, diapazon)) return false;
       }
     }
     return true;
@@ -777,12 +778,13 @@ export class Hinkalik {
           if (this.mestoSvobodno(dy)) { vybor = dy; break; }
         }
       }
+      // без текста места нет — встаёт поверх края текста, но не на «+»: пропадающего персонажа гость не находит,
+      // а через него голосовой заказ (владелец 29.10: «выловить практически нереально»)
+      if (vybor === null) vybor = kandidaty.find((dy) => this.mestoSvobodno(dy, false, true)) ?? null;
     } finally {
       this.el.style.pointerEvents = byloPe;
     }
-    // свободного места нет — всё равно выглядывает на своём месте: пропадающего персонажа гость не находит,
-    // а через него голосовой заказ (владелец 29.10: «выловить практически нереально»)
-    if (vybor === null) vybor = 0;
+    if (vybor === null) { this.el.classList.add('hinkalik--pritih'); return; }
     if (vybor !== this.uvorot) {
       this.uvorot = vybor;
       this.el.style.setProperty('--uvorot', vybor + 'px');
