@@ -238,9 +238,18 @@ export async function sobratMenyu(opcii = {}) {
     delete razdel._poryadok;
   }
 
+  // подкатегория → родитель: кешбэк на категорию действует и на подкатегории (29.10.2026)
+  const roditeli = {};
+  const obojti = (spisok, roditel) => (Array.isArray(spisok) ? spisok : []).forEach((k) => {
+    if (roditel) roditeli[k.id] = roditel;
+    obojti(k.children, k.id);
+  });
+  obojti(derevo, null);
+
   return {
     set: zavFayl.set || 'Хинкальная',
     setId,
+    roditeli,
     snyato: new Date().toISOString().slice(0, 10),
     istochnik: 'ChikChak, живое API (products/by-network)',
     zavedeniya,
@@ -405,6 +414,27 @@ export async function moiZakazy() {
   if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
   const spisok = await sTokenom((token) => zapros(`${BAZA}/orders/customer/${encodeURIComponent(g.id)}`, { token, srok: 20000 }));
   return Array.isArray(spisok) ? spisok : [];
+}
+
+/**
+ * Кешбэк сети баллами (29.10.2026, публично): {vklyuchen, vsyoMenyu, kategorii, bluda}; ошибка — null (не обещаем баллы).
+ */
+export async function keshbekSeti() {
+  try { return await zapros(`${BAZA}/discounts/vitrina/${SET_ID}/keshbek`); } catch { return null; }
+}
+
+/**
+ * Баллы вошедшего гостя в сети и история (начислено/списано, за какой заказ), новые сверху (29.10.2026).
+ * @returns {Promise<{balans: number, istoriya: Array<{id, type, amount, description, createdAt, orderId, order}>}>} ошибка с kod 401 — вход истёк
+ */
+export async function moiBally() {
+  const g = prochitat();
+  if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
+  const [b, t] = await Promise.all([
+    sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/bonuses/${SET_ID}`, { token })),
+    sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/transactions?networkId=${SET_ID}&limit=30`, { token })),
+  ]);
+  return { balans: Math.floor(Number(b?.balance) || 0), istoriya: Array.isArray(t?.data) ? t.data : [] };
 }
 
 export async function moiAdresa() {

@@ -9,7 +9,7 @@
 
 import { flip, nazhatie, pruzhina, dvizhenieSnyato, vibro, poyavlenieKaskadom, pokazatChislo } from '../dvizhenie.js';
 import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo, perenestiKorzinu, rasstoyanieKm, blizhayshieZavedeniya } from '../dannye.js';
-import { tekst, chislo, rub, TONKIY, strokaPozicii } from '../kartochka.js';
+import { tekst, chislo, rub, TONKIY, strokaPozicii, bally } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
 import { otpravitZakaz, imyaGostya } from '../rpb.js';
 import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
@@ -233,6 +233,7 @@ export function pokazat(kontejner_, yadro_, parametry) {
         <div class="korzina__stroka oformlenie__skidka" style="padding-top:10px" hidden><span class="oformlenie__skidka-podpis"></span><span class="oformlenie__skidka-rub"></span></div>
         <div class="korzina__stroka oformlenie__dostavka" style="padding-top:10px" hidden><span>Доставка</span><span class="oformlenie__dostavka-rub"></span></div>
         <div class="itog"><span>Итого</span><b class="itog__summa"></b></div>
+        <p class="oformlenie__bally" hidden></p>
       </div>
     </section>`;
 
@@ -684,6 +685,11 @@ function narisovatItog() {
   dostavka.hidden = !sk.dostavka;
   if (sk.dostavka) dostavka.querySelector('.oformlenie__dostavka-rub').textContent = rub(sk.dostavka);
   kontejner.querySelector('.itog__summa').textContent = rub(sk.itogo);
+  // кешбэк сети (29.10.2026): баллы получает только вошедший гость — заказ привязан к его номеру
+  const n = yadro.ballyZaKorzinu();
+  const strokaBallov = kontejner.querySelector('.oformlenie__bally');
+  strokaBallov.hidden = !n;
+  if (n) strokaBallov.textContent = yadro.gostRPB() ? `Вернём ${bally(n)} за этот заказ` : `Войдите по номеру — вернём ${bally(n)} за этот заказ`;
   const v = niz?.querySelector('.summa-v');
   if (v) {
     pokazatChislo(v, pokazannayaSumma, sk.itogo, 420, (x) => chislo(x));

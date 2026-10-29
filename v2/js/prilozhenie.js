@@ -6,7 +6,7 @@ import {
   zagruzitMenyu, podgotovitMenyu, cenaV, prichinaNedostupnosti, semeystvoRazdela, naytiZavedenie, perenestiKorzinu,
   kEtomuBerut, naytiBlyudo, ktoVezet, zonyAdresa,
 } from './dannye.js';
-import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB, zonyDostavki } from './rpb.js';
+import { sobratMenyu, lichnayaSkidka, akcii, summaAkcii, gost as gostRPB, vyyti as vyytiRPB, zonyDostavki, keshbekSeti } from './rpb.js';
 import { korzina, summaPozicii } from './korzina.js';
 import {
   FonGradient, pokazatTost, pokazatChislo, poletVKorzinu, vibro, nazhatie, pruzhina, shtorka, dvizhenieSnyato,
@@ -27,6 +27,8 @@ const MIN_DOSTAVKI = 1000;
 let skidkaGostya = { procent: 0, est: false };
 /** Действующая акция заведения для выбранного способа (её же применит сервер при заказе). */
 let akciyaSeychas = null;
+/** Кешбэк сети баллами (29.10.2026); null — выключен или не загрузился: баллы не обещаем. */
+let keshbek = null;
 const PAUZA_REPLIK = 20000;
 
 /** Палитры живого фона (DIZAYN §2.3). Единственное место — экраны берут через yadro.PALITRY_FONA. */
@@ -355,6 +357,31 @@ const yadro = {
 
   /** Вошедший гость ChikChak или null (телефон подтверждён кодом из СМС). */
   gostRPB() { return gostRPB(); },
+
+  /** Правило кешбэка сети или null — выключен. */
+  keshbek() { return keshbek; },
+
+  /**
+   * Сколько баллов вернётся за нынешнюю корзину — как сервер считает при закрытии (src/order/keshbek.ts):
+   * % блюда, нет — его раздела вверх по дереву, нет — всего меню; от суммы после скидки, вниз до целого.
+   * shortcut: скидка делится по строкам поровну (у сервера — с учётом исключений гостя), на копейки баллов может разойтись
+   */
+  ballyZaKorzinu() {
+    const pozicii = korzina.pozicii || [];
+    if (!keshbek || !pozicii.length || !yadro.menyu) return 0;
+    const summa = korzina.summa();
+    const dolya = summa > 0 ? Math.max(0, 1 - yadro.skidkaBezDostavki(summa).rub / summa) : 0;
+    const roditeli = yadro.menyu?.roditeli || {};
+    const procent = (blyudoId) => {
+      if (blyudoId in keshbek.bluda) return keshbek.bluda[blyudoId];
+      for (let k = naytiBlyudo(yadro.menyu, blyudoId)?.razdelId, i = 0; k && i < 20; k = roditeli[k], i += 1) {
+        if (k in keshbek.kategorii) return keshbek.kategorii[k];
+      }
+      return keshbek.vsyoMenyu;
+    };
+    const s = pozicii.reduce((a, p) => a + summaPozicii(p) * procent(p.blyudoId), 0);
+    return Math.floor((s * dolya) / 100 + 1e-9);
+  },
 
   /** Выход гостя: забываем токен и личную скидку. */
   vyytiGostyu() {
@@ -1220,6 +1247,12 @@ function obnovitZonyAdresa(menyu) {
     if (zony && gost.adres === a) yadro.obnovitGostya({ adres: { ...a, zony: zonyAdresa(ktoVezet(a.shirota, a.dolgota, menyu, zony)) } });
   }).catch(() => {});
 }
+
+// кешбэк не держит запуск: пришёл — экраны перерисуются по событию «skidka»
+keshbekSeti().then((p) => {
+  keshbek = p?.vklyuchen ? p : null;
+  if (keshbek) soobshchit('skidka', { ...skidkaGostya, akciya: akciyaSeychas });
+});
 
 async function zagruzitMenyuZhivoe() {
   try {

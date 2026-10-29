@@ -23,6 +23,12 @@ export function rub(n) {
 }
 
 /** Экранирование текста для вставки в разметку. */
+/** «1 балл», «3 балла», «26 баллов». */
+export function bally(n) {
+  const d = n % 10, s = n % 100;
+  return `${n.toLocaleString('ru-RU')} ${d === 1 && s !== 11 ? 'балл' : d >= 2 && d <= 4 && (s < 12 || s > 14) ? 'балла' : 'баллов'}`;
+}
+
 export function tekst(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

@@ -292,6 +292,22 @@ img { max-width: 100%; }
 .profil__zakazy { display: grid; gap: 10px; margin-bottom: 18px; }
 .profil__zakaz { display: grid; gap: 6px; }
 .profil__zakaz-verh, .profil__zakaz-niz { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+/* баллы (29.10.2026): баланс крупно, как копятся, история под «История баллов» */
+.profil__bally { display: grid; gap: 6px; margin-bottom: 18px; }
+.profil__bally-verh { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.profil__bally-verh b { font: var(--t-razdel); font-size: 1.75rem; color: var(--ugol); font-variant-numeric: tabular-nums; }
+.profil__bally-verh span { font: var(--t-vtoroy); color: var(--ugol-62); }
+.profil__istoriya summary { display: inline-flex; min-height: 44px; align-items: center; font: var(--t-vtoroy); font-weight: 800; color: var(--ugol); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; list-style: none; }
+.profil__istoriya summary::-webkit-details-marker { display: none; }
+.profil__istoriya ul { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.profil__ball { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; font: var(--t-vtoroy); }
+.profil__ball span { display: grid; gap: 2px; color: var(--ugol); }
+.profil__ball small { color: var(--ugol-62); }
+.profil__ball b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.profil__plus { color: var(--zelenyy, #2F8F4E); font-weight: 800; }
+.profil__minus { color: var(--ugol-72); }
+.profil__zakaz-niz small.profil__plus { font: var(--t-vtoroy); font-weight: 800; }
+.oformlenie__bally { margin: 8px 0 0; font: var(--t-vtoroy); font-weight: 700; color: var(--zelenyy, #2F8F4E); }
 .profil__status { font-size: .8125rem; font-weight: 700; color: var(--ugol-62); }
 .profil__status--idet { color: var(--granat); }
 .profil__zakaz-sostav { font-size: .9375rem; }
