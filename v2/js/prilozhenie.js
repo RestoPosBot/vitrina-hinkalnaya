@@ -860,6 +860,8 @@ function zagruzitModul(imya) {
     const obeshchanie = (z ? z() : Promise.reject(new Error('нет экрана')))
       .catch((oshibka) => {
         console.warn('Ядро: экран не загрузился', imya, oshibka);
+        // на телефоне консоли не видно — текст сбоя уходит в журнал nginx витрины (ответ 404, он не нужен)
+        fetch(`/sboy-ekrana?e=${encodeURIComponent(`${imya}: ${oshibka}`.slice(0, 300))}`, { cache: 'no-store' }).catch(() => {});
         moduli.delete(imya);
         return { neZagruzilsya: true };
       });
