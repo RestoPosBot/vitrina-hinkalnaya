@@ -860,8 +860,12 @@ function zagruzitModul(imya) {
     const obeshchanie = (z ? z() : Promise.reject(new Error('нет экрана')))
       .catch((oshibka) => {
         console.warn('Ядро: экран не загрузился', imya, oshibka);
-        // на телефоне консоли не видно — текст сбоя уходит в журнал nginx витрины (ответ 404, он не нужен)
-        fetch(`/sboy-ekrana?e=${encodeURIComponent(`${imya}: ${oshibka}`.slice(0, 300))}`, { cache: 'no-store' }).catch(() => {});
+        // на телефоне консоли не видно — текст сбоя уходит в журнал nginx витрины; там же: отдаётся ли файл
+        // экрана обычным fetch (да — сбой в движке или связке модулей, нет — блокировщик или сеть)
+        const put = new URL(String(z).match(/import\('([^']+)'\)/)?.[1] || '.', import.meta.url);
+        fetch(put, { cache: 'no-store' }).then((o) => o.text().then((t) => `${o.status} ${t.length}`), (e) => String(e))
+          .then((f) => fetch(`/sboy-ekrana?e=${encodeURIComponent(`${imya}: ${oshibka} | fetch ${f} | sw ${!!navigator.serviceWorker?.controller}`.slice(0, 400))}`, { cache: 'no-store' }))
+          .catch(() => {});
         moduli.delete(imya);
         return { neZagruzilsya: true };
       });
