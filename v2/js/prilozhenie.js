@@ -1104,9 +1104,10 @@ const NAZVANIYA_EKRANOV = {
 
 const TEKST_OSHIBKI = 'Не загрузилось — похоже, пропала сеть. Меню работает, а это откроется, как только она появится.';
 
-/** Кнопка «Попробовать ещё раз»: сбрасывает применённый путь и показывает маршрут заново. */
+/** Кнопка «Попробовать ещё раз»: перезагрузка на том же адресе. Повторный import() не помогает — браузер
+    запоминает сбой модуля до перезагрузки, а у значка «на экране Домой» своей кнопки обновления нет (владелец 29.10.2026). */
 function knopkaPovtora(koren) {
-  koren.querySelector('[data-povtor]')?.addEventListener('click', () => { primenennyyPut = null; zaplanirovat(); });
+  koren.querySelector('[data-povtor]')?.addEventListener('click', () => location.reload());
 }
 
 function oshibkaEkrana(section, imya) {
