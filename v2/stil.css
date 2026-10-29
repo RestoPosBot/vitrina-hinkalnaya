@@ -286,6 +286,19 @@ img { max-width: 100%; }
 .mesto__nazvanie svg { width: 18px; height: 18px; flex: 0 0 auto; }
 .mesto__nazvanie--adres span { hyphens: manual; overflow-wrap: normal; }
 .gotovo__oplata { margin-top: 16px; text-align: left; }
+.profil__skidka { display: grid; gap: 4px; width: 100%; text-align: left; border: 0; margin-bottom: 18px; font: inherit; color: inherit; }
+.profil__skidka b { font-size: 1.0625rem; }
+.profil__skidka span, .profil__tiho, .profil__zakaz-gde { font: var(--t-vtoroy); color: var(--ugol-62); }
+.profil__zakazy { display: grid; gap: 10px; margin-bottom: 18px; }
+.profil__zakaz { display: grid; gap: 6px; }
+.profil__zakaz-verh, .profil__zakaz-niz { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.profil__status { font-size: .8125rem; font-weight: 700; color: var(--ugol-62); }
+.profil__status--idet { color: var(--granat); }
+.profil__zakaz-sostav { font-size: .9375rem; }
+.profil__povtorit { height: 40px; padding: 0 16px; width: auto; }
+.profil__adresa { display: grid; gap: 10px; margin-bottom: 18px; }
+.profil__adres small { display: block; font: var(--t-vtoroy); color: var(--ugol-62); }
+.profil__vyyti { width: 100%; margin-top: 4px; }
 .gotovo__forma { min-height: 120px; margin: 0 -16px; }   /* форма ЮKassa уже 320 px не помещается в карточку — во всю её ширину */
 .gotovo__zapas { width: 100%; margin-top: 8px; }
 .gotovo__zhdem { font: var(--t-vtoroy); color: var(--ugol-62); padding: 24px 0; text-align: center; }

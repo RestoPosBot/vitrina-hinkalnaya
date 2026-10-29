@@ -381,6 +381,14 @@ export function zonyDostavki(zavedeniya) {
  * Без входа или при ошибке — пусто: витрина просто предлагает поиск адреса.
  * @returns {Promise<Array<{kratko: string, adres: string, shirota: number, dolgota: number, dop: object}>>}
  */
+/** Заказы вошедшего гостя, новые сверху (GET /orders/customer/:id — только свои). Ошибка с kod 401 — вход истёк. */
+export async function moiZakazy() {
+  const g = prochitat();
+  if (!g) { const o = new Error('Нужен вход'); o.kod = 401; throw o; }
+  const spisok = await sTokenom((token) => zapros(`${BAZA}/orders/customer/${encodeURIComponent(g.id)}`, { token, srok: 20000 }));
+  return Array.isArray(spisok) ? spisok : [];
+}
+
 export async function moiAdresa() {
   const g = prochitat();
   if (!g) return [];

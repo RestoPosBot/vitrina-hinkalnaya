@@ -54,6 +54,7 @@ const ZAGRUZCHIKI = {
   poisk: () => import('./ekrany/poisk.js'),
   gotovo: () => import('./ekrany/gotovo.js'),
   skidka: () => import('./ekrany/vhod.js'), // «Скидка»: вход по номеру, личная скидка, код для кассира
+  profil: () => import('./ekrany/profil.js'), // «Профиль»: заказы, скидка, адреса, выход (29.10.2026)
 };
 
 /** Таблица маршрутов (YADRO.md §3). punkt — индекс пункта нижней навигации. */
@@ -67,6 +68,7 @@ const MARSHRUTY = {
   poisk:      { vid: 'ekran',   niz: true,  hinkalik: true,  palitra: null,     punkt: 1 },
   gotovo:     { vid: 'ekran',   niz: false, hinkalik: false, palitra: 'gotovo', punkt: null },
   skidka:     { vid: 'shtorka', niz: true,  hinkalik: true,  palitra: null,     punkt: 3 },
+  profil:     { vid: 'ekran',   niz: true,  hinkalik: true,  palitra: null,     punkt: 3 },
 };
 
 // ---------------------------------------------------------------------------
@@ -1068,7 +1070,7 @@ async function pokazatEkran(imya, modul, parametry, bezAnimacii = false) {
 }
 
 const NAZVANIYA_EKRANOV = {
-  adres: 'Выбор заведения', korzina: 'Корзина', oformlenie: 'Оформление', perenos: 'Переносим заказ', poisk: 'Поиск', gotovo: 'Заказ принят', blyudo: 'Блюдо', skidka: 'Скидка',
+  adres: 'Выбор заведения', korzina: 'Корзина', oformlenie: 'Оформление', perenos: 'Переносим заказ', poisk: 'Поиск', gotovo: 'Заказ принят', blyudo: 'Блюдо', skidka: 'Скидка', profil: 'Профиль',
 };
 
 const TEKST_OSHIBKI = 'Не загрузилось — похоже, пропала сеть. Меню работает, а это откроется, как только она появится.';
