@@ -20,7 +20,7 @@ SW = VITRINA / 'sw.js'
 
 # Что входит в оболочку: всё, что sw.js кладёт в снимок, кроме фото.
 OBOLOCHKA = ['index.html', 'stil.css', 'manifest.webmanifest', 'menyu.json', 'zavedeniya.json',
-             'dopolnenie.json', 'istorii.json', 'sw.js']
+             'dopolnenie.json', 'istorii.json', 'sw.js', 'kartinki/qr.svg']
 PAPKI_OBOLOCHKI = ['js', 'shrifty', 'ikonki']
 
 
