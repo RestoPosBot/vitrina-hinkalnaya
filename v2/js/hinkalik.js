@@ -113,32 +113,32 @@ const LICA = {
   obychno: {
     brovL: [35, 91, 39, 87, 46, 86, 52, 89], brovR: [68, 89, 74, 86, 81, 87, 85, 91],
     rot: [53, 123, 56, 128, 64, 128, 67, 123, 64, 128, 56, 128], rotZaliv: 0, yazyk: 0,
-    glaza: 1, zrachok: [0, 0], zrachokMasshtab: 1, naklon: 0, masshtab: 1, shcheki: 0.22,
+    glaza: 1, zrachok: [0, 0], zrachokMasshtab: 1, naklon: 0, masshtab: 1,
   },
   rad: {
     brovL: [34, 87, 38, 82, 47, 82, 52, 86], brovR: [68, 86, 73, 82, 82, 82, 86, 87],
     rot: [48, 121, 52, 136, 68, 136, 72, 121, 68, 124, 52, 124], rotZaliv: 1, yazyk: 1,
-    glaza: 0.84, zrachok: [0, 0], zrachokMasshtab: 1, naklon: -3, masshtab: 1, shcheki: 0.42,
+    glaza: 0.84, zrachok: [0, 0], zrachokMasshtab: 1, naklon: -3, masshtab: 1,
   },
   udivlen: {
     brovL: [34, 84, 37, 76, 47, 76, 52, 82], brovR: [68, 82, 73, 76, 83, 76, 86, 84],
     rot: [55, 123, 55, 132, 65, 132, 65, 123, 65, 115, 55, 115], rotZaliv: 1, yazyk: 0,
-    glaza: 1.12, zrachok: [0, 0], zrachokMasshtab: 0.8, naklon: 0, masshtab: 1.05, shcheki: 0.22,
+    glaza: 1.12, zrachok: [0, 0], zrachokMasshtab: 0.8, naklon: 0, masshtab: 1.05,
   },
   grustno: {
     brovL: [34, 92, 40, 91, 47, 87, 52, 85], brovR: [68, 85, 73, 87, 80, 91, 86, 92],
     rot: [53, 128, 56, 122, 64, 122, 67, 128, 64, 122, 56, 122], rotZaliv: 0, yazyk: 0,
-    glaza: 0.86, zrachok: [0, 2], zrachokMasshtab: 1, naklon: 4, masshtab: 0.98, shcheki: 0.16,
+    glaza: 0.86, zrachok: [0, 2], zrachokMasshtab: 1, naklon: 4, masshtab: 0.98,
   },
   dumaet: {
     brovL: [34, 86, 38, 81, 47, 81, 52, 85], brovR: [68, 92, 73, 90, 81, 90, 86, 92],
     rot: [54, 126, 57, 122, 63, 128, 66, 124, 63, 128, 57, 122], rotZaliv: 0, yazyk: 0,
-    glaza: 0.95, zrachok: [2.6, -3], zrachokMasshtab: 1, naklon: -6, masshtab: 1, shcheki: 0.22,
+    glaza: 0.95, zrachok: [2.6, -3], zrachokMasshtab: 1, naklon: -6, masshtab: 1,
   },
   spit: {
     brovL: [35, 94, 39, 92, 46, 92, 52, 94], brovR: [68, 94, 74, 92, 81, 92, 85, 94],
     rot: [56, 125, 58, 128, 62, 128, 64, 125, 62, 128, 58, 128], rotZaliv: 0, yazyk: 0,
-    glaza: 1, zrachok: [0, 0], zrachokMasshtab: 1, naklon: 7, masshtab: 1, shcheki: 0.22,
+    glaza: 1, zrachok: [0, 0], zrachokMasshtab: 1, naklon: 7, masshtab: 1,
   },
 };
 
@@ -276,9 +276,6 @@ export function svgHinkalika(opcii = {}) {
       </g>
     </g>
     <path d="${PUT_MESHOCHKA}" fill="none" stroke="${KONTUR}" stroke-width="1.6" stroke-linejoin="round"/>
-    <g class="hinkalik__shcheki" fill="#F0532D" opacity="${lico.shcheki}">
-      <circle cx="27" cy="118" r="5.5"/><circle cx="93" cy="118" r="5.5"/>
-    </g>
     ${glaz('l')}
     ${glaz('r')}
     <g class="hinkalik__veki" fill="none" stroke="#6B4A2A" stroke-width="2.4" stroke-linecap="round" opacity="${nastroenie === 'spit' ? 1 : 0}">
@@ -326,7 +323,7 @@ const STILI = `
 .hinkalik__glaz{transition:transform .35s ease-out,opacity .25s ease-out}
 .hinkalik__veki{transition:opacity .25s ease-out}
 .hinkalik__zenica{transition:transform .35s ease-out}
-.hinkalik__shcheki,.hinkalik__yazyk,.hinkalik__zzz{transition:opacity .35s ease-out}
+.hinkalik__yazyk,.hinkalik__zzz{transition:opacity .35s ease-out}
 /* «z-z-z» анимируются только во сне: невидимые буквы раньше крутились всегда — пересчёт SVG каждый кадр (круг 2) */
 .hinkalik__z{opacity:0}
 .hinkalik__zzz--spit .hinkalik__z{animation:hinkalik-z 2.4s ease-in-out infinite}
@@ -448,7 +445,6 @@ export class Hinkalik {
     this.rot = this.el.querySelector('.hinkalik__rot');
     this.rotKlip = this.el.querySelector('.hinkalik__rot-klip');
     this.yazyk = this.el.querySelector('.hinkalik__yazyk');
-    this.shcheki = this.el.querySelector('.hinkalik__shcheki');
     this.zzz = this.el.querySelector('.hinkalik__zzz');
     this.veki = this.el.querySelector('.hinkalik__veki');
     this.oblachko = this.el.querySelector('.hinkalik__oblachko');
@@ -568,7 +564,7 @@ export class Hinkalik {
    * - пока под ним прокручивают страницу — приглушается и уезжает к краю, касания проходят сквозь;
    * - через 600 мс покоя возвращается, но только туда, где под видимой частью нет ни кнопок
    *   («+», степпер), ни строк текста (название, описание, цена, заголовок раздела):
-   *   если место занято — поднимается выше, а если свободного нет — ждёт в стороне;
+   *   если место занято — поднимается выше, а если свободного нет — выглядывает на своём месте (29.10);
    * - на экране уже есть другой Хинкалик (баннер, пустой поиск, шторка) — уступает ему.
    * Место перепроверяется по событиям (касание, смена экрана, конец прокрутки, размер окна)
    * и изредка для страховки — но не в покое (html.pokoy) и не на скрытой вкладке.
@@ -784,7 +780,9 @@ export class Hinkalik {
     } finally {
       this.el.style.pointerEvents = byloPe;
     }
-    if (vybor === null) { this.el.classList.add('hinkalik--pritih'); return; }
+    // свободного места нет — всё равно выглядывает на своём месте: пропадающего персонажа гость не находит,
+    // а через него голосовой заказ (владелец 29.10: «выловить практически нереально»)
+    if (vybor === null) vybor = 0;
     if (vybor !== this.uvorot) {
       this.uvorot = vybor;
       this.el.style.setProperty('--uvorot', vybor + 'px');
@@ -844,7 +842,6 @@ export class Hinkalik {
     for (const g of this.glaza) g.style.transform = `scaleY(${lico.glaza})`;
     for (const z of this.zenicy) z.style.transform = `scale(${lico.zrachokMasshtab})`;
     this.figura.style.transform = `rotate(${lico.naklon}deg) scale(${lico.masshtab})`;
-    this.shcheki.style.opacity = lico.shcheki;
     this.yazyk.style.opacity = lico.yazyk;
     const spit = this.tekushcheeNastroenie === 'spit';
     this.zzz.style.opacity = spit ? 1 : 0;

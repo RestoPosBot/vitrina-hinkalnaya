@@ -356,6 +356,24 @@ export async function lichnayaSkidka(zavedenieId, sposob) {
   }
 }
 
+/**
+ * Все личные скидки гостя по заведениям и исключения (29.10.2026) — для «Подробнее» в шторке скидки.
+ * @returns {Promise<{zavedeniya: Object<string, Object<string, number>>, isklyucheniya: {nazvanie: string, percent: number}[]}|null>}
+ *   zavedeniya: {restaurantId: {TAKEAWAY: %, DELIVERY: %, …}}; null — не вошёл или сеть
+ */
+export async function vseLichnyeSkidki() {
+  const g = prochitat();
+  if (!g) return null;
+  try {
+    const otvet = await sTokenom((token) => zapros(`${BAZA}/customers/${g.id}/discounts`, { token }));
+    const zavedeniya = {};
+    for (const l of otvet?.data || []) if (l?.isActive !== false && l?.restaurantId) zavedeniya[l.restaurantId] = l.procenty || {};
+    return { zavedeniya, isklyucheniya: Array.isArray(otvet?.isklyucheniya) ? otvet.isklyucheniya : [] };
+  } catch {
+    return null;
+  }
+}
+
 let zagruzkaZon = null;
 /**
  * Зоны доставки всех заведений — те, что рисуют в панели (GET /delivery-zones/restaurant/:id, @Public), раз за открытие сайта.

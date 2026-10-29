@@ -9,7 +9,7 @@
 
 import { shtorka, nazhatie, vibro, dvizhenieSnyato, poyavlenieKaskadom } from '../dvizhenie.js';
 import { tekst } from '../kartochka.js';
-import { zaprositKod, podtverditKod, cifryTelefona, korotkiyKod } from '../rpb.js';
+import { zaprositKod, podtverditKod, cifryTelefona, korotkiyKod, vseLichnyeSkidki } from '../rpb.js';
 import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
@@ -31,6 +31,7 @@ let ostalos = 0;
 let kod = null;          // {kod, do} — код для кассира
 let tajmerKoda = null;
 let kodZanyat = false;
+let podrobno = null;     // vseLichnyeSkidki(): где и на что действует скидка; null — ещё грузим или сеть
 
 /** +7 (916) 123-45-67 из цифр. */
 const maska = (cifry) => maskaNomera(razobratNomer(cifry).nomer);
@@ -80,6 +81,7 @@ export function ubrat() {
   if (tajmer) { clearInterval(tajmer); tajmer = null; }
   if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
   kod = null;
+  podrobno = null;
   const u = upr;
   upr = null;
   el = null;
@@ -105,11 +107,7 @@ function narisovat() {
     pod.textContent = maska(telefon);
     telo.innerHTML = `
       <div class="kartochka-belaya vhod__karta">
-        ${!zav
-          ? `<div class="vhod__skidka vhod__skidka--net"><b>Выберите заведение</b><span>Скидка у каждого заведения своя — покажем её после выбора.</span></div>`
-          : skidka.procent > 0
-            ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>в заведении «${tekst(zav.nazvanie)}». Вычитается из заказа сама.</span></div>`
-            : `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>в заведении «${tekst(zav.nazvanie)}». Она появится, когда её назначат в заведении.</span></div>`}
+        ${blokSkidki(skidka, zav)}
         <div class="vhod__kod">
           <span class="vhod__kod-metka">QR для кассира</span>
           <div class="vhod__qr" hidden aria-label="QR для кассира — покажите экран кассиру"></div>
@@ -128,11 +126,13 @@ function narisovat() {
       yadro.vyytiGostyu();
       if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
       kod = null;
+      podrobno = null;
       shag = 'telefon';
       telefon = '';
       narisovat();
     });
     if (kod && kod.do > new Date()) pokazatKod(); else poluchitKod();
+    if (!podrobno) vseLichnyeSkidki().then((d) => { if (d && el && shag === 'voshel') { podrobno = d; narisovat(); } });
   } else if (shag === 'telefon') {
     zagolovok.textContent = 'Скидка';
     pod.textContent = 'Войдите — скидка и QR для кассира';
@@ -188,6 +188,61 @@ function narisovat() {
   }
 }
 
+/** «−50 %» или «с собой −50 %, доставка −30 %» — на сайте заказ только с собой или доставкой. */
+function procentyTekst(pr) {
+  const s = Number(pr?.TAKEAWAY) || 0;
+  const d = Number(pr?.DELIVERY) || 0;
+  if (s === d) return s > 0 ? `−${s} %` : '';
+  return [s > 0 && `с собой −${s} %`, d > 0 && `доставка −${d} %`].filter(Boolean).join(', ');
+}
+
+/**
+ * Где и на что действует личная скидка (владелец 29.10: «гость не знает, какая у него скидка»).
+ * Везде одинаковая и без исключений — одна строка; иначе «Подробнее» со списком заведений и блюд.
+ */
+function blokSkidki(skidka, zav) {
+  const vse = yadro.menyu?.zavedeniya || [];
+  if (!podrobno) {
+    // ещё грузим (или сеть) — прежний вид по выбранному заведению
+    if (!zav) return `<div class="vhod__skidka vhod__skidka--net"><b>Смотрим вашу скидку…</b></div>`;
+    return skidka.procent > 0
+      ? `<div class="vhod__skidka"><b>−${skidka.procent} % на заказ</b><span>в заведении «${tekst(zav.nazvanie)}». Вычитается из заказа сама.</span></div>`
+      : `<div class="vhod__skidka vhod__skidka--net"><b>Смотрим вашу скидку…</b></div>`;
+  }
+  const gruppy = new Map();
+  const bez = [];
+  let naibolshiy = 0;
+  for (const z of vse) {
+    const pr = podrobno.zavedeniya[z.id];
+    const t = procentyTekst(pr);
+    naibolshiy = Math.max(naibolshiy, Number(pr?.TAKEAWAY) || 0, Number(pr?.DELIVERY) || 0);
+    if (!t) { bez.push(z.nazvanie); continue; }
+    if (!gruppy.has(t)) gruppy.set(t, []);
+    gruppy.get(t).push(z.nazvanie);
+  }
+  if (!gruppy.size) {
+    return `<div class="vhod__skidka vhod__skidka--net"><b>Личной скидки пока нет</b><span>Она появится, когда её назначат в заведении.</span></div>`;
+  }
+  const isk = podrobno.isklyucheniya.filter((i) => i?.nazvanie);
+  const vezde = !bez.length && gruppy.size === 1;
+  const gde = vezde ? (vse.length === 1 ? `в «${tekst(vse[0].nazvanie)}»` : 'во всех заведениях') : `в ${vse.length - bez.length} из ${vse.length} заведений`;
+  const glavnoe = vezde ? `${[...gruppy.keys()][0]} на заказ` : `до −${naibolshiy} % на заказ`;
+  if (vezde && !isk.length) {
+    return `<div class="vhod__skidka"><b>${glavnoe}</b><span>${gde}, на всё меню. Вычитается из заказа сама.</span></div>`;
+  }
+  const stroki = [];
+  if (!vezde) {
+    for (const [t, imena] of gruppy) stroki.push(`<li><b>${t}</b> — ${imena.map(tekst).join(', ')}</li>`);
+    if (bez.length) stroki.push(`<li><b>без скидки</b> — ${bez.map(tekst).join(', ')}</li>`);
+  }
+  for (const i of isk) {
+    const p = Number(i.percent) || 0;
+    stroki.push(`<li>${tekst(i.nazvanie)} — <b>${p > 0 ? `не больше −${p} %` : 'без скидки'}</b></li>`);
+  }
+  return `<div class="vhod__skidka"><b>${glavnoe}</b><span>${gde}${isk.length ? ', кроме части блюд' : ''}. Вычитается из заказа сама.</span>
+    <details class="vhod__podrobno"><summary>Подробнее</summary><ul>${stroki.join('')}</ul></details></div>`;
+}
+
 function pokazatOshibku(soobshchenie) {
   const p = el?.querySelector('.vhod__oshibka');
   if (!p) return;
@@ -230,13 +285,18 @@ function pokazatKod() {
   const sek = ostalosKoda();
   narisovatQr(sek > 0);
   if (sek > 0) {
-    srok.textContent = `Действует ещё ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · покажите QR кассиру`;
+    srok.textContent = `QR обновится через ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, '0')} · покажите его кассиру`;
     srok.classList.remove('vhod__kod-srok--istek');
     if (!tajmerKoda) tajmerKoda = setInterval(pokazatKod, 1000);
   } else {
-    srok.textContent = 'QR истёк — нажмите «Новый QR»';
-    srok.classList.add('vhod__kod-srok--istek');
+    srok.textContent = 'Обновляем QR…';
     if (tajmerKoda) { clearInterval(tajmerKoda); tajmerKoda = null; }
+    // шторка открыта — новый QR сам (владелец 29.10: «обновится через», а не «действует ещё»); не вышло — просим нажать
+    poluchitKod().then(() => {
+      if (ostalosKoda() > 0 || !el) return;
+      srok.textContent = 'QR не обновился — нажмите «Новый QR»';
+      srok.classList.add('vhod__kod-srok--istek');
+    });
   }
 }
 

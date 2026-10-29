@@ -1475,6 +1475,12 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 .vhod__skidka b { font: var(--t-zagolovok-malyy, var(--t-glavnyy)); }
 .vhod__skidka span { font: var(--t-vtoroy); color: var(--ugol-72); }
 .vhod__skidka--net b { color: var(--ugol-72); }
+.vhod__skidka .vhod__podrobno { margin-top: 2px; }
+.vhod__podrobno summary { display: inline-flex; min-height: 44px; align-items: center; font: var(--t-vtoroy); font-weight: 800; color: var(--ugol); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; list-style: none; }
+.vhod__podrobno summary::-webkit-details-marker { display: none; }
+.vhod__podrobno[open] summary { text-decoration: none; }
+.vhod__podrobno ul { display: grid; gap: 6px; margin: 0; padding: 0 0 4px; list-style: none; font: var(--t-vtoroy); color: var(--ugol-72); }
+.vhod__podrobno li b { font: inherit; font-weight: 800; color: var(--ugol); }
 /* код для кассира: крупные цифры, таймер, «Новый код» */
 .vhod__kod { display: grid; gap: 6px; padding: 14px 16px; border-radius: 18px; background: linear-gradient(135deg, rgba(255, 176, 58, .22), rgba(240, 83, 45, .16)); }
 .vhod__kod-metka { font: var(--t-metka); color: var(--ugol-72); text-transform: uppercase; letter-spacing: .04em; }
