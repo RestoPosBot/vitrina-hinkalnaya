@@ -20,6 +20,7 @@
 // (с 24.10 он отдаёт 2–3 КБ без сотрудников; раньше отдавал хеши паролей и весил до 2 МБ).
 
 import { konturZony } from './dannye.js';
+import { dopolnitSlovar, tekushchiy } from './yazyk.js';
 
 const BAZA = 'https://api.chikchak.ai/api';
 
@@ -174,6 +175,26 @@ async function chasyIzPaneli(idy) {
 }
 
 /**
+ * Перевод меню для гостя (30.10.2026): названия, описания, состав блюд, разделы и добавки на языке гостя приходят
+ * с сервера в perevody. Меню внутри витрины остаётся русским — по русским названиям работают значки разделов,
+ * подборки и наборы, — а показ переводит переводчик страницы: пары «русское → перевод» дописываются в его словарь.
+ */
+function perevodMenyu(tovary, derevo) {
+  const y = tekushchiy();
+  if (y === 'ru') return;
+  const pary = {};
+  const vzyat = (o, polya) => { const p = o?.perevody?.[y]; if (p) for (const k of polya) if (o[k] && p[k]) pary[String(o[k]).trim()] = p[k]; };
+  for (const t of tovary) {
+    vzyat(t, ['title', 'description', 'composition']);
+    vzyat(t.category, ['title']);
+    for (const d of t.additives || []) vzyat(d, ['title']);
+  }
+  const razdely = (k) => { vzyat(k, ['title', 'description']); (k.children || []).forEach(razdely); };
+  derevo.forEach(razdely);
+  dopolnitSlovar(pary);
+}
+
+/**
  * Собирает меню витрины из живого RPB.
  * Гостю попадают только товары с publishedInApp — правило владельца: видно то, что показано в приложении.
  * @param {{setId?: string}} [opcii]
@@ -197,6 +218,7 @@ export async function sobratMenyu(opcii = {}) {
   const dopolnenie = dopFayl.blyuda || {};
 
   const spisokTovarov = Array.isArray(tovary) ? tovary : (tovary?.data || []);
+  perevodMenyu(spisokTovarov, Array.isArray(derevo) ? derevo : []);
   // 22.10: «в приложении» — витрина, установленная на телефон (значок на экране); в браузере — «на сайте».
   // Так у блюд бывает эксклюзив только для приложения (просьба владельца). Раньше смотрели только на «в приложении».
   const vPrilozhenii = typeof window !== 'undefined' && (window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true);

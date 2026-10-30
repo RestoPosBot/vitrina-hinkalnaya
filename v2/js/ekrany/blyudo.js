@@ -6,6 +6,7 @@
 import { shtorka, flip, pokazatChislo, nazhatie, pruzhina, dvizhenieSnyato, vibro } from '../dvizhenie.js';
 import { naytiBlyudo, kEtomuBerut, gdeDostupno, cenaRaznitsya } from '../dannye.js';
 import { tekst, chislo, znakRazdela, tenObekta, metaBlyuda, miniKartochka, TONKIY } from '../kartochka.js';
+import { tekushchiy } from '../yazyk.js';
 
 let yadro = null;
 let upr = null;
@@ -101,6 +102,7 @@ export function pokazat(kontejner, yadro_, parametry) {
       </div>
       <div class="shtorka__razdel">${tekst(blyudo.razdel?.nazvanie?.replace(/[‑]/g, '-') || '')}</div>
       <h2 class="shtorka__zagolovok">${tekst(blyudo.nazvanie)}</h2>
+      ${tekushchiy() !== 'ru' ? `<p class="shtorka__original" translate="no" lang="ru">${tekst(blyudo.nazvanie)}</p>` : ''}
       ${blyudo.opisanie ? `<p class="shtorka__opisanie">${tekst(blyudo.opisanie)}</p>` : ''}
       ${meta.length ? `<div class="shtorka__meta">${meta.map((m, i) => `<span><svg aria-hidden="true"><use href="${ZNAKI_META[Math.min(i, 2)]}"/></svg>${m}</span>`).join('')}</div>` : ''}
       <div class="shtorka__cena">

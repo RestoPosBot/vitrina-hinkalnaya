@@ -1524,3 +1524,5 @@ html:lang(hy) .zavedenie--partner .zavedenie__nazvanie::after { content: 'գոր
 html:lang(ka) .zavedenie--partner .zavedenie__nazvanie::after { content: 'პარტნიორი'; text-transform: none; }
 html:lang(uz) .zavedenie--partner .zavedenie__nazvanie::after { content: 'hamkor'; }
 html:lang(az) .zavedenie--partner .zavedenie__nazvanie::after { content: 'tərəfdaş'; }
+/* оригинальное название блюда под переводом — показать официанту (30.10.2026) */
+.shtorka__original { margin: -6px 0 8px; font-size: 0.875rem; color: var(--ugol-62); }

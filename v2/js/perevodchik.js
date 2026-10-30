@@ -27,10 +27,14 @@ const ishodnik = new WeakMap()
 const napisano = new WeakMap()
 const vFraze = new WeakSet() // элементы, чьи текстовые узлы переведены одной фразой
 let nablyudatel = null
+// знак валюты сети вместо ₽ (владелец 30.10.2026: «валюта пусть будет настраиваемая»); null — рубли, как в коде
+let znak = null
+const nuzhno = s => (tochnye.size > 0 && RUS.test(s)) || (znak !== null && s.includes('₽'))
 
-/** @param {{ tochnye?: Record<string,string>, obraztsy?: Record<string,string>, slova?: Record<string,string> } | null} s */
+/** @param {{ tochnye?: Record<string,string>, obraztsy?: Record<string,string>, slova?: Record<string,string>, valyuta?: string | null } | null} s */
 export function zagruzitSlovar(s) {
   s = s || {}
+  znak = s.valyuta && s.valyuta !== '₽' ? s.valyuta : null
   tochnye = new Map(Object.entries(s.tochnye || {}))
   obraztsy = Object.entries(s.obraztsy || {})
     .map(([k, v]) => ({
@@ -60,13 +64,14 @@ export function regulyarkaObraztsa(k) {
 export function t(s) { return perevesti(s, true) }
 
 function perevesti(s, sSlovami) {
-  if (!s || !RUS.test(s) || !tochnye.size) return s
+  if (!s || !nuzhno(s)) return s
   const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(s)
   const yadro = m[2].replace(/\s+/g, ' ')
   const k = sSlovami ? kesh : keshFraz
   let p = k.get(yadro)
   if (p === undefined) {
-    p = perevestiYadro(yadro, sSlovami)
+    p = tochnye.size && RUS.test(yadro) ? perevestiYadro(yadro, sSlovami) : yadro
+    if (znak) p = p.split('₽').join(znak)
     if (k.size > 20000) k.clear()
     k.set(yadro, p)
   }
@@ -117,7 +122,7 @@ function perevestiFrazu(el) {
   for (const u of uzly) if (u.nodeType !== 3) return false
   const rus = Array.from(uzly, original)
   const vse = rus.join('')
-  if (!RUS.test(vse) || !tochnye.size) return false
+  if (!nuzhno(vse)) return false
   const p = perevesti(vse, false)
   if (p === vse) return false
   Array.from(uzly).forEach((u, i) => zapisat(u, rus[i], i === 0 ? p : ''))
@@ -129,7 +134,8 @@ function perevestiKusok(uzel) {
   const v = uzel.nodeValue
   if (v == null) return
   const rus = original(uzel)
-  if (!RUS.test(rus)) return
+  // переводить нечего (русский, рубли), но в узле наш прежний перевод — вернуть оригинал
+  if (!nuzhno(rus)) { if (napisano.get(uzel) === v && v !== rus) zapisat(uzel, rus, rus); return }
   const p = t(rus)
   if (p !== v) zapisat(uzel, rus, p)
 }
@@ -152,8 +158,9 @@ function perevestiAtributy(el) {
   for (const a of ATRIBUTY) {
     const v = el.getAttribute(a)
     if (!v) continue
-    const rus = byli && byli[a] && byli[a].nashe === v ? byli[a].rus : v
-    if (!RUS.test(rus)) continue
+    const nashe = byli && byli[a] && byli[a].nashe === v
+    const rus = nashe ? byli[a].rus : v
+    if (!nuzhno(rus)) { if (nashe && v !== rus) { byli[a].nashe = rus; el.setAttribute(a, rus) } continue }
     const p = t(rus)
     if (p === v) continue
     if (!byli) ishodnik.set(el, (byli = {}))
@@ -188,7 +195,19 @@ export function zapustit(slovar, koren = document.documentElement) {
   ostanovit()
   zagruzitSlovar(slovar)
   perevestiVetku(koren)
-  if (!tochnye.size) return
+  if (tochnye.size || znak) nablyudat(koren)
+}
+
+/** Дописать точные пары в словарь на ходу (меню на языке гостя приходит позже словаря) и перевести страницу ими. */
+export function dopolnit(pary, koren = document.documentElement) {
+  for (const [k, v] of Object.entries(pary)) if (k && v) tochnye.set(k.replace(/\s+/g, ' ').trim(), v)
+  kesh.clear()
+  keshFraz.clear()
+  perevestiVetku(koren)
+  if (!nablyudatel && tochnye.size) nablyudat(koren)
+}
+
+function nablyudat(koren) {
   nablyudatel = new MutationObserver(spisok => {
     for (const z of spisok) {
       if (z.type === 'characterData') perevestiTekst(z.target)

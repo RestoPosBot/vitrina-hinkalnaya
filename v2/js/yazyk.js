@@ -1,7 +1,7 @@
 // Язык сайта гостя (30.10.2026, многоязычность): те же шесть языков, что в кассе ChikChak. Первый заход — по языку
 // телефона, если среди его языков нет русского; дальше — выбор гостя в «Профиле». Переводит js/perevodchik.js
 // (копия lib/perevod/perevodchik.js панели) словарём js/slova/<язык>.json; названия блюд остаются как в меню.
-import { t, zapustit } from './perevodchik.js';
+import { dopolnit, t, zapustit } from './perevodchik.js';
 
 export const YAZYKI = [
   { kod: 'ru', nazvanie: 'Русский' },
@@ -37,14 +37,25 @@ export async function vklyuchit(y = tekushchiy()) {
     if (y === 'ru') zapustit(null);
     else {
       const otvet = await fetch(`js/slova/${y}.json`);
-      zapustit(otvet.ok ? await otvet.json() : null);
+      const slovar = otvet.ok ? await otvet.json() : { tochnye: {} };
+      zapustit({ ...slovar, tochnye: { ...slovar.tochnye, ...menyu } });
+      gotovo = true;
     }
   } catch { zapustit(null); /* нет словаря или сети — остаёмся на русском */ }
   d.classList.remove('perevod-zhdyot');
 }
 
+// меню на языке гостя — пары из perevody блюд (rpb.js); дописываются, когда словарь уже загружен
+let menyu = {};
+let gotovo = false;
+export function dopolnitSlovar(pary) {
+  menyu = { ...menyu, ...pary };
+  if (gotovo) dopolnit(pary);
+}
+
 export function vybrat(y) {
   if (!KODY.includes(y)) return;
   try { localStorage.setItem(KLYUCH, y); } catch { /* язык до перезагрузки */ }
-  return vklyuchit(y);
+  // меню собрано на прежнем языке — заново, вместе со словарём
+  location.reload();
 }
