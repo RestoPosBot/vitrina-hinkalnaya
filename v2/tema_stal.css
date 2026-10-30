@@ -1,0 +1,140 @@
+/* Тема «Стол повара» (владелец 30.10.2026, эскиз design/eskizy_kartinkoy/eskiz_B_stol_povara_v6.png).
+   Светлая шлифованная нержавейка, по краям — зелень и гранат, блюда на приглушённых градиентах,
+   логотип чёрный, как в оригинале. Включается классом tema-stal на <html>; разметка не меняется —
+   подменяются токены stil.css и несколько поверхностей. Тёмной темы нет (владелец: «тёмный металл — стрёмно»). */
+
+html.tema-stal {
+  /* сталь и чернила вместо крема и угля */
+  --krem: #ECEEF0;
+  --pesok: #E1E4E7;
+  --ugol: #1C1E24;
+  --ugol-72: rgba(28, 30, 36, .74);
+  --ugol-62: rgba(28, 30, 36, .64);
+  --ugol-45: rgba(28, 30, 36, .48);
+  --granat: #8E1F3A;
+  --vino: #5E1428;
+  --steklo: rgba(236, 238, 240, .92);
+  --steklo-kayma: rgba(255, 255, 255, .75);
+  --belyy-92: rgba(246, 247, 248, .94);
+
+  /* приглушённые градиенты под блюда: цвет остаётся, крик уходит */
+  --pl-testo:   linear-gradient(150deg, #F3E1C4 0%, #E7C48F 55%, #D9A867 100%);
+  --pl-zhar:    linear-gradient(150deg, #E9C2A8 0%, #D9917E 55%, #B9606A 100%);
+  --pl-zelen:   linear-gradient(150deg, #DDE6CF 0%, #B5C99E 55%, #8DA876 100%);
+  --pl-sladkoe: linear-gradient(150deg, #F1D6CF 0%, #DDA6A6 55%, #C27C88 100%);
+  --pl-napitki: linear-gradient(150deg, #D6E8E2 0%, #A3CBC0 55%, #6FA89D 100%);
+  --pl-kombo:   linear-gradient(150deg, #EBCFA6 0%, #D49A7E 55%, #A9606D 100%);
+  --gr-testo:   linear-gradient(145deg, #F4E7D2 0%, #E3C597 100%);
+  --gr-zhar:    linear-gradient(145deg, #EBCDB8 0%, #CD8A80 100%);
+  --gr-zelen:   linear-gradient(145deg, #E3EAD6 0%, #A9BF92 100%);
+  --gr-sladkoe: linear-gradient(145deg, #F2DCD6 0%, #D3999E 100%);
+  --gr-napitki: linear-gradient(145deg, #DCEBE6 0%, #94C1B5 100%);
+  --gr-kombo:   linear-gradient(145deg, #EED6B3 0%, #C98E86 100%);
+  --ten-testo:   rgba(120, 90, 50, .30);
+  --ten-zhar:    rgba(120, 50, 50, .30);
+  --ten-zelen:   rgba(60, 90, 50, .30);
+  --ten-sladkoe: rgba(120, 60, 70, .28);
+  --ten-napitki: rgba(40, 90, 80, .28);
+  --ten-kombo:   rgba(110, 50, 50, .30);
+
+  /* гранат с золотым бликом — кнопки и корзина */
+  --gr-knopka:  linear-gradient(180deg, #A8304B 0%, #8E1F3A 55%, #6E1630 100%);
+  --gr-korzina: linear-gradient(180deg, #A8304B 0%, #8E1F3A 55%, #6E1630 100%);
+  --gr-zagolovok: linear-gradient(#1C1E24, #1C1E24);
+  --ten: 0 10px 24px -12px rgba(20, 24, 30, .38);
+  --ten-myagkaya: 0 8px 18px -12px rgba(20, 24, 30, .32);
+  --ten-glubokaya: 0 18px 34px -16px rgba(20, 24, 30, .48);
+  --ten-knopki: 0 0 0 1.5px #D9B25A, 0 6px 14px -6px rgba(110, 22, 48, .6), inset 0 1px 0 rgba(255, 255, 255, .35);
+  --ten-korziny: 0 0 0 1.5px #D9B25A, 0 10px 22px -10px rgba(110, 22, 48, .7), inset 0 1px 0 rgba(255, 255, 255, .3);
+  --ten-vstavka: inset 0 1px 0 rgba(255, 255, 255, .85);
+
+  /* заголовки — антиква, как на эскизе; цены и подписи — прежний Onest */
+  --sh-zag: 'Playfair Display', Georgia, serif;
+  --t-ekran: 700 2.125rem/1.05 var(--sh-zag);
+  --t-razdel: 700 3rem/1 var(--sh-zag);
+  --t-shtorka: 700 1.625rem/1.1 var(--sh-zag);
+  --t-cena: 700 1.125rem/1 var(--sh-tekst);
+  --t-cena-krupno: 800 1.75rem/1 var(--sh-tekst);
+
+  /* шлифованная сталь: вытянутый шум + косые блики, как светлая тема кассы ChikChak */
+  background-color: #D6D9DC;
+  background-image:
+    linear-gradient(118deg, rgb(0 0 0/.05) 0%, rgb(255 255 255/.45) 34%, rgb(0 0 0/.04) 52%, rgb(255 255 255/.28) 70%, rgb(0 0 0/.07) 100%),
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.85 0.003' numOctaves='3' seed='7'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.5 0 0 0 -0.22'/></filter><rect width='100%' height='100%' filter='url(%23f)'/></svg>"),
+    linear-gradient(180deg, #E4E6E9 0%, #D3D6D9 100%);
+  background-size: 100% 100%, 600px 600px, 100% 100%;
+  background-attachment: fixed;
+}
+
+/* живой оранжевый фон и плавающий Хинкалик — не в этой теме */
+.tema-stal .fon,
+.tema-stal .hinkalik--plavayushchiy,
+.tema-stal .banner__personazh,
+.tema-stal .begushchaya { display: none !important; }
+
+/* зелень и гранат по краям стола: под содержимым, не под текстом — выглядывают в промежутках */
+.tema-stal .stolb::before,
+.tema-stal .stolb::after {
+  content: ''; position: fixed; top: 0; bottom: 0; width: 120px; z-index: -1; pointer-events: none;
+  background-repeat: no-repeat;
+}
+.tema-stal .stolb::before {
+  left: max(-46px, calc(50% - var(--shirina) / 2 - 46px));
+  background-image: url(zelen/kinza.webp), url(zelen/granat-zyorna.webp), url(zelen/granat-rossyp.webp), url(zelen/ukrop.webp);
+  background-size: 120px auto, 64px auto, 56px auto, 120px auto;
+  background-position: 0 18%, 30px 47%, 20px 62%, 0 84%;
+}
+.tema-stal .stolb::after {
+  right: max(-46px, calc(50% - var(--shirina) / 2 - 46px));
+  background-image: url(zelen/ukrop.webp), url(zelen/luk.webp), url(zelen/granat-zyorna.webp), url(zelen/tarhun.webp);
+  background-size: 120px auto, 96px auto, 60px auto, 120px auto;
+  background-position: 0 6%, 10px 36%, 40px 58%, 0 92%;
+}
+.tema-stal .stolb { isolation: isolate; }
+
+/* шапка: вместо надписи «ХИНКАЛЬНАЯ» — логотип */
+.tema-stal .mesto__set {
+  display: block; width: 104px; height: 82px; margin: -6px 0 4px -4px;
+  font-size: 0; color: transparent; letter-spacing: 0;
+  background: url(ikonki/logo-chernyy.webp) left center / contain no-repeat;
+}
+
+/* стальные пластины: поиск, чипы, вкладки, баннер, карточки */
+.tema-stal .poisk,
+.tema-stal .chip,
+.tema-stal .lenta,
+.tema-stal .tabletka,
+.tema-stal .banner,
+.tema-stal .kartochka {
+  background-image: linear-gradient(172deg, rgb(255 255 255/.55) 0%, rgb(255 255 255/.05) 30%, rgb(0 0 0/.04) 60%, rgb(255 255 255/.2) 82%, rgb(0 0 0/.08) 100%);
+  background-color: #E3E6E9;
+  border-color: rgba(255, 255, 255, .7);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(0, 0, 0, .14), 0 0 0 1px rgba(0, 0, 0, .1), 0 4px 10px -5px rgba(20, 24, 30, .35);
+  color: var(--ugol);
+}
+.tema-stal .banner { background-image: linear-gradient(100deg, rgb(142 31 58/.92) 0 6px, transparent 6px),
+  linear-gradient(172deg, rgb(255 255 255/.55) 0%, rgb(255 255 255/.05) 30%, rgb(0 0 0/.04) 60%, rgb(255 255 255/.2) 82%, rgb(0 0 0/.08) 100%); }
+.tema-stal .banner--svetlyy { color: var(--ugol); text-shadow: none; }
+
+/* заголовок раздела — чёрная антиква, без винного градиента и кремовой дымки */
+.tema-stal .zagolovok::before { display: none; }
+.tema-stal .zagolovok h2 { --gr-zagolovok-temnyy: linear-gradient(#1C1E24, #1C1E24); filter: none; letter-spacing: -.01em; }
+.tema-stal .zagolovok__pod { color: var(--ugol-72); }
+
+/* адрес в шапке — рабочим шрифтом, как на эскизе */
+.tema-stal .mesto__nazvanie { font-family: var(--sh-tekst); font-weight: 700; letter-spacing: -.01em; }
+
+/* кольца историй: гранат и золото вместо оранжевого (цвет кольца задаёт istorii.js — перекрываем саму обводку) */
+html.tema-stal { --gr-kolco: conic-gradient(from var(--ugol-kolca), #8E1F3A, #D9B25A 30%, #8E1F3A 55%, #A8ADB3 80%, #8E1F3A); }
+.tema-stal .istoriya-krug__kolco { background: conic-gradient(from var(--istoriya-ugol, 0deg), #8E1F3A, #C4CAD0, #6E1630, #E6E9EC, #8E1F3A) !important; box-shadow: 0 6px 14px -8px rgba(20, 24, 30, .4) !important; }
+.tema-stal .istoriya-krug--prosmotrena .istoriya-krug__kolco { background: #B6BBC1 !important; }
+
+/* нижнее меню — стальная пластина, бегунок — гранатовый отсвет */
+.tema-stal .niz {
+  background-color: #E3E6E9;
+  background-image: linear-gradient(180deg, rgb(255 255 255/.6), rgb(0 0 0/.06));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(0, 0, 0, .12), 0 0 0 1px rgba(0, 0, 0, .1), var(--ten-glubokaya);
+}
+.tema-stal .niz__indikator { background: linear-gradient(180deg, rgba(142, 31, 58, .14), rgba(142, 31, 58, .22)); box-shadow: inset 0 0 0 1px rgba(142, 31, 58, .25); }
+.tema-stal .niz__punkt { color: #4A4F57; }
+.tema-stal .niz__punkt[aria-current="page"], .tema-stal .niz__punkt.aktiven { color: var(--granat); }
