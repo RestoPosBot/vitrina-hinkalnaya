@@ -114,7 +114,7 @@ export function pokazat(kontejner, yadro_, parametry) {
       ${nedostupno}
       ${blyudo.sostav && prostoy(blyudo.sostav) !== prostoy(blyudo.opisanie) ? `<div class="shtorka__sostav"><b>Состав</b>${tekst(blyudo.sostav)}</div>` : ''}
       ${!blyudo.sostav && !blyudo.opisanie && sem === 'kombo' ? `<div class="shtorka__sostav"><b>Что в наборе</b>Хачапури, хинкали, шашлык, салат, закуски и морс — стол${persony ? ` на компанию из ${['', '', 'двух', 'трёх', 'четырёх', 'пяти', 'шести', '', 'восьми', '', 'десяти'][persony] || persony} человек` : ' на компанию'}. Точный набор блюд подскажет заведение.</div>` : ''}
-      ${dobavki.length ? `<div class="metka">Добавить</div><div class="chipy">${dobavki.map((d) => `<button class="chip-dobavka" type="button" data-dobavka="${tekst(d.id)}">${tekst(d.nazvanie)}<span class="plus-cena">+${chislo(d.cena)}${TONKIY}₽</span></button>`).join('')}</div>` : ''}
+      ${dobavki.length ? `<div class="metka">Добавить</div><div class="chipy">${dobavki.map((d) => `<button class="chip-dobavka" type="button" data-dobavka="${tekst(d.id)}">${tekst(d.nazvanie)}${d.cena > 0 ? `<span class="plus-cena">+${chislo(d.cena)}${TONKIY}₽</span>` : ''}</button>`).join('')}</div>` : ''}
       <div class="k-etomu" hidden><div class="metka">К этому берут</div><div class="ryad"></div></div>
     </div>
     <div class="shtorka__niz"></div>`;
