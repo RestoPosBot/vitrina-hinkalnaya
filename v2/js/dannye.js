@@ -581,7 +581,7 @@ export function perenestiKorzinu(korzinaPozicii, zavedenieId, menyu) {
   let summaBylo = 0;
   let summaStalo = 0;
   for (const poziciya of korzinaPozicii || []) {
-    const dobavkiSumma = (poziciya.dobavki || []).reduce((s, d) => s + (d.cena || 0), 0);
+    const dobavkiSumma = (poziciya.dobavki || []).reduce((s, d) => s + (Number(d.cena) || 0), 0);
     summaBylo += (poziciya.cena + dobavkiSumma) * poziciya.kolichestvo;
     const blyudo = naytiBlyudo(menyu, poziciya.blyudoId);
     const prichina = blyudo ? prichinaNedostupnosti(blyudo, zavedenieId) : 'net';
