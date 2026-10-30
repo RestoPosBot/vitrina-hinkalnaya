@@ -114,12 +114,13 @@ function perevestiYadro(s, sSlovami) {
     })
   }
   // строка, склеенная через « · » (описание акции, состав), — по кускам: ключи у кусков есть
-  if (s.includes(' · ')) {
+  if (s.includes(' · ') || s.startsWith('· ') || s.endsWith(' ·')) {
     // хвост «· отменено 57» в словаре лежит с точкой впереди — пробуем и так
     const kusok = x => {
       // крайние куски бегущей строки несут точку: «· хачапури», «самовывоз и доставка ·»
       const kraya = /^(·\s*)?([\s\S]*?)(\s*·)?$/.exec(x)
       if (kraya[1] || kraya[3]) { const v = perevesti(kraya[2], sSlovami); if (v !== kraya[2]) return (kraya[1] || '') + v + (kraya[3] || '') }
+      if (x === s) return x // кусок — вся строка: дальше только по кругу
       const p = perevesti(x, sSlovami)
       if (p !== x) return p
       const s2 = perevesti('· ' + x, sSlovami)
