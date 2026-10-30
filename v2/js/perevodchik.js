@@ -37,6 +37,8 @@ export function zagruzitSlovar(s) {
   znak = s.valyuta && s.valyuta !== '₽' ? s.valyuta : null
   tochnye = new Map(Object.entries(s.tochnye || {}))
   obraztsy = Object.entries(s.obraztsy || {})
+    .map(([k, v]) => slitSosedey(k, v))
+    .filter(Boolean)
     .map(([k, v]) => ({
       re: regulyarkaObraztsa(k),
       v,
@@ -45,14 +47,29 @@ export function zagruzitSlovar(s) {
     }))
     // длинный образец раньше короткого: «Стол {0} — {1}» прежде «Стол {0}»
     .sort((a, b) => b.re.source.length - a.re.source.length)
+  // слово меняется только вплотную к числу: «3 блюда», «30 октября», «пт, 30» — не «ср2026» в пароле
   slova = Object.entries(s.slova || {})
     .sort((a, b) => b[0].length - a[0].length)
-    .map(([k, v]) => [new RegExp(`(^|[^А-Яа-яЁё])${ekran(k)}(?![А-Яа-яЁё])`, 'g'), v])
+    .flatMap(([k, v]) => [
+      [new RegExp(`(\\d[\\s\\u00a0]*)${ekran(k)}(?![А-Яа-яЁё])`, 'g'), v],
+      [new RegExp(`(^|[^А-Яа-яЁё\\d])${ekran(k)}(?=,?[\\s\\u00a0]+\\d)`, 'g'), v],
+    ])
   kesh.clear()
   keshFraz.clear()
 }
 
 function ekran(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') }
+
+// Соседние вставки «ждут {0}{1}» (необязательный хвост) регулярка делит наугад: сливаем их в одну, если перевод держит
+// их так же рядом и в том же порядке; иначе образец ненадёжен — выкидываем.
+function slitSosedey(k, v) {
+  for (let m = /\{(\d+)\}\{(\d+)\}/.exec(k); m; m = /\{(\d+)\}\{(\d+)\}/.exec(k)) {
+    if (!v.includes(m[0])) return null
+    k = k.replace(m[0], `{${m[1]}}`)
+    v = v.replace(m[0], `{${m[1]}}`)
+  }
+  return [k, v]
+}
 
 /** Образец «Стол {0}» → регулярка; короткий («{0} из {1}», «с {0}») принимает на месте вставок только числа. */
 export function regulyarkaObraztsa(k) {
@@ -92,6 +109,11 @@ function perevestiYadro(s, sSlovami) {
       return perevesti(vst, true)
     })
   }
+  // строка, склеенная через « · » (описание акции, состав), — по кускам: ключи у кусков есть
+  if (s.includes(' · ')) {
+    const r = s.split(' · ').map(x => perevesti(x, sSlovami)).join(' · ')
+    if (r !== s) return r
+  }
   // формы числа и месяцы стоят при числе («3 блюда», «30 октября»); без цифр строка — скорее название из меню
   if (!sSlovami || !/\d/.test(s)) return s
   let r = s
@@ -117,15 +139,16 @@ function zapisat(u, rus, p) {
 
 // Фраза из соседних текстовых узлов одного элемента — целиком, образцом. false — не вышло, переводить по кускам.
 function perevestiFrazu(el) {
-  const uzly = el.childNodes
+  // комментарии <!-- --> React оставляет между кусками разметки с сервера — их пропускаем, элементы — нет
+  const uzly = []
+  for (const u of el.childNodes) { if (u.nodeType === 3) uzly.push(u); else if (u.nodeType !== 8) return false }
   if (uzly.length < 2) return false
-  for (const u of uzly) if (u.nodeType !== 3) return false
   const rus = Array.from(uzly, original)
   const vse = rus.join('')
   if (!nuzhno(vse)) return false
   const p = perevesti(vse, false)
   if (p === vse) return false
-  Array.from(uzly).forEach((u, i) => zapisat(u, rus[i], i === 0 ? p : ''))
+  uzly.forEach((u, i) => zapisat(u, rus[i], i === 0 ? p : ''))
   vFraze.add(el)
   return true
 }

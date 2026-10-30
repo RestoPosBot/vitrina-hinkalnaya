@@ -1,5 +1,5 @@
 // Язык сайта гостя (30.10.2026, многоязычность): те же шесть языков, что в кассе ChikChak. Первый заход — по языку
-// телефона, если среди его языков нет русского; дальше — выбор гостя в «Профиле». Переводит js/perevodchik.js
+// телефона (кроме английского), если среди его языков нет русского; дальше — выбор гостя в «Профиле». Переводит js/perevodchik.js
 // (копия lib/perevod/perevodchik.js панели) словарём js/slova/<язык>.json; названия блюд остаются как в меню.
 import { dopolnit, t, zapustit } from './perevodchik.js';
 
@@ -23,9 +23,11 @@ export function tekushchiy() {
   } catch { /* приватный режим */ }
   const spisok = navigator.languages?.length ? navigator.languages : [navigator.language || 'ru'];
   if (spisok.some((l) => /^ru\b/i.test(l))) return 'ru';
+  // сам включаем только армянский, грузинский, узбекский, азербайджанский: английский телефон бывает у гостя
+  // из Москвы, ему — русский, английский он выберет в «Профиле»
   for (const l of spisok) {
     const k = String(l).slice(0, 2).toLowerCase();
-    if (KODY.includes(k)) return k;
+    if (KODY.includes(k) && k !== 'en') return k;
   }
   return 'ru';
 }

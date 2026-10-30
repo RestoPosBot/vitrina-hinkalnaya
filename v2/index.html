@@ -82,7 +82,7 @@
     if (k.indexOf(y) < 0) {
       var l = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'ru'];
       y = 'ru';
-      if (!l.some(function (x) { return /^ru/i.test(x); })) for (var i = 0; i < l.length; i++) if (k.indexOf(String(l[i]).slice(0, 2).toLowerCase()) >= 0) { y = String(l[i]).slice(0, 2).toLowerCase(); break; }
+      if (!l.some(function (x) { return /^ru/i.test(x); })) for (var i = 0; i < l.length; i++) { var c = String(l[i]).slice(0, 2).toLowerCase(); if (c !== 'en' && k.indexOf(c) >= 0) { y = c; break; } }
     }
     if (y !== 'ru') {
       var d = document.documentElement;

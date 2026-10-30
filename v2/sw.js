@@ -30,7 +30,7 @@
    - фото не в кеше и нет сети: отдаём превью этого блюда из кеша, если оно есть; иначе 204
      без тела. Плитка показывает знак раздела, ошибок загрузки в консоли нет. */
 
-const VERSIYA = 'k-8825b6c7bf';
+const VERSIYA = 'k-a8f6c4a0c1';
 const VERSIYA_FOTO = 'f-728d054919';
 const KESH = `hinkalnaya-v2-${VERSIYA}`;
 const KESH_FOTO = `hinkalnaya-foto-v2-${VERSIYA_FOTO}`;
@@ -107,6 +107,11 @@ const OBOLOCHKA_POTOM = [
   './kartinki/istorii/hachapuri-dnya.jpg',
   './kartinki/istorii/hinkalik-uchitsya.jpg',
   './kartinki/istorii/pervyy-zakaz.jpg',
+  // языки сайта (30.10.2026): буквы и словари — не всем гостям, поэтому не в основной снимок
+  './shrifty/onest-latin-ext.woff2',
+  './shrifty/unbounded-latin-ext.woff2',
+  './shrifty/noto-armenian.woff2',
+  './shrifty/noto-georgian.woff2',
 ];
 
 const pauza = (ms) => new Promise((ok) => { setTimeout(ok, ms); });
