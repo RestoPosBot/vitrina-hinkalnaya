@@ -191,6 +191,11 @@ function perevodMenyu(tovary, derevo) {
   }
   const razdely = (k) => { vzyat(k, ['title', 'description']); (k.children || []).forEach(razdely); };
   derevo.forEach(razdely);
+  // разделы строчными — в бегущей строке главной («· хачапури · шашлык ·»)
+  for (const k of derevo) {
+    const p = k?.perevody?.[y]?.title;
+    if (k?.title && p) pary[String(k.title).trim().toLowerCase()] = p.toLowerCase();
+  }
   dopolnitSlovar(pary);
 }
 
