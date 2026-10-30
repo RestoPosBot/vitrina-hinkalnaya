@@ -11,7 +11,7 @@ import { adresPoTochke, blizhayshieZavedeniya, ktoVezet, otkrytoSeychas, podskaz
 import { Hinkalik } from '../hinkalik.js';
 import { rub, tekst } from '../kartochka.js';
 import { gost as voshel, moiAdresa, zonyDostavki } from '../rpb.js';
-import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
+import { krasivo, nehvataet, maskaNaPole } from '../telefon.js';
 
 /** Дальше этого — доставки нет (бриф §5, тупик 3), если зоны доставки не загрузились. */
 const PREDEL_DOSTAVKI_KM = 7;
@@ -794,8 +794,7 @@ async function vybratAdres(p, vvod, podskazka, spisok, itog) {
 
 /** Маска телефона — общая для витрины (js/telefon.js): «+7 (916) 805-45-70» и сколько цифр номера. */
 function maskaTelefona(znachenie) {
-  const { nomer } = razobratNomer(znachenie);
-  return { v: maskaNomera(nomer, false), cifr: nomer.length };
+  return { v: krasivo(znachenie), net: nehvataet(znachenie) };
 }
 
 function pokazatPoleNomera(blokDaleko, adres, knopkaNomera) {
@@ -820,8 +819,8 @@ function pokazatPoleNomera(blokDaleko, adres, knopkaNomera) {
     podskazka.textContent = 'Позвоним, когда начнём возить в ваш район';
   });
   knopka.addEventListener('click', () => {
-    const { v, cifr } = maskaTelefona(vvod.value);
-    if (cifr < 10) {
+    const { v, net } = maskaTelefona(vvod.value);
+    if (net) {
       // тупик 12: не молчим
       pole.classList.remove('oshibka');
       void pole.offsetWidth;

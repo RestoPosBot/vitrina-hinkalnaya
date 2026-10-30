@@ -11,7 +11,7 @@ import { naytiBlyudo, naytiZavedenie } from '../dannye.js';
 import { tekst, rub, bally } from '../kartochka.js';
 import { moiZakazy, moiAdresa, moiBally } from '../rpb.js';
 import { YAZYKI, tekushchiy, vybrat } from '../yazyk.js';
-import { maskaNomera, razobratNomer } from '../telefon.js';
+import { krasivo } from '../telefon.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -175,7 +175,7 @@ function narisovat() {
   }
   const sk = yadro.skidka();
   const zav = yadro.zavedenie();
-  const telefon = maskaNomera(razobratNomer(g.telefon).nomer);
+  const telefon = krasivo(g.telefon);
   kontejner.innerHTML = `
     <div class="ekran__shapka"><div><h1 class="ekran__zagolovok">${tekst(g.imya || 'Профиль')}</h1>
       <p class="ekran__pod">${tekst(telefon)}</p></div></div>

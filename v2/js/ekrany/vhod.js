@@ -9,8 +9,8 @@
 
 import { shtorka, nazhatie, vibro, dvizhenieSnyato, poyavlenieKaskadom } from '../dvizhenie.js';
 import { tekst } from '../kartochka.js';
-import { zaprositKod, podtverditKod, cifryTelefona, korotkiyKod, vseLichnyeSkidki } from '../rpb.js';
-import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
+import { zaprositKod, podtverditKod, korotkiyKod, vseLichnyeSkidki } from '../rpb.js';
+import { krasivo, nehvataet, maskaNaPole } from '../telefon.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -33,8 +33,8 @@ let tajmerKoda = null;
 let kodZanyat = false;
 let podrobno = null;     // vseLichnyeSkidki(): где и на что действует скидка; null — ещё грузим или сеть
 
-/** +7 (916) 123-45-67 из цифр. */
-const maska = (cifry) => maskaNomera(razobratNomer(cifry).nomer);
+/** +7 (916) 123-45-67 и +995 599 12 34 56 из цифр или из поля. */
+const maska = (cifry) => krasivo(cifry);
 
 function zakryt(prichina) {
   if (upr) upr.zakryt(prichina);
@@ -148,7 +148,7 @@ function narisovat() {
         <p class="vhod__oshibka" hidden></p>
       </div>`;
     const vvod = telo.querySelector('input');
-    maskaNaPole(vvod, (nomer) => { telefon = nomer; });
+    maskaNaPole(vvod, (znachenie) => { telefon = znachenie; });
     const dalshe = telo.querySelector('.vhod__dalshe');
     nazhatie(dalshe, { masshtab: 0.96 });
     dalshe.addEventListener('click', () => poslatKod(dalshe));
@@ -360,8 +360,7 @@ async function poluchitKod() {
 
 async function poslatKod(knopka) {
   if (zanyato) return;
-  const cifry = cifryTelefona(telefon);
-  if (cifry.length < 11) {
+  if (nehvataet(telefon)) {
     pokazatOshibku('Не хватает цифр в номере');
     vibro([30, 40, 30]);
     return;

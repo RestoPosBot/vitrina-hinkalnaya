@@ -12,7 +12,7 @@ import { otkrytoSeychas, statusRezhima, vremyaMoskvy, formatVremeni, naytiBlyudo
 import { tekst, chislo, rub, TONKIY, strokaPozicii, bally } from '../kartochka.js';
 import { KLYUCH_NOMERA_ZAKAZA } from '../korzina.js';
 import { otpravitZakaz, imyaGostya } from '../rpb.js';
-import { razobratNomer, maskaNomera, maskaNaPole } from '../telefon.js';
+import { krasivo, nehvataet, maskaNaPole } from '../telefon.js';
 import { Hinkalik } from '../hinkalik.js';
 
 // Плавающий Хинкалик на экране без нижней навигации закрывал суммы и поля —
@@ -84,9 +84,9 @@ function sohranitChernovik() {
 // Телефон: маска +7 (___) ___-__-__
 // ---------------------------------------------------------------------------
 
-/** Десять цифр номера без кода страны (маска — js/telefon.js, общая для всей витрины). */
-const cifryTelefona = (znachenie) => razobratNomer(znachenie).nomer;
-const maskaTelefona = (d) => maskaNomera(d, false);
+// В форме — номер с кодом страны, как в поле (маска — js/telefon.js, общая для всей витрины); старый черновик
+// с десятью цифрами без кода читается как российский.
+const maskaTelefona = (znachenie) => krasivo(znachenie);
 
 // ---------------------------------------------------------------------------
 // Время: «сейчас» и слоты «ко времени» по часам работы
@@ -592,7 +592,7 @@ function navesitPolya() {
   const tel = kontejner.querySelector('[name="telefon"]');
   const komm = kontejner.querySelector('[name="kommentariy"]');
   imya.value = forma.imya;
-  tel.value = maskaTelefona(cifryTelefona(forma.telefon));
+  tel.value = maskaTelefona(forma.telefon);
   komm.value = forma.kommentariy;
 
   imya.addEventListener('input', () => {
@@ -602,16 +602,16 @@ function navesitPolya() {
   });
 
   // «+7 (» при фокусе убран: набранная следом привычная 7 или 8 попадала в номер (25.10.2026)
-  maskaNaPole(tel, (d) => {
-    forma.telefon = d;
+  maskaNaPole(tel, (znachenie) => {
+    forma.telefon = znachenie;
     sohranitChernovik();
-    if (d.length === 10) snyatOshibku('telefon');
+    if (!nehvataet(znachenie)) snyatOshibku('telefon');
   });
   // тупик 12: неполный номер — подсказка у поля сразу при уходе с него, а не молчание
   tel.addEventListener('blur', () => {
-    const d = cifryTelefona(tel.value);
-    if (!d.length) { tel.value = ''; return; }
-    if (d.length < 10) pokazatOshibku('telefon', `Не хватает цифр: ещё ${10 - d.length}`);
+    if (!tel.value.replace(/\D/g, '')) { tel.value = ''; return; }
+    const net = nehvataet(tel.value);
+    if (net) pokazatOshibku('telefon', `Не хватает цифр: ещё ${net}`);
   });
   komm.addEventListener('input', () => { forma.kommentariy = komm.value; sohranitChernovik(); });
   imya.addEventListener('keydown', (s) => { if (s.key === 'Enter') { s.preventDefault(); tel.focus(); } });
@@ -733,8 +733,8 @@ function narisovatKontakty() {
   poleTel.hidden = Boolean(g);
   poleImya.hidden = Boolean(g?.imya);
   if (!g) return;
-  forma.telefon = cifryTelefona(g.telefon);
-  poleTel.querySelector('input').value = maskaTelefona(forma.telefon);
+  forma.telefon = maskaTelefona(g.telefon);
+  poleTel.querySelector('input').value = forma.telefon;
   snyatOshibku('telefon');
   if (g.imya) {
     forma.imya = g.imya;
@@ -767,13 +767,13 @@ function narisovatVhod() {
     mesto.innerHTML = `
       <button class="kartochka-belaya oformlenie__vhod-knopka oformlenie__vhod-knopka--est" type="button">
         <b>Ваша скидка −${sk.procentGostya} %</b>
-        <span>${g.imya ? `${tekst(g.imya)}, вошли` : 'Вошли'} по номеру ${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · ${sk.akciya && !sk.vmeste ? 'сейчас выгоднее акция — вычтем её' : 'вычтем из заказа'}</span>
+        <span>${g.imya ? `${tekst(g.imya)}, вошли` : 'Вошли'} по номеру ${tekst(maskaTelefona(g.telefon))} · ${sk.akciya && !sk.vmeste ? 'сейчас выгоднее акция — вычтем её' : 'вычтем из заказа'}</span>
       </button>`;
   } else {
     mesto.innerHTML = `
       <button class="kartochka-belaya oformlenie__vhod-knopka" type="button">
         <b>Вы вошли</b>
-        <span>${g.imya ? `${tekst(g.imya)} · ` : ''}${tekst(maskaTelefona(cifryTelefona(g.telefon)))} · личной скидки в этом заведении пока нет</span>
+        <span>${g.imya ? `${tekst(g.imya)} · ` : ''}${tekst(maskaTelefona(g.telefon))} · личной скидки в этом заведении пока нет</span>
       </button>`;
   }
   const knopka = mesto.querySelector('button');
@@ -831,9 +831,9 @@ async function zakazat_() {
     pokazatOshibku('imya', 'Напишите имя — так вас узнают на выдаче');
     oshibki.push({ el: kontejner.querySelector('[data-pole="imya"]') });
   }
-  const d = cifryTelefona(forma.telefon);
-  if (d.length < 10) {
-    pokazatOshibku('telefon', d.length ? `Не хватает цифр: ещё ${10 - d.length}` : 'Нужен телефон — позвоним, если что-то закончится');
+  const net = nehvataet(forma.telefon);
+  if (net) {
+    pokazatOshibku('telefon', forma.telefon.replace(/\D/g, '') ? `Не хватает цифр: ещё ${net}` : 'Нужен телефон — позвоним, если что-то закончится');
     oshibki.push({ el: kontejner.querySelector('[data-pole="telefon"]') });
   }
   // Блюда, которых в заведении нет, — сначала разобрать на переносе (тупик 1)

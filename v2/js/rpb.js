@@ -315,7 +315,7 @@ export function vyyti() {
   zapisat(null);
 }
 
-/** Только цифры телефона; 8XXXXXXXXXX приводим к 7XXXXXXXXXX, как ждёт сервер. */
+/** Только цифры телефона с кодом страны; 8XXXXXXXXXX и 10 цифр — российские, 7XXXXXXXXXX, как ждёт сервер. */
 export function cifryTelefona(telefon) {
   let d = String(telefon || '').replace(/\D/g, '');
   if (d.length === 11 && d.startsWith('8')) d = `7${d.slice(1)}`;
