@@ -40,10 +40,12 @@ export async function vklyuchit(y = tekushchiy()) {
     else {
       const otvet = await fetch(`js/slova/${y}.json`);
       const slovar = otvet.ok ? await otvet.json() : { tochnye: {} };
+      // словаря нет и меню не переведено — страница русская, lang тоже (подписи по :lang в stil.css)
+      if (!otvet.ok && !Object.keys(menyu).length) d.lang = 'ru';
       zapustit({ ...slovar, tochnye: { ...slovar.tochnye, ...menyu } });
       gotovo = true;
     }
-  } catch { zapustit(null); /* нет словаря или сети — остаёмся на русском */ }
+  } catch { d.lang = 'ru'; zapustit(null); /* нет словаря или сети — остаёмся на русском */ }
   d.classList.remove('perevod-zhdyot');
 }
 
