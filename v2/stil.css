@@ -1512,3 +1512,15 @@ html.pokoy .istoriya-krug__kolco::before { animation-play-state: paused; }
 .oformlenie__vhod-knopka b { font-weight: 800; }
 .oformlenie__vhod-knopka span { font: var(--t-vtoroy); color: var(--ugol-72); }
 .oformlenie__vhod-knopka--est b { color: var(--zelenyy, #2F8F4E); }
+
+/* Подписи из CSS переводчик страницы не видит — свои для каждого языка (30.10.2026) */
+html:lang(en) .poisk__podskazka::before { content: 'Find: '; }
+html:lang(hy) .poisk__podskazka::before { content: 'Գտնել՝ '; }
+html:lang(ka) .poisk__podskazka::before { content: 'მოძებნა: '; }
+html:lang(uz) .poisk__podskazka::before { content: 'Topish: '; }
+html:lang(az) .poisk__podskazka::before { content: 'Axtar: '; }
+html:lang(en) .zavedenie--partner .zavedenie__nazvanie::after { content: 'partner'; }
+html:lang(hy) .zavedenie--partner .zavedenie__nazvanie::after { content: 'գործընկեր'; }
+html:lang(ka) .zavedenie--partner .zavedenie__nazvanie::after { content: 'პარტნიორი'; text-transform: none; }
+html:lang(uz) .zavedenie--partner .zavedenie__nazvanie::after { content: 'hamkor'; }
+html:lang(az) .zavedenie--partner .zavedenie__nazvanie::after { content: 'tərəfdaş'; }

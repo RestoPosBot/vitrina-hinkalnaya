@@ -10,6 +10,7 @@ import { nazhatie, poyavlenieKaskadom, vibro } from '../dvizhenie.js';
 import { naytiBlyudo, naytiZavedenie } from '../dannye.js';
 import { tekst, rub, bally } from '../kartochka.js';
 import { moiZakazy, moiAdresa, moiBally } from '../rpb.js';
+import { YAZYKI, tekushchiy, vybrat } from '../yazyk.js';
 import { maskaNomera, razobratNomer } from '../telefon.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
@@ -148,6 +149,17 @@ async function narisovatBally(mesto, zakazy, moe) {
   });
 }
 
+// Язык сайта (30.10.2026): названия своими буквами, translate="no" — их переводчик не трогает
+function blokYazyka() {
+  const tek = tekushchiy();
+  return `<div class="metka">Язык интерфейса</div>
+    <div class="vybor profil__yazyki" translate="no">${YAZYKI.map((y) => `<button class="chip-dobavka${y.kod === tek ? ' vybran' : ''}" type="button" lang="${y.kod}" data-yazyk="${y.kod}" aria-pressed="${y.kod === tek}">${y.nazvanie}</button>`).join('')}</div>`;
+}
+
+function privyazatYazyk() {
+  kontejner.querySelectorAll('[data-yazyk]').forEach((b) => knopka(b, async () => { await vybrat(b.dataset.yazyk); narisovat(); }));
+}
+
 function narisovat() {
   const moe = ++pokolenie;
   const g = yadro.gostRPB();
@@ -155,8 +167,10 @@ function narisovat() {
     kontejner.innerHTML = `
       <div class="ekran__shapka"><div><h1 class="ekran__zagolovok">Профиль</h1>
         <p class="ekran__pod">Войдите по номеру телефона — здесь будут ваши заказы, личная скидка и адреса</p></div></div>
-      <button class="knopka knopka--glavnaya knopka--60" type="button" data-voyti><svg aria-hidden="true"><use href="#ik-telefon"/></svg><span>Войти по номеру</span></button>`;
+      <button class="knopka knopka--glavnaya knopka--60" type="button" data-voyti><svg aria-hidden="true"><use href="#ik-telefon"/></svg><span>Войти по номеру</span></button>
+      ${blokYazyka()}`;
     knopka(kontejner.querySelector('[data-voyti]'), () => yadro.perejti('#/skidka'));
+    privyazatYazyk();
     return;
   }
   const sk = yadro.skidka();
@@ -174,7 +188,9 @@ function narisovat() {
     <div class="metka">Мои заказы</div>
     <div class="profil__zakazy"></div>
     <div class="profil__adresa-mesto"></div>
+    ${blokYazyka()}
     <button class="knopka knopka--tihaya profil__vyyti" type="button" data-vyyti>Выйти</button>`;
+  privyazatYazyk();
   knopka(kontejner.querySelector('[data-kod]'), () => yadro.perejti('#/skidka'));
   knopka(kontejner.querySelector('[data-vyyti]'), () => { yadro.vyytiGostyu(); yadro.tost('Вы вышли', { vid: 'uspeh' }); narisovat(); });
   narisovatZakazy(kontejner.querySelector('.profil__zakazy'), moe);

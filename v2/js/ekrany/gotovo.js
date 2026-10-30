@@ -88,7 +88,7 @@ export function pokazat(kontejner, yadro_, parametry) {
       <div class="gotovo__shagi">
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-chasy"/></svg></span><div><b>${chtoDalshe}</b><span>${zakaz.imya ? `${tekst(zakaz.imya)}, ` : ''}${zakaz.telefon ? `позвоним на ${tekst(zakaz.telefon)}, если что-то закончится` : 'позвоним, если что-то закончится'}</span></div></div>
         <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-${dostavka ? 'dostavka' : 'bulavka'}"/></svg></span><div>${gde}</div></div>
-        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span><div>${zakaz.oplata === 'onlayn' ? (zakaz.oplacheno ? '<b>Оплачено картой онлайн</b><span>Заказ ушёл на кухню</span>' : '<b>Оплата картой онлайн</b><span>Как только оплата пройдёт, заказ уйдёт на кухню</span>') : '<b>Оплата при получении</b><span>Картой или наличными</span>'}</div></div>
+        <div class="gotovo__shag"><span class="gotovo__znak"><svg aria-hidden="true"><use href="#ik-sumka"/></svg></span><div>${zakaz.oplata === 'onlayn' ? (zakaz.oplacheno ? '<b>Оплачено картой онлайн</b><span>Заказ ушёл на кухню</span>' : '<b data-oplata-shag>Оплата картой онлайн</b><span>Как только оплата пройдёт, заказ уйдёт на кухню</span>') : '<b>Оплата при получении</b><span>Картой или наличными</span>'}</div></div>
       </div>
     </div>
     <div class="metka">Что в заказе</div>
@@ -191,7 +191,8 @@ async function otkrytOplatu(kontejner, zakaz, novaya = false) {
     mesto.innerHTML = '<div class="gotovo__oplacheno"><b>Оплачено</b><span>Заказ ушёл на кухню. Спасибо!</span></div>';
     const plashka = kontejner.querySelector('.gotovo__demo');
     if (plashka) plashka.innerHTML = '<b>Заказ принят и оплачен</b><p>Позвоним по телефону из заказа, если что-то закончилось.</p>';
-    const shag = [...kontejner.querySelectorAll('.gotovo__shag b')].find((b) => b.textContent === 'Оплата картой онлайн');
+    // по метке, не по тексту: на другом языке текст переведён (30.10.2026)
+    const shag = kontejner.querySelector('.gotovo__shag b[data-oplata-shag]');
     if (shag) { shag.textContent = 'Оплачено картой онлайн'; shag.nextElementSibling.textContent = 'Заказ ушёл на кухню'; }
     personazh?.pryg();
     personazh?.skazat('Оплачено!', 3200);

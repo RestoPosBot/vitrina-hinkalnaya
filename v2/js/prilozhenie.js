@@ -13,6 +13,7 @@ import {
 } from './dvizhenie.js';
 import { Hinkalik, volnaZagruzki, svgHinkalika } from './hinkalik.js';
 import { rub, chislo, tekst } from './kartochka.js';
+import { vklyuchit as vklyuchitYazyk } from './yazyk.js';
 
 // ---------------------------------------------------------------------------
 // Константы
@@ -1361,4 +1362,5 @@ async function zapustit() {
 }
 
 zaregistrirovatSW();
+vklyuchitYazyk();
 zapustit();
