@@ -5,7 +5,7 @@
 
 import { nazhatie } from './dvizhenie.js';
 import { cenaRaznitsya } from './dannye.js';
-import { klyuchPozicii, summaPozicii, grammyPozicii, podpisGrammov, podpisEdinitsy } from './korzina.js';
+import { klyuchPozicii, summaPozicii, grammyPozicii, podpisGrammov, podpisEdinitsy, zaEdinitsu } from './korzina.js';
 
 const formatChisla = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
 
@@ -380,7 +380,7 @@ export function strokaPozicii(poziciya, yadro) {
   el.insertAdjacentHTML('beforeend', `
     <div class="poziciya__tekst">
       <div class="poziciya__nazvanie">${tekst(poziciya.nazvanie)}</div>
-      <div class="poziciya__meta">${poziciya.naVes ? `${podpisGrammov(grammyPozicii(poziciya))}${TONKIY}×${TONKIY}${rub(poziciya.cena)} ${podpisEdinitsy(poziciya)}` : `${poziciya.kolichestvo}${TONKIY}×${TONKIY}${rub(poziciya.cena)}`}${dobavki ? ` · ${tekst(dobavki)}` : ''}</div>
+      <div class="poziciya__meta">${poziciya.naVes ? `${podpisGrammov(grammyPozicii(poziciya))}${TONKIY}×${TONKIY}${rub(poziciya.cena)}${zaEdinitsu(poziciya)}` : `${poziciya.kolichestvo}${TONKIY}×${TONKIY}${rub(poziciya.cena)}`}${dobavki ? ` · ${tekst(dobavki)}` : ''}</div>
     </div>
     <div class="poziciya__cena">${rub(summaPozicii(poziciya))}</div>`);
   return el;

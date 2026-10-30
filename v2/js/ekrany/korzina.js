@@ -9,7 +9,7 @@ import { shtorka, flip, pokazatChislo, nazhatie, pruzhina, dvizhenieSnyato, vibr
 import { naytiBlyudo, kEtomuBerut, populyarnye, perenestiKorzinu, otkrytoSeychas } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii, miniKartochka, metaBlyuda } from '../kartochka.js';
-import { summaPozicii, grammyPozicii, podpisGrammov, podpisEdinitsy } from '../korzina.js';
+import { summaPozicii, grammyPozicii, podpisGrammov, zaEdinitsu } from '../korzina.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -313,7 +313,7 @@ function obnovitMetu(s, p) {
     const ves = metaBlyuda(blyudo, yadro.semeystvo(blyudo.razdel)).find((m) => /г|мл/.test(m) && !/ккал/.test(m));
     if (ves) chasti.push(ves);
   }
-  chasti.push(p.naVes ? `${rub(p.cena)} ${podpisEdinitsy(p)}` : `${rub(p.cena)} за шт.`);
+  chasti.push(p.naVes ? `${rub(p.cena)}${zaEdinitsu(p)}` : `${rub(p.cena)} за шт.`);
   const dobavki = (p.dobavki || []).map((d) => d.nazvanie).join(', ');
   if (dobavki) chasti.push(dobavki);
   const meta = s.querySelector('.poziciya__meta');
