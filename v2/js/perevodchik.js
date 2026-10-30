@@ -19,6 +19,8 @@ let tochnye = new Map()
 let obraztsy = []
 /** @type {[RegExp, string][]} */
 let slova = []
+// то же слово целиком («октябрь» во вставке «Касса за {0}») — без числа рядом
+let slovaTselikom = new Map()
 const kesh = new Map()
 const keshFraz = new Map()
 // узел -> русский оригинал и то, что вписали мы: своё изменение не переводим повторно, а при смене языка
@@ -47,6 +49,7 @@ export function zagruzitSlovar(s) {
     }))
     // длинный образец раньше короткого: «Стол {0} — {1}» прежде «Стол {0}»
     .sort((a, b) => b.re.source.length - a.re.source.length)
+  slovaTselikom = new Map(Object.entries(s.slova || {}))
   // слово меняется только вплотную к числу: «3 блюда», «30 октября», «пт, 30» — не «ср2026» в пароле
   slova = Object.entries(s.slova || {})
     .sort((a, b) => b[0].length - a[0].length)
@@ -98,6 +101,7 @@ function perevesti(s, sSlovami) {
 function perevestiYadro(s, sSlovami) {
   const tochno = tochnye.get(s)
   if (tochno !== undefined) return tochno
+  if (sSlovami && slovaTselikom.has(s)) return slovaTselikom.get(s)
   for (const o of obraztsy) {
     if (o.kusok && !s.includes(o.kusok)) continue
     const m = o.re.exec(s)
@@ -111,7 +115,14 @@ function perevestiYadro(s, sSlovami) {
   }
   // строка, склеенная через « · » (описание акции, состав), — по кускам: ключи у кусков есть
   if (s.includes(' · ')) {
-    const r = s.split(' · ').map(x => perevesti(x, sSlovami)).join(' · ')
+    // хвост «· отменено 57» в словаре лежит с точкой впереди — пробуем и так
+    const kusok = x => {
+      const p = perevesti(x, sSlovami)
+      if (p !== x) return p
+      const s2 = perevesti('· ' + x, sSlovami)
+      return s2 !== '· ' + x ? s2.replace(/^·\s*/, '') : x
+    }
+    const r = s.split(' · ').map(kusok).join(' · ')
     if (r !== s) return r
   }
   // формы числа и месяцы стоят при числе («3 блюда», «30 октября»); без цифр строка — скорее название из меню
