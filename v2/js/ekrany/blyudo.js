@@ -6,6 +6,7 @@
 import { shtorka, flip, pokazatChislo, nazhatie, pruzhina, dvizhenieSnyato, vibro } from '../dvizhenie.js';
 import { naytiBlyudo, kEtomuBerut, gdeDostupno, cenaRaznitsya } from '../dannye.js';
 import { tekst, chislo, znakRazdela, tenObekta, metaBlyuda, miniKartochka, TONKIY } from '../kartochka.js';
+import { grammyPozicii, podpisGrammov, podpisEdinitsy } from '../korzina.js';
 import { tekushchiy } from '../yazyk.js';
 
 let yadro = null;
@@ -61,6 +62,8 @@ export function pokazat(kontejner, yadro_, parametry) {
   const sem = yadro.semeystvo(blyudo.razdel);
   const prichina = yadro.prichina(blyudo);
   const cena = yadro.cena(blyudo);
+  // на развес (31.10.2026): шаг степпера — граммы, цена порции — от цены за 100 г или 1 кг
+  const vesovaya = (shagov) => Math.round((cena * grammyPozicii(blyudo, shagov)) / (blyudo.edinitsaVesa === 1000 ? 1000 : 100));
   const zav = yadro.zavedenie();
   const meta = metaBlyuda(blyudo, sem);
   const dobavki = Array.isArray(blyudo.dobavki) ? blyudo.dobavki : [];
@@ -106,7 +109,7 @@ export function pokazat(kontejner, yadro_, parametry) {
       ${blyudo.opisanie ? `<p class="shtorka__opisanie">${tekst(blyudo.opisanie)}</p>` : ''}
       ${meta.length ? `<div class="shtorka__meta">${meta.map((m, i) => `<span><svg aria-hidden="true"><use href="${ZNAKI_META[Math.min(i, 2)]}"/></svg>${m}</span>`).join('')}</div>` : ''}
       <div class="shtorka__cena">
-        <span class="cena"><span class="cena__chislo">${chislo(cena)}</span><span class="rub">${TONKIY}₽</span>${!zav && cenaRaznitsya(blyudo) ? '<small class="cena__utochnit">цена по заведению</small>' : ''}</span>
+        <span class="cena"><span class="cena__chislo">${chislo(cena)}</span><span class="rub">${TONKIY}₽</span>${!zav && cenaRaznitsya(blyudo) ? '<small class="cena__utochnit">цена по заведению</small>' : ''}${blyudo.naVes ? `<small class="cena__utochnit">${podpisEdinitsy(blyudo)}</small>` : ''}</span>
       </div>
       ${nedostupno}
       ${blyudo.sostav && prostoy(blyudo.sostav) !== prostoy(blyudo.opisanie) ? `<div class="shtorka__sostav"><b>Состав</b>${tekst(blyudo.sostav)}</div>` : ''}
@@ -136,16 +139,16 @@ export function pokazat(kontejner, yadro_, parametry) {
     niz.innerHTML = `
       <div class="stepper stepper--vsegda stepper--steklo" role="group" aria-label="Количество">
         <button type="button" data-shag="-1" aria-label="Меньше"><svg aria-hidden="true"><use href="#ik-minus"/></svg></button>
-        <b>1</b>
+        <b>${blyudo.naVes ? podpisGrammov(grammyPozicii(blyudo, 1)) : 1}</b>
         <button type="button" data-shag="1" aria-label="Больше"><svg aria-hidden="true"><use href="#ik-plus"/></svg></button>
       </div>
-      <button class="knopka knopka--glavnaya" type="button" data-v-korzinu><span>В корзину</span><span class="summa"><span class="summa-v">${chislo(cena)}</span>${TONKIY}₽</span></button>`;
+      <button class="knopka knopka--glavnaya" type="button" data-v-korzinu><span>В корзину</span><span class="summa"><span class="summa-v">${chislo(blyudo.naVes ? vesovaya(1) : cena)}</span>${TONKIY}₽</span></button>`;
     summaEl = niz.querySelector('.summa-v');
     const schet = niz.querySelector('.stepper b');
     let pokazano = cena;
     const pereschitat = () => {
       const dop = dobavki.filter((d) => vybrannye.has(String(d.id))).reduce((s, d) => s + (Number(d.cena) || 0), 0);
-      const itog = (cena + dop) * kolichestvo;
+      const itog = blyudo.naVes ? vesovaya(kolichestvo) + dop : (cena + dop) * kolichestvo;
       pokazatChislo(summaEl, pokazano, itog, 420, (v) => chislo(v));
       pokazano = itog;
     };
@@ -158,7 +161,7 @@ export function pokazat(kontejner, yadro_, parametry) {
           return;
         }
         kolichestvo = Math.min(99, kolichestvo + shag);
-        schet.textContent = String(kolichestvo);
+        schet.textContent = blyudo.naVes ? podpisGrammov(grammyPozicii(blyudo, kolichestvo)) : String(kolichestvo);
         if (!dvizhenieSnyato()) schet.animate([{ transform: 'scale(.6)' }, { transform: 'scale(1)' }], { duration: pruzhina.rezkaya.ms, easing: pruzhina.rezkaya.easing });
         vibro(6);
         pereschitat();

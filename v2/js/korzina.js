@@ -72,7 +72,44 @@ export function klyuchPozicii(blyudoId, dobavki = []) {
  */
 export function summaPozicii(poziciya) {
   const dobavki = (poziciya.dobavki || []).reduce((s, d) => s + (Number(d.cena) || 0), 0);
+  const g = grammyPozicii(poziciya);
+  // весовое: одна порция, цена — за 100 г или 1 кг, до рубля, как посчитает сервер
+  if (g) return Math.round(((Number(poziciya.cena) || 0) * g) / (poziciya.edinitsaVesa === 1000 ? 1000 : 100)) + dobavki;
   return ((Number(poziciya.cena) || 0) + dobavki) * (Number(poziciya.kolichestvo) || 0);
+}
+
+/**
+ * Блюдо на развес (31.10.2026): «+» и «−» меняют не штуки, а граммы — от vesMin шагами vesShag (по умолчанию 100 и 100).
+ * kolichestvo у такой позиции — число шагов; заказ уходит одной порцией с граммами.
+ * @param {{naVes?: boolean, vesMin?: number|null, vesShag?: number|null, kolichestvo?: number}} p позиция или блюдо
+ * @param {number} [shagov] сколько шагов (по умолчанию p.kolichestvo)
+ * @returns {number|null} граммы или null у штучного
+ */
+export function grammyPozicii(p, shagov = p?.kolichestvo) {
+  if (!p?.naVes) return null;
+  const min = Number(p.vesMin) > 0 ? Number(p.vesMin) : 100;
+  const shag = Number(p.vesShag) > 0 ? Number(p.vesShag) : 100;
+  return min + (Math.max(1, Number(shagov) || 1) - 1) * shag;
+}
+
+/** Сколько шагов нужно на g граммов (вверх до шага, не больше 99). */
+function shagovDlya(p, g) {
+  const min = Number(p.vesMin) > 0 ? Number(p.vesMin) : 100;
+  const shag = Number(p.vesShag) > 0 ? Number(p.vesShag) : 100;
+  return Math.min(MAKS_KOLICHESTVO, Math.max(1, Math.ceil((g - min) / shag) + 1));
+}
+
+/** «350 г», «1,5 кг». */
+export function podpisGrammov(g) {
+  return g >= 1000 && g % 100 === 0 ? `${String(g / 1000).replace('.', ',')} кг` : `${g} г`;
+}
+
+/** «за 100 г» / «за 1 кг» у цены весового блюда. */
+export const podpisEdinitsy = (b) => (b?.edinitsaVesa === 1000 ? 'за 1 кг' : 'за 100 г');
+
+/** Поля весового блюда, которые позиция несёт с собой (в хранилище и в заказ). */
+function polyaVesa(b) {
+  return b?.naVes ? { naVes: true, edinitsaVesa: b.edinitsaVesa === 1000 ? 1000 : 100, vesMin: Number(b.vesMin) || null, vesShag: Number(b.vesShag) || null } : {};
 }
 
 function celoeKolichestvo(kolichestvo, poUmolchaniyu = 1) {
@@ -117,6 +154,7 @@ function sobratPoziciyu(blyudo, kolichestvo, dobavki, zavedenieId) {
     razdelId: blyudo.razdelId ?? blyudo.razdel?.id ?? null,
     ves: typeof blyudo.ves === 'number' ? blyudo.ves : null,
     vremya: typeof blyudo.vremya === 'number' ? blyudo.vremya : null,
+    ...polyaVesa(blyudo),
   };
 }
 
@@ -145,6 +183,7 @@ function ochistitPoziciyu(p) {
     razdelId: p.razdelId ?? null,
     ves: typeof p.ves === 'number' ? p.ves : null,
     vremya: typeof p.vremya === 'number' ? p.vremya : null,
+    ...polyaVesa(p),
   };
 }
 
@@ -365,7 +404,9 @@ export class Korzina {
     const klyuch = klyuchPozicii(blyudo.id, vybrannye);
     let poziciya = this.poziciya(klyuch);
     if (poziciya) {
-      poziciya.kolichestvo = celoeKolichestvo(poziciya.kolichestvo + n, poziciya.kolichestvo);
+      // весовое: складываем граммы, а не шаги (у первого шага свой вес — vesMin)
+      poziciya.kolichestvo = poziciya.naVes ? shagovDlya(poziciya, grammyPozicii(poziciya) + grammyPozicii(poziciya, n))
+        : celoeKolichestvo(poziciya.kolichestvo + n, poziciya.kolichestvo);
       // Заведение могли сменить присваиванием без переноса — не складываем штуки по устаревшей цене.
       poziciya.cena = cenaV(blyudo, this.#zavedenieId);
     } else {
@@ -433,7 +474,8 @@ export class Korzina {
    * @returns {number}
    */
   kolichestvo() {
-    return this.#pozicii.reduce((s, p) => s + p.kolichestvo, 0);
+    // весовое — одна порция, сколько бы шагов веса ни набрали
+    return this.#pozicii.reduce((s, p) => s + (p.naVes ? 1 : p.kolichestvo), 0);
   }
 
   /** Пуста ли корзина. */

@@ -20,6 +20,7 @@
 // (с 24.10 он отдаёт 2–3 КБ без сотрудников; раньше отдавал хеши паролей и весил до 2 МБ).
 
 import { konturZony } from './dannye.js';
+import { grammyPozicii } from './korzina.js';
 import { dopolnitSlovar, tekushchiy } from './yazyk.js';
 
 const BAZA = 'https://api.chikchak.ai/api';
@@ -125,6 +126,8 @@ function blyudoIzTovara(tovar, nashi, dopolnenie) {
     nazvanie: tovar.title,
     cena: Number(tovar.price) || 0,
     ves: Number(tovar.weight) || null,
+    // на развес (31.10.2026): цена — за 100 г или 1 кг, гость выбирает граммы шагами
+    ...(tovar.naVes ? { naVes: true, edinitsaVesa: tovar.edinitsaVesa === 1000 ? 1000 : 100, vesMin: Number(tovar.vesMin) || null, vesShag: Number(tovar.vesShag) || null } : {}),
     vremya: Number(tovar.preparationTime) || null,
     foto: foto(tovar),
     cvet: dop.cvet || null,
@@ -613,7 +616,8 @@ export async function otpravitZakaz(zakaz) {
     customerId: g?.id || undefined,
     items: (zakaz.pozicii || []).map((p) => ({
       productId: p.blyudoId,
-      quantity: p.kolichestvo,
+      // весовое — одна порция с граммами (kolichestvo у него — шаги веса)
+      ...(grammyPozicii(p) ? { quantity: 1, ves: grammyPozicii(p) } : { quantity: p.kolichestvo }),
       comment: p.kommentariy || undefined,
       additiveIds: (p.dobavki || []).map((d) => (typeof d === 'string' ? d : d.id)).filter(Boolean),
     })),

@@ -9,7 +9,7 @@ import { shtorka, flip, pokazatChislo, nazhatie, pruzhina, dvizhenieSnyato, vibr
 import { naytiBlyudo, kEtomuBerut, populyarnye, perenestiKorzinu, otkrytoSeychas } from '../dannye.js';
 import { Hinkalik } from '../hinkalik.js';
 import { tekst, chislo, rub, TONKIY, strokaPozicii, miniKartochka, metaBlyuda } from '../kartochka.js';
-import { summaPozicii } from '../korzina.js';
+import { summaPozicii, grammyPozicii, podpisGrammov, podpisEdinitsy } from '../korzina.js';
 
 export const nastroyki = { niz: true, hinkalik: true };
 
@@ -260,6 +260,9 @@ function narisovatPozicii() {
   obnovitSvodku(true);
 }
 
+/** Число в степпере: штуки, у весового — граммы (31.10.2026). */
+const schetchik = (p) => (p.naVes ? podpisGrammov(grammyPozicii(p)) : String(p.kolichestvo));
+
 /** Строка позиции: мини-плитка, название, цена за штуку, справа сумма и степпер. */
 function sdelatStroku(p) {
   const s = strokaPozicii(p, yadro);
@@ -271,7 +274,7 @@ function sdelatStroku(p) {
     <b class="korzina__summa"><span class="summa-v">${chislo(summaPozicii(p))}</span>${TONKIY}₽</b>
     <div class="stepper stepper--malyy stepper--steklo" role="group" aria-label="Количество">
       <button type="button" data-shag="-1" aria-label="Меньше"><svg aria-hidden="true"><use href="#ik-minus"/></svg></button>
-      <b>${p.kolichestvo}</b>
+      <b>${schetchik(p)}</b>
       <button type="button" data-shag="1" aria-label="Больше"><svg aria-hidden="true"><use href="#ik-plus"/></svg></button>
     </div>`;
   s.appendChild(prava);
@@ -310,7 +313,7 @@ function obnovitMetu(s, p) {
     const ves = metaBlyuda(blyudo, yadro.semeystvo(blyudo.razdel)).find((m) => /г|мл/.test(m) && !/ккал/.test(m));
     if (ves) chasti.push(ves);
   }
-  chasti.push(`${rub(p.cena)} за шт.`);
+  chasti.push(p.naVes ? `${rub(p.cena)} ${podpisEdinitsy(p)}` : `${rub(p.cena)} за шт.`);
   const dobavki = (p.dobavki || []).map((d) => d.nazvanie).join(', ');
   if (dobavki) chasti.push(dobavki);
   const meta = s.querySelector('.poziciya__meta');
@@ -453,9 +456,10 @@ function obnovit(sobytie = {}) {
 /** Количество и сумма строки: цифра подпрыгивает пружиной, сумма крутится. */
 function obnovitStroku(s, p) {
   const b = s.querySelector('.stepper b');
-  if (b.textContent !== String(p.kolichestvo)) {
-    const bolshe = Number(b.textContent) < p.kolichestvo;
-    b.textContent = String(p.kolichestvo);
+  if (b.textContent !== schetchik(p)) {
+    const bolshe = Number(b.dataset.n || b.textContent) < p.kolichestvo;
+    b.dataset.n = String(p.kolichestvo);
+    b.textContent = schetchik(p);
     if (!dvizhenieSnyato()) {
       b.animate([{ transform: `translateY(${bolshe ? 8 : -8}px) scale(.6)`, opacity: 0.2 }, { transform: 'none', opacity: 1 }], { duration: pruzhina.rezkaya.ms, easing: pruzhina.rezkaya.easing });
     }

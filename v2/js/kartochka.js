@@ -5,7 +5,7 @@
 
 import { nazhatie } from './dvizhenie.js';
 import { cenaRaznitsya } from './dannye.js';
-import { klyuchPozicii, summaPozicii } from './korzina.js';
+import { klyuchPozicii, summaPozicii, grammyPozicii, podpisGrammov, podpisEdinitsy } from './korzina.js';
 
 const formatChisla = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
 
@@ -297,7 +297,7 @@ export function obnovitKartochku(el, yadro, pervyyRaz = false) {
   const klyuchCeny = `${cena}|${utochnit}|${prichina}`;
   if (mestoCeny.dataset.klyuch !== klyuchCeny) {
     mestoCeny.dataset.klyuch = klyuchCeny;
-    mestoCeny.innerHTML = razmetkaCeny(cena, utochnit);
+    mestoCeny.innerHTML = razmetkaCeny(cena, utochnit) + (blyudo.naVes ? `<small class="cena__utochnit">${podpisEdinitsy(blyudo)}</small>` : '');
   }
   el.classList.toggle('nedostupna', Boolean(prichina));
   const pl = el.querySelector('.plitka');
@@ -311,7 +311,7 @@ export function obnovitKartochku(el, yadro, pervyyRaz = false) {
   const bylo = el.classList.contains('v-korzine');
   el.classList.toggle('v-korzine', n > 0);
   const stepper = el.querySelector('.stepper');
-  stepper.querySelector('b').textContent = String(n || 1);
+  stepper.querySelector('b').textContent = blyudo.naVes ? podpisGrammov(grammyPozicii(blyudo, n || 1)) : String(n || 1);
   if (n > 0 && !bylo && !pervyyRaz) {
     // «+» превращается в степпер: растёт от правого края пружиной
     stepper.classList.remove('poyavilsya');
@@ -380,7 +380,7 @@ export function strokaPozicii(poziciya, yadro) {
   el.insertAdjacentHTML('beforeend', `
     <div class="poziciya__tekst">
       <div class="poziciya__nazvanie">${tekst(poziciya.nazvanie)}</div>
-      <div class="poziciya__meta">${poziciya.kolichestvo}${TONKIY}×${TONKIY}${rub(poziciya.cena)}${dobavki ? ` · ${tekst(dobavki)}` : ''}</div>
+      <div class="poziciya__meta">${poziciya.naVes ? `${podpisGrammov(grammyPozicii(poziciya))}${TONKIY}×${TONKIY}${rub(poziciya.cena)} ${podpisEdinitsy(poziciya)}` : `${poziciya.kolichestvo}${TONKIY}×${TONKIY}${rub(poziciya.cena)}`}${dobavki ? ` · ${tekst(dobavki)}` : ''}</div>
     </div>
     <div class="poziciya__cena">${rub(summaPozicii(poziciya))}</div>`);
   return el;
