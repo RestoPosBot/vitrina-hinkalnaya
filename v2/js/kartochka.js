@@ -267,7 +267,9 @@ export function kartochka(blyudo, yadro, i = 0) {
     s.stopPropagation();
     const k = s.target.closest('button[data-shag]');
     if (!k) return;
-    if (k.dataset.shag === '1') yadro.dobavitVKorzinu(blyudo, { ot: pl, tiho: true });
+    // весовое: «+» — ещё шаг граммов (как «−»), а не ещё одна порция минимального веса
+    const est = blyudo.naVes && yadro.korzina.poziciya(klyuchPozicii(blyudo.id, []));
+    if (k.dataset.shag === '1') { if (est) yadro.korzina.izmenit(est.klyuch, est.kolichestvo + 1); else yadro.dobavitVKorzinu(blyudo, { ot: pl, tiho: true }); }
     else yadro.umenshit(klyuchPozicii(blyudo.id, []));
   });
 
