@@ -370,7 +370,7 @@ async function poslatKod(knopka) {
   knopka.disabled = true;
   knopka.textContent = 'Отправляем…';
   try {
-    await zaprositKod(cifry);
+    await zaprositKod(telefon);
     shag = 'kod';
     narisovat();
     zapustitOtschet();
