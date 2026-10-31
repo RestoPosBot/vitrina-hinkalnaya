@@ -74,9 +74,8 @@ html.tema-stal {
   background-attachment: fixed;
 }
 
-/* живой оранжевый фон и плавающий Хинкалик — не в этой теме */
+/* живой оранжевый фон и Хинкалик-украшение на баннере — не в этой теме (плавающий Хинкалик остаётся: он кнопка голосового помощника) */
 .tema-stal .fon,
-.tema-stal .hinkalik--plavayushchiy,
 .tema-stal .banner__personazh,
 .tema-stal .begushchaya { display: none !important; }
 
@@ -214,9 +213,9 @@ html.tema-stal .istoriya-krug__vnutri { border-color: #ECEEF0; }
 /* низ оформления — сталь, а не кремовая полоса (подложку ставит oformlenie.js в style, отсюда !important) */
 .tema-stal .oformlenie__niz { background: linear-gradient(to top, #E2E5E8 calc(100% - 14px), rgba(226, 229, 232, 0)) !important; }
 
-/* Хинкалик не в этой теме: в списке заведений, на оформлении и в пустой корзине — ничего */
-.tema-stal .hinkalik, .tema-stal .pusto__hinkalik, .tema-stal .perenos__hinkalik { display: none !important; }
-/* вместо Хинкалика на «Где вы?» и «Готово» — логотип */
+/* Хинкалик в теме — только голосовой помощник (владелец 31.10): плавающая кнопка и шторка «Скоро закажете голосом».
+   Как украшение экранов его нет: в пустой корзине и при переносе — ничего, на «Где вы?» и «Готово» — логотип */
+.tema-stal :is(.pusto__hinkalik, .perenos__hinkalik), .tema-stal :is(.adres__hinkalik, .gotovo__hinkalik) > * { display: none !important; }
 .tema-stal :is(.adres__hinkalik, .gotovo__hinkalik) { width: 150px; height: 118px; min-height: 0; justify-self: center;
   background: url(ikonki/logo-chernyy.webp) center / contain no-repeat; }
 .tema-stal .gotovo__hinkalik { margin-top: 24px; }
