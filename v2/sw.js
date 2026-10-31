@@ -30,7 +30,7 @@
    - фото не в кеше и нет сети: отдаём превью этого блюда из кеша, если оно есть; иначе 204
      без тела. Плитка показывает знак раздела, ошибок загрузки в консоли нет. */
 
-const VERSIYA = 'k-a9b1c38256';
+const VERSIYA = 'k-87d52e7257';
 const VERSIYA_FOTO = 'f-728d054919';
 const KESH = `hinkalnaya-v2-${VERSIYA}`;
 const KESH_FOTO = `hinkalnaya-foto-v2-${VERSIYA_FOTO}`;
@@ -45,6 +45,7 @@ const OBOLOCHKA = [
   './',
   './index.html',
   './stil.css',
+  './tema_stal.css',
   './manifest.webmanifest',
   './menyu.json',
   './zavedeniya.json',
@@ -75,6 +76,9 @@ const OBOLOCHKA = [
   './js/lib/qrcode.js',
   // shrifty/**
   './shrifty/shrifty.css',
+  './shrifty/playfair-cyrillic.woff2',
+  './shrifty/playfair-latin.woff2',
+  './shrifty/playfair-latin-ext.woff2',
   './shrifty/unbounded-cyrillic.woff2',
   './shrifty/unbounded-cyrillic-ext.woff2',
   './shrifty/unbounded-latin.woff2',
@@ -85,6 +89,13 @@ const OBOLOCHKA = [
   './ikonki/hinkalik.svg',
   './ikonki/favicon-32.png',
   './ikonki/favicon.ico',
+  './ikonki/logo-chernyy.webp',
+  './zelen/granat-rossyp.webp',
+  './zelen/granat-zyorna.webp',
+  './zelen/kinza.webp',
+  './zelen/luk.webp',
+  './zelen/tarhun.webp',
+  './zelen/ukrop.webp',
   // превью для кружков сторис (scripts/sdelat_prevyu_foto.py), по 6–8 КБ
   './kartinki/istorii/m/bankety.jpg',
   './kartinki/istorii/m/desyat-plyus-dva.jpg',

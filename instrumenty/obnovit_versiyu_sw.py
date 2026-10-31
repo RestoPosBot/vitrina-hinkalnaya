@@ -19,9 +19,9 @@ VITRINA = Path(__file__).resolve().parent.parent / 'v2'
 SW = VITRINA / 'sw.js'
 
 # Что входит в оболочку: всё, что sw.js кладёт в снимок, кроме фото.
-OBOLOCHKA = ['index.html', 'stil.css', 'manifest.webmanifest', 'menyu.json', 'zavedeniya.json',
+OBOLOCHKA = ['index.html', 'stil.css', 'tema_stal.css', 'manifest.webmanifest', 'menyu.json', 'zavedeniya.json',
              'dopolnenie.json', 'istorii.json', 'sw.js', 'kartinki/qr.svg']
-PAPKI_OBOLOCHKI = ['js', 'shrifty', 'ikonki']
+PAPKI_OBOLOCHKI = ['js', 'shrifty', 'ikonki', 'zelen']
 
 
 def otpechatok(fayly):
